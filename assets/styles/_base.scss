@@ -1,0 +1,30 @@
+/* normalize, reset, html/body definitions */
+body {
+    font-family: 'Nunito', 'M PLUS Rounded 1c', 'BIZ UDGothic', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+p, label, span, a, h1, h2, h3, h4, h5, h6, strong, b, i, em, small, sub, sup, li {
+    transform: rotateZ(0.03deg);
+}
+
+::placeholder {
+    transform: rotateZ(0.03deg);
+}
+
+button, input[type="button"], input[type="submit"], input[type="reset"], textarea, textarea:focus {
+    transform: rotateZ(0.03deg);
+}
+
+#app-container {
+    height: 100vh;
+    width: 100vw;
+    position: relative;
+    display: block;
+    margin: 0 auto;
+    padding: 0;
+    overflow: hidden !important;
+
+    
+}

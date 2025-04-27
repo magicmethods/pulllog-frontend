@@ -1,0 +1,42 @@
+{
+  "name": "pulllog",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "rm -rf .nuxt node_modules/.vite",
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare"
+  },
+  "dependencies": {
+    "@loadingio/loading.css": "^3.2.1",
+    "@pinia/nuxt": "^0.11.0",
+    "@primeuix/themes": "^1.0.3",
+    "@primevue/forms": "^4.3.3",
+    "@tailwindcss/vite": "^4.1.4",
+    "nuxt": "^3.16.2",
+    "pinia": "^3.0.2",
+    "primeicons": "^7.0.0",
+    "primevue": "^4.3.3",
+    "tailwindcss": "^4.1.4",
+    "tailwindcss-primeui": "^0.6.1",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "@nuxt/types": "^2.18.1",
+    "@nuxt/typescript-build": "^3.0.2",
+    "@primevue/auto-import-resolver": "^4.3.3",
+    "@primevue/nuxt-module": "^4.3.3",
+    "@tailwindcss/postcss": "^4.1.4",
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "sass": "^1.86.3",
+    "typedoc": "^0.28.2",
+    "unplugin-vue-components": "^28.5.0",
+    "vue-tsc": "^2.2.8"
+  }
+}

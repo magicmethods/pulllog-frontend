@@ -1,0 +1,32 @@
+@use "tailwindcss" as *;
+@use "tailwindcss-primeui" as *;
+
+@custom-variant dark (&:where(.app-dark, .app-dark *));
+
+/* Extended styles as follows by using Tailwind CSS: */
+@layer components {
+    strong {
+        @apply font-bold text-surface-600 dark:text-surface-200;
+    }
+    .btn {
+        @apply py-2 px-4 mx-auto mb-2 border rounded-md border-transparent flex items-center justify-center text-white font-medium text-sm flex-auto focus:ring-4 focus:outline-none transition-colors;
+    }
+    .btn-primary {
+        @apply bg-primary-500 hover:bg-primary-emphasis focus:ring-primary/50 dark:bg-primary-600 dark:hover:bg-primary-600/80 dark:focus:ring-primary-600/40;
+    }
+    .btn-primary:disabled {
+        @apply bg-primary-500/50 text-surface-50 dark:bg-primary/50 dark:text-surface-400;
+    }
+    .btn-secondary {
+        @apply bg-amber-700 hover:bg-amber-800 focus:ring-amber-700/50 dark:bg-amber-600 dark:hover:bg-amber-600/50 dark:focus:ring-amber-800/40;
+    }
+    .btn-secondary:disabled {
+        @apply bg-amber-700/50 text-surface-50 dark:bg-amber-600/50 dark:text-surface-50;
+    }
+    .btn-alternative {
+        @apply bg-surface-50 hover:bg-surface-100 text-surface-800 border-surface-500 focus:ring-surface-200/50 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-200 dark:border-gray-600 dark:focus:ring-gray-900/40 flex-none;
+    }
+    .btn-alternative:disabled {
+        @apply bg-surface-200/50 text-surface-400 border-surface-500/50 dark:bg-gray-800/40 dark:text-gray-200/40 dark:border-gray-600/40;
+    }
+}

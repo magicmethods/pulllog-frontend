@@ -1,0 +1,19 @@
+<svg id="pulllog-icon" xmlns="http://www.w3.org/2000/svg" width="658" height="657" viewBox="0 0 658 657" enable-background="new 0 0 658 657" xml:space="preserve">
+  <circle id="capsule-bg" fill-rule="evenodd" clip-rule="evenodd" fill="#DBB7FF" cx="329" cy="329" r="284"/>
+  <g>
+    <polygon id="star-shadow" fill-rule="evenodd" clip-rule="evenodd" fill="#CC66FF" points="407.31,124.95 432.74,278.97 573.64,345.32
+      435.47,417.11 416.16,572 305.33,462.35 152.49,491.71 222.17,352.16 147.02,215.42 300.91,238.82"/>
+  </g>
+  <g>
+    <polygon id="star" fill-rule="evenodd" clip-rule="evenodd" fill="#FFCC66" points="393.31,117.95 418.74,271.97 559.64,338.32
+      421.47,410.11 402.16,565 291.33,455.35 138.49,484.71 208.17,345.16 133.02,208.42 286.91,231.82"/>
+  </g>
+  <path id="star-light" fill-rule="evenodd" clip-rule="evenodd" fill="#FFFFFF" d="M379,145h9l-77.48,90.76h-9L379,145z M212,356.5l5.5,8l-50,96.5h-9
+    L212,356.5z M274.5,247.5l6-7l-119-17.5l3.5,7.5L274.5,247.5z M526,339.5l9-5.5l-116.5-52l0.5,8.5L526,339.5z"/>
+  <path id="capsule-cover" fill-rule="evenodd" clip-rule="evenodd" fill="#9966FF" d="M52.64,394.72C82.29,519.88,194.77,613,329,613
+    s246.71-93.12,276.36-218.28C553.16,457.91,448.99,501,329,501S104.84,457.91,52.64,394.72z"/>
+  <path id="capsule-border" fill-rule="evenodd" clip-rule="evenodd" fill="#8C55FF" d="M17,330c0,172.32,139.68,312,312,312s312-139.68,312-312
+    S501.32,18,329,18S17,157.68,17,330z M45,329C45,172.15,172.15,45,329,45s284,127.15,284,284S485.85,613,329,613S45,485.85,45,329z"/>
+  <path id="luster" fill-rule="evenodd" clip-rule="evenodd" fill="#F8F0FF" d="M117,174.5c0-43.91,35.59-79.5,79.5-79.5s79.5,35.59,79.5,79.5
+    S240.41,254,196.5,254S117,218.41,117,174.5z"/>
+</svg>

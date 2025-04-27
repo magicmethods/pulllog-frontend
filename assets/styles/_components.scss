@@ -1,0 +1,64 @@
+/** Any component styles */
+/** For CalendarUI component */
+.p-datepicker-panel {
+    [aria-selected="true"] {
+        --p-datepicker-date-selected-background: var(--p-primary-300);
+        --p-datepicker-date-selected-color: var(--p-primary-800);
+    }
+}
+.p-datepicker-day-view {
+    thead {
+        th:first-child span {
+            color: var(--p-rose-700);
+        }
+        th:last-child span {
+            color: var(--p-blue-700);
+        }
+    }
+    tbody {
+        td:first-child span {
+            --p-datepicker-date-color: var(--p-rose-700);
+        }
+        td:last-child span {
+            --p-datepicker-date-color: var(--p-blue-700);
+        }
+    }
+}
+.app-dark {
+    .p-datepicker-panel {
+        [aria-selected="true"] {
+            --p-datepicker-date-selected-background: var(--p-primary-900);
+            --p-datepicker-date-selected-color: var(--p-primary-100);
+        }
+    }
+    .p-datepicker-day-view {
+        thead {
+            th:first-child span {
+                color: var(--p-rose-300);
+            }
+            th:last-child span {
+                color: var(--p-blue-300);
+            }
+        }
+        tbody {
+            td:first-child span {
+                --p-datepicker-date-color: var(--p-rose-400);
+            }
+            td:last-child span {
+                --p-datepicker-date-color: var(--p-blue-400);
+            }
+        }
+    }
+}
+/** For ComboBox component */
+.custom-wrapper {
+    .p-select {
+        min-height: 42px;
+        background-color: transparent;
+      
+        input#currency_unit {
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+    }
+}
