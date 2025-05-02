@@ -4,6 +4,7 @@ import path from 'node:path'
 import Components from 'unplugin-vue-components/vite'
 import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import { PullLogPreset } from './theme/preset'
+import { ptPreset } from './theme/ptPreset'
 import tailwindcssPostcss from '@tailwindcss/postcss'
 //import autoprefixer from 'autoprefixer'
 const autoprefixer = require('autoprefixer') as typeof import('autoprefixer')
@@ -24,6 +25,13 @@ export default defineNuxtConfig({
     },
   },
   ssr: false,
+  runtimeConfig: {
+    public: {
+      apiBaseURL: process.env.API_BASE_URL || 'https://pulllog.net/api',
+      apiKey: process.env.API_KEY || '',
+      appVersion: process.env.APP_VERSION || '0.0.0',
+    },
+  },
   app: {
     baseURL: '/',
     head: {
@@ -100,7 +108,12 @@ export default defineNuxtConfig({
             order: 'tailwind-base, primevue, tailwind-components, tailwind-utilities',
           },
         },
+      },
+      pt: ptPreset,
+      ptOptions: {
+        mergeSections: true,
+        mergeProps: true,
       }
-    }
+    },
   }
 })

@@ -3,12 +3,12 @@ import { useWebIcon } from '~/composables/useWebIcon'
 
 // Props
 const props = defineProps<{
-    modelValue: App | null
+    modelValue: AppData | null
 }>()
 
 // Emits
 const emit = defineEmits<
-    (e: 'update:modelValue', value: App | null) => void
+    (e: 'update:modelValue', value: AppData | null) => void
 >()
 
 // Composables
@@ -16,9 +16,8 @@ const { fetchWebIcon } = useWebIcon()
 
 // Refs & Local variables
 const modalVisible = ref<boolean>(false)
-const selectedApp = ref<App | null>(props.modelValue)
+const selectedApp = ref<AppData | null>(props.modelValue)
 const editTarget = ref<App | undefined>(undefined)
-const iconCache = new Map<string, string>() // キャッシュ用マップ
 const registeredApps = ref<App[]>([
     { name: 'FGO', value: 'appId:fgo', url: 'https://www.fate-go.jp/' },
     { name: '原神', value: 'appId:gen', url: 'https://genshin.hoyoverse.com/ja/' },
@@ -36,7 +35,7 @@ const registeredApps = ref<App[]>([
 ])
 
 // Methods
-function handleChangeApp(app: App | null) {
+function handleChangeApp(app: AppData | null) {
     selectedApp.value = app
     emit('update:modelValue', app)
 }
@@ -47,7 +46,7 @@ function openModal(mode: 'edit' | 'add', e: Event) {
     }
     editTarget.value = undefined
     if (mode === 'edit') {
-        const app = registeredApps.value.find((app: App) => app.value === selectedApp.value?.value)
+        const app = registeredApps.value.find((app: App) => app.value === selectedApp.value?.appId)
         if (!app) {
             //e.preventDefault()
             modalVisible.value = false
@@ -79,21 +78,11 @@ watch(
     { immediate: true }
 )
 
-// Pass Through
-const AppSelectionPT = {
-    root: 'flex-grow border border-surface rounded bg-surface-50 dark:bg-gray-950 dark:border-gray-700 hover:ring-2 hover:ring-primary-200/50 dark:hover:ring-primary-800/40 py-2 pl-3 m-0 items-center',
-    overlay: 'mt-0 border border-surface rounded shadow-lg bg-surface-50 dark:bg-gray-950 dark:border-gray-700',
-    option: 'w-full py-2 px-2 flex justify-between items-center hover:text-primary-500 hover:bg-primary-200/50 dark:hover:bg-primary-700/30 dark:hover:text-primary-400',
-    dropdown: 'dark:bg-gray-950 dark:border-gray-700',
-    dropdownIcon: 'text-surface-400 hover:text-primary-500',
-    clearIcon: 'right-9 -translate-y-1/2',
-}
-
 </script>
 
 <template>
     <div>
-        <h3 class="text-primary-600 dark:text-primary-500 mb-1 font-semibold">対象アプリケ―ション</h3>
+        <h3>対象アプリケ―ション</h3>
         <div class="w-full flex justify-between gap-2">
             <Select
                 v-model="selectedApp"
@@ -101,7 +90,7 @@ const AppSelectionPT = {
                 optionLabel="name"
                 placeholder="アプリを選択してください"
                 @change="handleChangeApp($event.value)"
-                :pt="AppSelectionPT"
+                :pt="{ root: 'flex-1 h-max pl-3' }"
             >
                 <template #value="slotProps">
                     <div v-if="slotProps.value" class="w-full truncate px-1 flex justify-start items-center">
@@ -128,7 +117,7 @@ const AppSelectionPT = {
             <Button
                 icon="pi pi-pen-to-square"
                 label="編集"
-                class="btn btn-alternative max-w-max px-4 py-2 mb-0! text-md!"
+                class="btn btn-alternative max-w-max mb-0"
                 :disabled="!selectedApp"
                 @click="openModal('edit', $event)"
                 v-blur-on-click
@@ -136,7 +125,7 @@ const AppSelectionPT = {
             <Button
                 icon="pi pi-plus"
                 label="追加"
-                class="btn btn-primary max-w-max px-4 py-2 mb-0! text-md!"
+                class="btn btn-primary max-w-max mb-0"
                 @click="openModal('add', $event)"
                 v-blur-on-click
             />

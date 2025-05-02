@@ -102,14 +102,6 @@ watch(
     }
 )
 
-// Pass Through
-const chipsPT = {
-    root: 'border border-surface dark:border-gray-700 dark:bg-gray-950 rounded focus:ring-2 focus:ring-primary-200/50 focus:dark:ring-primary-800/40 outline-none py-2 pl-3 m-0 items-center',
-    input: 'shadow-none',
-    inputitemfield: { class: 'w-full border-none outline-none bg-transparent dark:bg-gray-950 focus:ring-2 focus:ring-primary-200/50 focus:dark:ring-primary-800/40' },
-    clearIcon: 'right-9 -translate-y-1/2',
-}
-
 </script>
 
 <template>
@@ -121,7 +113,6 @@ const chipsPT = {
         :class="props.class"
         separator=","
         @add="handleAdd"
-        :pt="chipsPT"       
     >
         <template #chip="slotProps">
             <div class="flex items-center gap-1 px-1 py-0.5 rounded-full bg-surface-200 text-surface-600 dark:bg-gray-600/50 dark:text-gray-400">

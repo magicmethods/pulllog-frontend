@@ -4,3 +4,22 @@
     -moz-osx-font-smoothing: grayscale;
     transform: rotateZ(0.03deg);
 }
+.divider {
+    width: calc(100% + 2.5rem);
+    margin: 0.5rem 0;
+    padding: 0;
+    border-color: var(--p-surface-300);
+}
+.scrollable-container {
+    scrollbar-color: var(--p-surface-400) transparent;
+    scrollbar-width: auto;
+}
+.app-dark {
+    .scrollable-container {
+        scrollbar-color: var(--p-surface-600) transparent;
+        scrollbar-width: auto;
+    }
+    .divider {
+        border-color: var(--p-gray-700);
+    }
+}

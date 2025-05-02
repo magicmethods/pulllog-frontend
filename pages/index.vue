@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { useOptionStore } from '~/stores/useOptionStore'
+
+// Stores
+const optionStore = useOptionStore()
 
 // Local variables
-const selectedApp = ref<App | null>(null) // 選択されたアプリケーション
+const selectedApp = ref<AppData | null>(null) // 選択されたアプリケーション
 const targetDate = ref<CalenderDate>(null) // 対象日付
-const maxPullCount = ref<number>(0) // ガチャ回数
+const totalPullCount = ref<number>(0) // ガチャ回数
 const dischargedItems = ref<number>(0) // 最高レア排出数
+const dropDetails = ref<DropDetail[]>([]) // 排出内容の詳細（任意）
 const expense = ref<number>(0) // 課金額
 const tags = ref<string[]>([]) // タグ（任意）
 const freeText = ref<string>('') // メモ（任意）
@@ -16,6 +21,12 @@ const locations = ref<Record<string, string>[]>([
 const showCalculator = ref<boolean>(false) // 計算機モーダルの表示状態
 const today = new Date()
 const maxTextLength = 200 // メモの最大文字数
+
+// Computed
+// 通貨表示（選択アプリに依存）
+const currencyUnit = computed(() =>
+  selectedApp.value?.currency_unit ?? 'JPY'
+)
 
 // Methods
 // 計算機を開く
@@ -32,6 +43,70 @@ const handleCommitOverwrite = (newValue: number) => {
   expense.value = newValue
   showCalculator.value = false
 }
+// ログ保存処理（送信用 DateLog の構築）
+function submitLog() {
+  if (!selectedApp.value || !targetDate.value) return
+
+  const log: DateLog = {
+    userId: selectedApp.value.userId,
+    appId: selectedApp.value.appId,
+    date: formatDate(targetDate.value as Date),
+    total_pulls: totalPullCount.value,
+    discharge_items: dischargedItems.value,
+    drop_details: [...dropDetails.value],
+    expense: expense.value,
+    tags: tags.value,
+    free_text: freeText.value,
+    images: [],
+    tasks: [],
+    last_updated: new Date().toISOString(),
+  }
+  // View用に変換
+  const rarityMap = new Map(optionStore.rarityOptions.map(opt => [opt.label, opt]))
+  const symbolMap = new Map(optionStore.symbolOptions.map(opt => [`${opt.symbol ?? ''}${opt.label}`, opt]))
+  const views = toDropDetailViews(dropDetails.value, { rarityMap, symbolMap })
+  // 保存するログの内容をコンソールに出力（デバッグ）
+  views.forEach((v, i) => {
+    console.log(
+        `${i + 1}件目: ${v.rarityDisplay} - ${v.name ?? '(未入力)'} ${v.symbolDisplay ? `[${v.symbolDisplay}]` : ''}`
+    )
+  })
+
+  console.log('送信データ', log)
+  // TODO: API送信処理へ
+  resetForm()
+}
+// リセット処理
+function resetForm() {
+    totalPullCount.value = 0
+    dischargedItems.value = 0
+    expense.value = 0
+    tags.value = []
+    freeText.value = ''
+    textLength.value = 0
+}
+function formatDate(date: Date): string {
+  return date.toISOString().split('T')[0] // "YYYY-MM-DD" 形式に変換
+}
+// DropDetail[] → DropDetailView[] 変換（UI表示用）
+function toDropDetailViews(details: DropDetail[], options: {
+    rarityMap?: Map<string, SymbolOption>
+    symbolMap?: Map<string, SymbolOption>
+} = {}): DropDetailView[] {
+    const { rarityMap, symbolMap } = options
+
+    return details.map((entry) => {
+        const rarityOpt = rarityMap?.get(entry.rarity ?? '') ?? null
+        const symbolOpt = symbolMap?.get(entry.symbol ?? '') ?? null
+
+        return {
+            ...entry,
+            rarityDisplay: rarityOpt ? `${rarityOpt.symbol ?? ''}${rarityOpt.label}` : entry.rarity ?? '',
+            symbolDisplay: symbolOpt ? `${symbolOpt.symbol ?? ''}${symbolOpt.label}` : entry.symbol ?? '',
+        }
+    })
+}
+
 
 // Watches
 watch(
@@ -45,27 +120,9 @@ watch(
   { immediate: true }
 )
 
-// Pass Through
-const breadcrumbPT = {
-  root: 'bg-transparent p-0 -mt-1 mb-1',
-  list: 'bg-transparent h-6 flex justify-start items-baseline',
-  item: 'bg-transparent text-surface-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-500 text-base',
-  itemIcon: 'text-surface-500 dark:text-gray-400',
-  separator: 'relative bg-transparent top-[1px] text-surface-300 dark:text-gray-600',
-}
-const inputNumberPT = {
-  pcinputtext: {
-    root: 'w-full border rounded px-3 py-2 border-surface dark:border-gray-700 dark:bg-gray-950 focus:ring-2 focus:ring-primary-200/50 dark:focus:ring-primary-800/40 disabled:bg-surface-200/50 disabled:text-surface-600/50 disabled:dark:bg-gray-800/40 disabled:dark:text-gray-200/40 disabled:dark:border-gray-600/40',
-  },
-  incrementButton: 'hover:text-primary disabled:text-surface-600/50',
-  decrementButton: 'hover:text-primary disabled:text-surface-600/50',
-}
-const textareaPT = {
-  root: {
-    class: 'w-full border rounded px-3 py-2 border-surface dark:border-gray-700 dark:bg-gray-950 focus:ring-2 focus:ring-primary-200/50 dark:focus:ring-primary-800/40 disabled:bg-surface-200/50 disabled:text-surface-600/50 text-antialiasing text-sm',
-    style: { minWidth: 'calc(100% - 10rem)' },
-  }
-}
+// Classes
+const inputFieldRow = 'flex flex-nowrap justify-start items-center gap-2'
+const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
 
 </script>
 
@@ -73,7 +130,7 @@ const textareaPT = {
   <div class="w-full mx-auto px-4 py-6">
       <!-- Page Header -->
       <div id="page-header" class="flex justify-start text-sm text-surface-500 -mt-2 mb-4">
-        <Breadcrumb :home="home" :model="locations" :pt="breadcrumbPT" />
+        <Breadcrumb :home="home" :model="locations" />
       </div>
 
       <!-- 入力エリアとログ表示エリア -->
@@ -93,65 +150,63 @@ const textareaPT = {
                 :maxDate="today"
                 customIcon="📅"
                 :withFooter="true"
-                panelClass="w-80!"
+                :pt="{ root: 'w-64', panel: 'w-80' }"
               />
 
               <!-- 最新ログの登録 -->
               <div class="space-y-2">
-                  <h3 class="text-primary-600 dark:text-primary-500 mb-1 font-semibold">最新ログの登録</h3>
-                  <div class="flex flex-nowrap justify-start items-center gap-2">
-                    <label for="max-pull-count" class="font-medium block w-40 min-w-[8rem]">ガチャ回数</label>
+                  <h3>最新ログの登録</h3>
+                  <div :class="inputFieldRow">
+                    <label for="total-pull-count" :class="inputFieldLabel">ガチャ回数</label>
                     <InputNumber
-                      v-model="maxPullCount"
-                      inputId="max-pull-count"
+                      v-model="totalPullCount"
+                      inputId="total-pull-count"
                       placeholder="ガチャ回数"
                       showButtons
                       :min="0"
                       class="w-44 min-w-[6rem]"
-                      :pt="inputNumberPT"
                     />
                     <Button
                       icon="pi pi-plus"
                       label="10"
                       class="btn btn-alternative p-2! text-base! m-0!"
-                      @click="maxPullCount += 10"
+                      @click="totalPullCount += 10"
                       v-blur-on-click
                     />
                     <Button
                       icon="pi pi-plus"
                       label="100"
                       class="btn btn-alternative p-2! text-base! m-0!"
-                      @click="maxPullCount += 100"
+                      @click="totalPullCount += 100"
                       v-blur-on-click
                     />
                     <Button
                       icon="pi pi-eraser"
                       label="0"
                       class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="maxPullCount === 0"
-                      @click="maxPullCount = 0"
+                      :disabled="totalPullCount === 0"
+                      @click="totalPullCount = 0"
                       v-blur-on-click
                     />
                     <div class="w-full"></div>
                   </div>
-                  <div class="flex flex-nowrap justify-start items-center gap-2">
-                    <label for="discharged-items" class="font-medium block w-40 min-w-[8rem]">最高レア排出数</label>
+                  <div :class="inputFieldRow">
+                    <label for="discharged-items" :class="inputFieldLabel">最高レア排出数</label>
                     <InputNumber
                       v-model="dischargedItems"
                       inputId="discharged-items"
                       placeholder="最高レア排出数"
                       showButtons
                       :min="0"
-                      :max="maxPullCount"
-                      :disabled="maxPullCount === 0"
+                      :max="totalPullCount"
+                      :disabled="totalPullCount === 0"
                       class="w-44 min-w-[6rem]"
-                      :pt="inputNumberPT"
                     />
                     <Button
                       icon="pi pi-plus"
                       label="10"
                       class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="maxPullCount < 10 || dischargedItems >= maxPullCount"
+                      :disabled="totalPullCount < 10 || dischargedItems >= totalPullCount"
                       @click="dischargedItems += 10"
                       v-blur-on-click
                     />
@@ -159,7 +214,7 @@ const textareaPT = {
                       icon="pi pi-plus"
                       label="100"
                       class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="maxPullCount < 100 || dischargedItems >= maxPullCount"
+                      :disabled="totalPullCount < 100 || dischargedItems >= totalPullCount"
                       @click="dischargedItems += 100"
                       v-blur-on-click
                     />
@@ -173,12 +228,15 @@ const textareaPT = {
                     />
                     <div class="w-full"></div>
                   </div>
-                  <div v-if="dischargedItems > 0" class="max-h-52 overflow-y-auto">
-                    <label class="block text-md my-1">排出内容の記録（任意）</label>
-                    <PullItemDetail :maxEntries="dischargedItems" />
+                  <div v-if="dischargedItems > 0" class="scrollable-container max-h-52 overflow-y-auto">
+                    <label class="font-medium block text-md py-2 sticky top-0 z-20 bg-white dark:bg-[#070D19]">排出内容の記録（任意）</label>
+                    <PullItemDetail
+                      :maxEntries="dischargedItems"
+                      v-model="dropDetails"
+                    />
                   </div>
-                  <div class="flex flex-nowrap justify-start items-center gap-2">
-                    <label for="expense" class="font-medium block w-40 min-w-[8rem]">課金額</label>
+                  <div :class="inputFieldRow">
+                    <label for="expense" :class="inputFieldLabel">課金額</label>
                     <InputNumber
                       v-model="expense"
                       inputId="expense"
@@ -190,9 +248,8 @@ const textareaPT = {
                       :min="0"
                       :max="9999999"
                       class="w-44 min-w-[8rem]"
-                      :pt="inputNumberPT"
                     />
-                    <div class="w-12 px-1 text-md font-medium text-surface-500">JPY</div>
+                    <div class="w-12 px-1 text-md font-medium text-surface-500">{{ currencyUnit }}</div>
                     <Button
                       icon="pi pi-calculator"
                       label=""
@@ -218,8 +275,8 @@ const textareaPT = {
                     @commit-overwrite="handleCommitOverwrite"
                     @close="showCalculator = false"
                   />
-                  <div class="flex flex-nowrap justify-start items-start gep-2">
-                    <label for="tags" class="font-medium block w-40 min-w-[136px] pt-2">タグ（任意）</label>
+                  <div :class="inputFieldRow">
+                    <label for="tags" :class="`${inputFieldLabel} min-w-[136px]! pt-2`">タグ（任意）</label>
                     <InputTags
                       v-model="tags"
                       inputId="tags"
@@ -230,8 +287,8 @@ const textareaPT = {
                       tagPrefix="symbol"
                     />
                   </div>
-                  <div class="flex flex-nowrap justify-start items-start gap-2 mb-4">
-                    <label for="note" class="font-medium block w-40 min-w-[8rem] pt-2">メモ（任意）</label>
+                  <div :class="`${inputFieldRow} items-start! mb-4!`">
+                    <label for="note" :class="`${inputFieldLabel} pt-2`">メモ（任意）</label>
                     <div class="flex-grow w-full">
                       <Textarea
                         v-model="freeText"
@@ -241,16 +298,16 @@ const textareaPT = {
                         rows="3"
                         :maxlength="maxTextLength"
                         @input="textLength = freeText.length"
-                        :pt="textareaPT"
+                        :style="{ minWidth: 'calc(100% - 10rem)' }"
                       />
-                      <Message size="small" severity="secondary" variant="simple">入力文字数: {{ textLength }}</Message>
+                      <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">入力文字数: {{ textLength }}</Message>
                     </div>
                   </div>
                   <Button
                     label="ログを保存"
                     fluid
                     class="btn btn-primary px-3 py-2 text-center text-base"
-                    @click=""
+                    @click="submitLog"
                     :disabled="!selectedApp || !targetDate"
                     v-blur-on-click
                   />

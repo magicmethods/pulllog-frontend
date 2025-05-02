@@ -77,10 +77,8 @@ watch(visible, (v) => {
     if (!v) emit('close')
 })
 
-// Pass Through
-const keypadPT = {
-    root: 'w-full p-2 border rounded-md bg-surface-200 hover:bg-surface-300 border-surface-400 dark:bg-surface-700 dark:hover:bg-surface-600 dark:border-surface-500 text-lg font-semibold',
-}
+// Class
+const modalCloseButton = 'h-8 w-8 m-0 p-0 rounded-full hover:bg-surface-200/50 hover:text-primary-500 dark:hover:bg-gray-700/40'
 
 </script>
 
@@ -88,7 +86,7 @@ const keypadPT = {
     <Dialog v-model:visible="visible" modal :closable="false" class="w-80 dark:bg-gray-800">
         <div class="flex flex-col items-center p-2">
             <!-- 計算式表示 -->
-            <div class="w-full text-right text-lg border border-surface-300 dark:border-gray-700 bg-surface-50 dark:bg-gray-900/50 p-2 mb-2 rounded">
+            <div class="w-full text-right text-lg tracking-wider border border-surface-300 dark:border-gray-700 bg-surface-50/50 dark:bg-gray-950/50 p-2 mb-2 rounded">
                 {{ inputExpression || '0' }}
             </div>
 
@@ -103,14 +101,16 @@ const keypadPT = {
 
             <!-- クリア・クローン・バックスペース・イコール -->
             <div class="w-full grid grid-cols-4 gap-2 my-2">
-                <Button label="0" icon="pi pi-eraser" @click="clearInput"  :pt="keypadPT" />
-                <Button label=""  icon="pi pi-clone"  @click="cloneAmount" :pt="keypadPT" />
-                <Button label=""  icon="pi pi-delete-left" @click="backspace"  :pt="keypadPT" />
-                <Button label=""  icon="pi pi-equals" @click="calculateResult" :pt="keypadPT" />
+                <Button label="0" icon="pi pi-eraser" @click="clearInput" class="btn btn-keypad w-full" />
+                <Button label=""  icon="pi pi-clone"  @click="cloneAmount" class="btn btn-keypad w-full" />
+                <Button label=""  icon="pi pi-delete-left" @click="backspace" class="btn btn-keypad w-full" />
+                <Button label=""  icon="pi pi-equals" @click="calculateResult" class="btn btn-keypad w-full" />
             </div>
 
+            <hr class="divider" />
+
             <!-- コミットボタン群 -->
-            <div class="w-full grid grid-cols-2 gap-2 px-0 py-2 border-t border-surface-300 dark:border-gray-600/40">
+            <div class="w-full grid grid-cols-2 gap-2 px-0 py-2">
                 <Button
                     label="加算して登録"
                     @click="commitAdd"
@@ -119,7 +119,7 @@ const keypadPT = {
                     :disabled="result === null"
                 />
                 <Button
-                    label="置き換えて登録"
+                    label="上書き登録"
                     @click="commitOverwrite"
                     severity="info"
                     class="w-full btn btn-primary mb-0 text-base"
@@ -137,7 +137,12 @@ const keypadPT = {
         <template #header>
             <div class="w-full flex items-center justify-between p-2 pb-0">
                 <h3 class="text-primary-800 dark:text-primary-400 text-lg font-medium">課金額計算機</h3>
-                <Button icon="pi pi-times" class="h-8 w-8 m-0 p-0 rounded-full hover:bg-surface-200/50 hover:text-primary-500 dark:hover:bg-gray-700/40" @click="close" aria-label="Close" />
+                <Button
+                    icon="pi pi-times"
+                    :class="modalCloseButton"
+                    @click="close"
+                    aria-label="Close"
+                />
             </div>
         </template>
     </Dialog>

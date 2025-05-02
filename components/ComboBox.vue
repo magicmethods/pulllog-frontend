@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { SelectPassThroughOptions } from 'primevue';
 
 // Props
 const props = defineProps<{
@@ -13,6 +14,7 @@ const props = defineProps<{
     emptyMessage?: string
     removableOptions?: boolean
     inputId?: string
+    pt?: PassThroughValue
 }>()
 
 // Emits
@@ -31,6 +33,9 @@ const defaultOptions = props.defaultOptions ?? []
 const isProtected = (option: string) => 
     defaultOptions.some(opt => getLabel(opt).toLowerCase() === option.toLowerCase())
 const isRemoving = ref<boolean>(false)
+const passThroughOptions = computed(() => {
+    return (props.pt ? { ...props.pt } : {}) as SelectPassThroughOptions
+})
 
 // Computed
 const filteredOptions = computed(() => {
@@ -48,7 +53,6 @@ const filteredOptions = computed(() => {
 
     return base
 })
-
 const containerWidth = computed(() => ({
     minWidth: props.width
         ? typeof props.width === 'number'
@@ -89,18 +93,6 @@ watch(() => props.modelValue, val => {
     committedValue.value = val ?? ''
 })
 
-// Pass Through
-const selectBoxPT = {
-    root: {
-        class: 'w-full h-9 p-0 border rounded-md border-surface dark:border-gray-700 dark:bg-gray-950 hover:border-primary-200/50 dark:hover:border-gray-700 hover:ring-2 hover:ring-primary-200/50 outline-none dark:hover:ring-primary-800/40',
-        style: containerWidth.value,
-    },
-    label: 'h-full w-full m-0 p-2 pr-4 rounded-md bg-transparent dark:bg-gray-950 text-sm',
-    overlay: 'mt-0 border border-surface rounded-md shadow-lg bg-surface-50 dark:bg-gray-900 dark:border-gray-700',
-    clearIcon: 'border rounded-full border-surface-400 bg-surface-100 text-surface-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-surface-200 dark:hover:bg-gray-600 w-4 h-4 p-0.5 right-8 -translate-y-1/2',
-    dropdown: 'w-[1.75rem] dark:bg-gray-950 dark:border-gray-700',
-    dropdownIcon: 'text-surface-400 hover:text-primary-500',
-}
 </script>
 
 <template>
@@ -117,14 +109,9 @@ const selectBoxPT = {
             highlightOnSelect
             @keydown.enter.prevent="addOption"
             @blur.prevent="addOption"
-            :pt="selectBoxPT"
+            :style="containerWidth"
+            :pt="passThroughOptions"
         >
-            <!-- template #value="slotProps">
-                <span v-if="slotProps.value" class="text-left">
-                    {{ slotProps.value }}
-                </span>
-                <input v-else type="text" class="text-left text-gray-500" :placeholder="slotProps.placeholder" />
-            </template -->
             <template #option="slotProps">
                 <div class="w-full h-8 pl-2 flex justify-between items-center">
                     <span class="flex-1 text-sm truncate">{{ slotProps.option }}</span>
@@ -138,7 +125,7 @@ const selectBoxPT = {
                         @click.stop="removeOption(slotProps.option)"
                         @mouseup="isRemoving = false"
                         size="small"
-                        :pt="{ root: 'h-8 w-8 pointer-events-auto z-20' }"
+                        :pt:root="'h-8 w-8 pointer-events-auto z-20'"
                     />
                 </div>
             </template>

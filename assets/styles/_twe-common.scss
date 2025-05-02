@@ -1,0 +1,38 @@
+/** Typography系のスタイル */
+@layer components {
+    h3 {
+        @apply font-semibold text-primary-600 dark:text-primary-400 mb-1;
+    }
+    strong {
+        @apply font-bold text-surface-600 dark:text-gray-400;
+    }
+    /* label
+     * PullItemDetail.vue: block text-sm font-medium mb-1 select-none
+     * AppEditModal.vue:   flex items-center text-sm font-semibold mb-1 select-none
+     */
+    label {
+        @apply font-semibold text-surface-600 dark:text-gray-400 mb-1 select-none;
+    }
+    .label-flex {
+        @apply flex items-center justify-start;
+    }
+    .borderedContainer {
+        @apply border rounded bg-surface-50 dark:bg-gray-900 border-surface-400 dark:border-gray-700
+    }
+    .lead {
+        @apply font-medium text-sm text-surface-600 dark:text-gray-400 mb-1;
+    }
+    .required {
+        @apply inline-flex justify-start items-center;
+
+        &::after {
+            @apply mx-1 text-sm -top-2 text-rose-500 dark:text-rose-300 content-['*'];
+        }
+    }
+    .helper-icon {
+        @apply text-surface-500 dark:text-gray-400 text-sm mx-2 hover:text-surface-600/50 dark:hover:text-gray-500/40;
+    }
+    .tooltip-warning {
+        @apply inline-block pt-1 text-rose-500 dark:text-rose-300 text-sm;
+    }
+}

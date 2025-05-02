@@ -31,12 +31,12 @@ onMounted(() => {
 // Pass Through
 const toggleButtonPT = (content: 'label' | 'icon') => {
     return {
-        root: 'h-8 p-0 m-0 -my-1 border-none bg-transparent focus:outline-none',
-        content: 'flex items-center justify-center m-0 p-1 rounded-md bg-primary-500 dark:bg-primary-700 hover:bg-primary-400/40 dark:hover:bg-primary-500/40',
-        icon: `mx-0 p-0 text-sm text-primary-50 hover:text-primary-200 pointer-events-auto ${content === 'label' ? '!hidden': ''}`,
-        label: `mx-0 p-0 text-sm pointer-events-auto ${content === 'icon' ? '!hidden' : ''}`,
+        icon: content === 'label' ? '!hidden': '',
+        label: content === 'icon' ? '!hidden' : '',
     }
 }
+
+// Classes
 const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded text-sm text-primary-50 hover:text-primary-200 hover:bg-primary-400/40 dark:hover:bg-primary-500/40'
 
 </script>

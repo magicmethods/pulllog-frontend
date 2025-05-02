@@ -17,6 +17,15 @@ button, input[type="button"], input[type="submit"], input[type="reset"], textare
     transform: rotateZ(0.03deg);
 }
 
+input:-webkit-autofill {
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow), 0 0 0 2rem #fff inset !important;
+    -webkit-text-fill-color: #404040 !important;
+}
+
+input:-webkit-autofill:focus {
+    caret-color: #404040 !important;
+}
+
 #app-container {
     height: 100vh;
     width: 100vw;
@@ -25,6 +34,15 @@ button, input[type="button"], input[type="submit"], input[type="reset"], textare
     margin: 0 auto;
     padding: 0;
     overflow: hidden !important;
+}
 
+.app-dark {
+    input:-webkit-autofill {
+        box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow), 0 0 0 2rem oklch(13% 0.028 261.692) inset !important;
+        -webkit-text-fill-color: #fff !important;
+    }
     
+    input:-webkit-autofill:focus {
+        caret-color: #fff !important;
+    }
 }

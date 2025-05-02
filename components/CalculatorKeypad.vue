@@ -1,21 +1,19 @@
 <script setup lang="ts">
-//import { defineEmits } from 'vue'
 
 // Emits
 const emit = defineEmits<
     (e: 'input', value: string) => void
 >()
 
-/*
-// テンキー配置（3x4）
-const keys = [
-    '7', '8', '9', '/',
-    '4', '5', '6', '*',
-    '1', '2', '3', '-',
-    '0', '.', '+'
-]
-*/
-// テンキー配置（4x4）
+/**
+ * テンキー配置（4x4）
+ * ```
+ * '7', '8', '9', '/',
+ * '4', '5', '6', '*',
+ * '1', '2', '3', '-',
+ * '0', '00','.', '+'
+ * ```
+ */
 const keys = [
     { label: '7', value: '7' },
     { label: '8', value: '8' },
@@ -46,11 +44,9 @@ const handleInput = (key: string) => {
 
 // Pass Through
 const keypadPT = (iconClass: string | null) => {
-    return {
-        root: 'w-full p-2 border rounded-md bg-surface-200 hover:bg-surface-300 border-surface-400 dark:bg-surface-700 dark:hover:bg-surface-600 dark:border-surface-500 text-lg font-semibold',
-        icon: iconClass ?? '',
-    }
+    return { icon: iconClass ?? '' }
 }
+
 </script>
 
 <template>
@@ -61,6 +57,7 @@ const keypadPT = (iconClass: string | null) => {
             :label="key.icon ? '' : key.label"
             :icon="key.icon"
             @click="handleInput(key.value)"
+            class="btn btn-keypad w-full"
             :pt="keypadPT(key.iconClass ?? null)"
         />
     </div>

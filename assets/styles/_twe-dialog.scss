@@ -1,0 +1,23 @@
+/** Dialog系のスタイル */
+@layer components {
+    /* 基本のスタイル */
+    .dialog-base {
+        @apply rounded-lg shadow-lg border border-surface bg-white dark:bg-gray-900 dark:border-gray-700;
+    }
+    /* ヘッダー */
+    .dialog-header {
+        @apply p-3 border-b border-surface dark:border-gray-700;
+    }
+    /* 本文 */
+    .dialog-content {
+        @apply flex-grow p-3 overflow-auto bg-white dark:bg-gray-900/30 text-base;
+    }
+    /* フッター */
+    .dialog-footer {
+        @apply p-3 pb-2 border-t border-surface dark:border-gray-700;
+    }
+    /* ボタン */
+    .dismiss-button {
+        @apply h-8 w-8 p-1 rounded-full text-surface-900 dark:text-surface-100 hover:bg-surface-200/50 dark:hover:bg-gray-700/40;
+    }
+}
