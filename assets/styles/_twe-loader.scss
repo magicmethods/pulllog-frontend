@@ -1,0 +1,34 @@
+/** ローダー用 */
+@layer components {
+    /* ローダーのオーバーレイ・スタイル（グローバル） */
+    .loader-overlay {
+        @apply fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm pointer-events-auto transition-all;
+        @apply bg-black/40 bg-surface-200/10 dark:bg-gray-600/16;
+    }
+    /* ローダーのオーバーレイ・スタイル（要素指定時） */
+    .loader-inner-overlay {
+        @apply absolute inset-0 z-40 flex items-center justify-center backdrop-blur-sm pointer-events-auto transition-all;
+        @apply bg-black/20 bg-surface-200/10 dark:bg-gray-600/16;
+    }
+    /* ローダーのコンテナ・スタイル（グローバル） */
+    .loader-container {
+        @apply flex flex-col items-center bg-white dark:bg-gray-900 rounded-xl px-8 py-6 shadow-2xl min-w-[160px];
+    }
+    /* ローダーのコンテナ・スタイル（要素指定時） */
+    .loader-inner-container {
+        @apply flex flex-col items-center bg-transparent dark:bg-transparent rounded-xl px-8 py-6 min-w-[120px];
+    }
+    /* ローダー要素指定時のスタイル */
+    .loader-shown {
+        @apply relative;
+    }
+    /* ローダーのスピナー・スタイル */
+    .loader-spinner {
+        @apply animate-spin border-4 rounded-full;
+        @apply border-primary-500/50 dark:border-primary-600 border-t-transparent dark:border-t-transparent;
+    }
+    /* ローダーのテキスト・スタイル */
+    .loader-text {
+        @apply text-gray-600 dark:text-gray-100;
+    }
+}

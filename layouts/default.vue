@@ -1,6 +1,4 @@
 <script setup lang="ts">
-// Composables
-//const loader = useLoader()
 
 const router = useRouter()
 const mainContainer = ref<HTMLElement | null>(null)
@@ -25,6 +23,12 @@ router.afterEach(() => {
             <slot />
             <CommonFooter />
         </main>
-        <!-- Loader v-if="loader.isLoading" / -->
+        <!-- Loader -->
+        <Loader />
+        <!-- Flush Notifications -->
+        <Toast
+            position="top-right"
+            group="notices"
+        />
     </div>
 </template>

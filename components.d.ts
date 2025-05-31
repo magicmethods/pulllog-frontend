@@ -10,7 +10,10 @@ declare module 'vue' {
   export interface GlobalComponents {
     Breadcrumb: typeof import('primevue/breadcrumb')['default']
     Button: typeof import('primevue/button')['default']
+    Chip: typeof import('primevue/chip')['default']
     Chips: typeof import('primevue/chips')['default']
+    Column: typeof import('primevue/column')['default']
+    DataTable: typeof import('primevue/datatable')['default']
     DatePicker: typeof import('primevue/datepicker')['default']
     Dialog: typeof import('primevue/dialog')['default']
     Divider: typeof import('primevue/divider')['default']
@@ -26,6 +29,7 @@ declare module 'vue' {
     Message: typeof import('primevue/message')['default']
     OrderList: typeof import('primevue/orderlist')['default']
     OverlayPanel: typeof import('primevue/overlaypanel')['default']
+    Password: typeof import('primevue/password')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     Select: typeof import('primevue/select')['default']

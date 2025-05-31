@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useToast } from "primevue/usetoast"
 import { useWebIcon } from '~/composables/useWebIcon'
 
 // Props
 const props = defineProps<{
     modelValue: AppData | null
+    apps: AppData[]
 }>()
 
 // Emits
@@ -11,28 +13,41 @@ const emit = defineEmits<
     (e: 'update:modelValue', value: AppData | null) => void
 >()
 
+// Plugins
+const toast = useToast()
+
 // Composables
 const { fetchWebIcon } = useWebIcon()
 
 // Refs & Local variables
 const modalVisible = ref<boolean>(false)
-const selectedApp = ref<AppData | null>(props.modelValue)
-const editTarget = ref<App | undefined>(undefined)
-const registeredApps = ref<App[]>([
-    { name: 'FGO', value: 'appId:fgo', url: 'https://www.fate-go.jp/' },
-    { name: '原神', value: 'appId:gen', url: 'https://genshin.hoyoverse.com/ja/' },
-    { name: 'モンスト', value: 'appId:mon', url: 'https://www.monster-strike.com/' },
-    { name: 'グラブル', value: 'appId:gbf', url: 'https://granbluefantasy.jp/' },
-    { name: 'アズールレーン', value: 'appId:azl', url: 'https://azurlane.jp/' },
-    { name: 'にゃんこ大戦争', value: 'appId:cat', url: 'https://battlecats.club/' },
-    { name: 'ドラクエウォーク', value: 'appId:dqw', url: 'https://www.dragonquest.jp/walk/' },
-    { name: 'ツムツム', value: 'appId:dtt', url: 'https://www.disney.co.jp/games/dtt' },
-    { name: 'ぷにぷに', value: 'appId:ywp', url: 'https://yokai-punipuni.jp/' },
-    { name: 'ウマ娘', value: 'appId:uma', url: 'https://umamusume.jp/' },
-    { name: 'メメントモリ', value: 'appId:mmm', url: 'https://mememori-game.com/' },
-    { name: '無効なURLが指定されたゲーム', value: 'appId:xxx', url: 'https://invalid.social-game.net/' },
-    { name: 'URL未定義のゲーム', value: 'appId:zzz', url: '' },
+const selectedApp = ref<AppData | null>(null)
+const editTarget = ref<AppData | undefined>(undefined)
+/*
+const registeredApps = ref<AppData[]>([
+    // 開発用
+    { appId: 'mtd', name: 'モン娘TD', url: 'https://monmusu-td.wikiru.jp/', description: 'TDは「タワー・ディフェンス」の略です', date_update_time: '05:00', sync_update_time: true, currency_unit: 'JPY' },
+    { appId: 'fgo', name: 'FGO', url: 'https://www.fate-go.jp/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'gen', name: '原神', url: 'https://genshin.hoyoverse.com/ja/', description: 'オープンワールドRPG', date_update_time: '05:00', sync_update_time: true, currency_unit: 'CNY' },
+    { appId: 'mon', name: 'モンスト', url: 'https://www.monster-strike.com/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'gbf', name: 'グラブル', url: 'https://granbluefantasy.jp/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'azl', name: 'アズールレーン', url: 'https://azurlane.jp/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'cat', name: 'にゃんこ大戦争', url: 'https://battlecats.club/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'dqw', name: 'ドラクエウォーク', url: 'https://www.dragonquest.jp/walk/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'dtt', name: 'ツムツム', url: 'https://www.disney.co.jp/games/dtt', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'ywp', name: 'ぷにぷに', url: 'https://yokai-punipuni.jp/', description: null, date_update_time: '04:00', sync_update_time: true, currency_unit: 'JPY', rarity_defs: [{ symbol: null, label: 'Z+', value: 'zplus' },{ symbol: null, label: 'ZZZ', value: 'triz' }] },
+    { appId: 'uma', name: 'ウマ娘', url: 'https://umamusume.jp/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'mmm', name: 'メメントモリ', url: 'https://mememori-game.com/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'xxx', name: '無効なURLが指定されたゲーム', url: 'https://invalid.social-game.net/', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
+    { appId: 'zzz', name: 'URL未定義のゲーム', url: '', description: null, date_update_time: null, sync_update_time: false, currency_unit: null },
 ])
+*/
+const registeredApps = ref<AppData[]>(props.apps)
+
+// Computed
+const placeholderText = computed(() => {
+    return props.apps.length === 0 ? 'アプリを追加してください' : 'アプリを選択してください'
+})
 
 // Methods
 function handleChangeApp(app: AppData | null) {
@@ -46,37 +61,38 @@ function openModal(mode: 'edit' | 'add', e: Event) {
     }
     editTarget.value = undefined
     if (mode === 'edit') {
-        const app = registeredApps.value.find((app: App) => app.value === selectedApp.value?.appId)
-        if (!app) {
-            //e.preventDefault()
+        //const app = registeredApps.value.find((app: App) => app.value === selectedApp.value?.appId)
+        console.log('openModal::handleAppEdit:', selectedApp.value, props.modelValue)
+        if (!selectedApp.value) {
+            e.preventDefault()
             modalVisible.value = false
             return false
         }
-        editTarget.value = app
+        // 暫定処理
+        editTarget.value = { ...selectedApp.value }
     }
     modalVisible.value = true
 }
-function handleAppSubmit(app: App | undefined) {
+function handleAppSubmit(app: AppData | undefined) {
+    console.log('handleAppSubmit:', app)
     if (!app) return undefined
 
-    const index = registeredApps.value.findIndex(a => a.value === app.value)
+    const index = registeredApps.value.findIndex(a => a.appId === app.appId)
     if (index >= 0) {
-        registeredApps.value[index] = app // 編集
+        registeredApps.value[index] = app // 編集内容で更新
+        toast.add({ severity: 'success', summary: 'アプリケーションの更新', detail: `${app.name} の設定を更新しました。`, group: 'notices', life: 3000 })
     } else {
         registeredApps.value.push(app) // 新規追加
+        toast.add({ severity: 'success', summary: 'アプリケーションの追加', detail: `${app.name} を追加しました。`, group: 'notices', life: 3000 })
     }
     modalVisible.value = false
 }
 
 // Watches
-watch(
-    // 親からの変更を監視
-    () => props.modelValue,
-    val => {
-        selectedApp.value = val
-    },   
-    { immediate: true }
-)
+watch(() => props.modelValue, (val: AppData | null) => {
+    // 親からのアプリ変更を監視
+    selectedApp.value = val
+}, { immediate: true })
 
 </script>
 
@@ -88,7 +104,7 @@ watch(
                 v-model="selectedApp"
                 :options="registeredApps"
                 optionLabel="name"
-                placeholder="アプリを選択してください"
+                :placeholder="placeholderText"
                 @change="handleChangeApp($event.value)"
                 :pt="{ root: 'flex-1 h-max pl-3' }"
             >

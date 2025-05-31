@@ -13,55 +13,60 @@ const emit = defineEmits<
 // Stores
 const optionStore = useOptionStore()
 
-// Refs & Local State
-const internalDetails = ref<DropDetail[]>([...props.modelValue])
+// Refs
+const internalDetails = shallowRef<DropDetail[]>([...props.modelValue])
+
+// Computed
+const rarityOptions = computed(() => optionStore.rarityLabels)
+const markerOptions = computed(() => optionStore.markerLabels)
 
 // Methods
+function updateEntry(index: number, field: keyof DropDetail, value: string | null) {
+    const entry = internalDetails.value[index]
+    if (!entry) return
+    internalDetails.value[index] = { ...entry, [field]: value }
+    emit('update:modelValue', [...internalDetails.value])
+}
 
-// Watches
-watch(
-    () => props.modelValue,
-    val => {
-        // modelValue -> internal
-        internalDetails.value = [...val]
-    }
-)
-watch(
-    () => props.maxEntries,
-    newMax => {
-        // maxEntriesの変更を監視（初期表示時も）
-        const current = internalDetails.value.length
-        if (newMax > current) {
-            for (let i = current; i < newMax; i++) {
-                internalDetails.value.push({ rarity: null, name: null, symbol: null })
-            }
-        } else {
-            internalDetails.value.splice(newMax)
+// Watchers
+watch(() => props.modelValue, (val) => {
+    // (親)modelValue -> (子)internalDetails
+    internalDetails.value = [...val]
+}, { deep: false, immediate: false })
+watch(() => props.maxEntries, (newMax) => {
+    // maxEntriesの変更を監視（初期表示時も）
+    const entries = internalDetails.value
+    const current = entries.length
+    if (newMax > current) {
+        for (let i = current; i < newMax; i++) {
+            entries.push({ rarity: null, name: null, marker: null })
         }
-        emit('update:modelValue', internalDetails.value)
-    },
-    { immediate: true }
-)
-watch(internalDetails, (val) => {
-    // internalDetails -> 親に反映
-    emit('update:modelValue', val)
-}, { deep: true })
+    } else if (newMax < current) {
+        entries.splice(newMax)
+    }
+    emit('update:modelValue', [...entries])
+}, { immediate: true })
 </script>
 
 <template>
     <div class="space-y-2">
-        <div v-for="(entry, index) in internalDetails" :key="index"
+        <div
+            v-for="(entry, index) in internalDetails"
+            :key="index"
             class="borderedContainer flex flex-col md:flex-row gap-2 items-start md:items-center border-dashed p-3 rounded-lg"
         >
             <!-- The rarity field provides an editable selection box (like a combo box) -->
             <div class="h-full w-max flex-1">
-                <label :for="`field-group-${index + 1}-rarity`" class="block text-sm font-medium mb-1 select-none">レアリティ</label>
+                <label :for="`field-group-${index + 1}-rarity`" class="block text-sm font-medium mb-1 select-none">
+                    レアリティ
+                </label>
                 <ComboBox
-                    v-model="entry.rarity"
+                    :modelValue="entry.rarity"
                     :inputId="`field-group-${index + 1}-rarity`"
-                    :options="optionStore.rarityLabels"
+                    :options="rarityOptions"
                     order="desc"
-                    __update:options="(val) => optionStore.rarityLabels = val"
+                    @update:modelValue="(val) => updateEntry(index, 'rarity', val ?? null)"
+                    @update:options="(opts) => rarityOptions = opts"
                     width="8rem"
                     placeholder="選択/入力"
                     emptyMessage="追加できます"
@@ -73,10 +78,13 @@ watch(internalDetails, (val) => {
 
             <!-- Character/item name fields allow for text entry -->
             <div class="w-full flex-grow">
-                <label :for="`field-group-${index + 1}-name`" class="block text-sm font-medium mb-1 select-none">キャラ／アイテム名</label>
+                <label :for="`field-group-${index + 1}-name`" class="block text-sm font-medium mb-1 select-none">
+                    キャラ／アイテム名
+                </label>
                 <InputText
-                    v-model="entry.name"
+                    :modelValue="entry.name"
                     :id="`field-group-${index + 1}-name`"
+                    @update:modelValue="(val) => updateEntry(index, 'name', val ?? null)"
                     placeholder="例: アルトリア・キャスター"
                     fluid
                 />
@@ -84,12 +92,15 @@ watch(internalDetails, (val) => {
 
             <!-- The markup symbol field provides an editable selection box (like a combo box) -->
             <div class="w-max flex-auto">
-                <label :for="`field-group-${index + 1}-symbol`" class="block text-sm font-medium mb-1 select-none">マーキング</label>
+                <label :for="`field-group-${index + 1}-marker`" class="block text-sm font-medium mb-1 select-none">
+                    マーキング
+                </label>
                 <ComboBox
-                    v-model="entry.symbol"
-                    :inputId="`field-group-${index + 1}-symbol`"
-                    :options="optionStore.markerLabels"
-                    __update:options="(val) => optionStore.symbolOptions = val"
+                    :modelValue="entry.marker"
+                    :inputId="`field-group-${index + 1}-marker`"
+                    :options="markerOptions"
+                    @update:modelValue="(val) => updateEntry(index, 'marker', val ?? null)"
+                    @update:options="(opts) => markerOptions = opts"
                     width="9rem"
                     placeholder="選択/入力"
                     emptyMessage="追加できます"

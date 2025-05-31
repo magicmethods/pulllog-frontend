@@ -25,6 +25,7 @@ export default defineNuxtConfig({
     },
   },
   ssr: false,
+  /* Move to "app.config.ts"
   runtimeConfig: {
     public: {
       apiBaseURL: process.env.API_BASE_URL || 'https://pulllog.net/api',
@@ -32,6 +33,7 @@ export default defineNuxtConfig({
       appVersion: process.env.APP_VERSION || '0.0.0',
     },
   },
+  */
   app: {
     baseURL: '/',
     head: {

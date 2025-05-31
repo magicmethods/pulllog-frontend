@@ -1,366 +1,117 @@
 <script setup lang="ts">
-import { useOptionStore } from '~/stores/useOptionStore'
 
-// Stores
-const optionStore = useOptionStore()
+definePageMeta({
+    layout: 'landing'
+})
 
-// Local variables
-const selectedApp = ref<AppData | null>(null) // 選択されたアプリケーション
-const targetDate = ref<CalenderDate>(null) // 対象日付
-const totalPullCount = ref<number>(0) // ガチャ回数
-const dischargedItems = ref<number>(0) // 最高レア排出数
-const dropDetails = ref<DropDetail[]>([]) // 排出内容の詳細（任意）
-const expense = ref<number>(0) // 課金額
-const tags = ref<string[]>([]) // タグ（任意）
-const freeText = ref<string>('') // メモ（任意）
-const textLength = ref<number>(0) // メモの文字数
-const home = ref<{ icon: string }>({ icon: 'pi pi-home' })
-const locations = ref<Record<string, string>[]>([
-  { label: '履歴登録' },
-])
-const showCalculator = ref<boolean>(false) // 計算機モーダルの表示状態
-const today = new Date()
-const maxTextLength = 200 // メモの最大文字数
+const toast = useToast()
+const isDarkMode = ref(false)
+const initialValues = reactive({
+    username: ''
+})
 
-// Computed
-// 通貨表示（選択アプリに依存）
-const currencyUnit = computed(() =>
-  selectedApp.value?.currency_unit ?? 'JPY'
-)
+// @ts-ignore
+const resolver = ({ values }) => {
+    const errors = {} as Record<string, unknown>
 
-// Methods
-// 計算機を開く
-const openCalculator = () => {
-  showCalculator.value = true
-}
-// モーダルからの結果受取（加算）
-const handleCommitAdd = (addValue: number) => {
-  expense.value += addValue
-  showCalculator.value = false
-}
-// モーダルからの結果受取（置き換え）
-const handleCommitOverwrite = (newValue: number) => {
-  expense.value = newValue
-  showCalculator.value = false
-}
-// ログ保存処理（送信用 DateLog の構築）
-function submitLog() {
-  if (!selectedApp.value || !targetDate.value) return
-
-  const log: DateLog = {
-    userId: selectedApp.value.userId,
-    appId: selectedApp.value.appId,
-    date: formatDate(targetDate.value as Date),
-    total_pulls: totalPullCount.value,
-    discharge_items: dischargedItems.value,
-    drop_details: [...dropDetails.value],
-    expense: expense.value,
-    tags: tags.value,
-    free_text: freeText.value,
-    images: [],
-    tasks: [],
-    last_updated: new Date().toISOString(),
-  }
-  // View用に変換
-  const rarityMap = new Map(optionStore.rarityOptions.map(opt => [opt.label, opt]))
-  const symbolMap = new Map(optionStore.symbolOptions.map(opt => [`${opt.symbol ?? ''}${opt.label}`, opt]))
-  const views = toDropDetailViews(dropDetails.value, { rarityMap, symbolMap })
-  // 保存するログの内容をコンソールに出力（デバッグ）
-  views.forEach((v, i) => {
-    console.log(
-        `${i + 1}件目: ${v.rarityDisplay} - ${v.name ?? '(未入力)'} ${v.symbolDisplay ? `[${v.symbolDisplay}]` : ''}`
-    )
-  })
-
-  console.log('送信データ', log)
-  // TODO: API送信処理へ
-  resetForm()
-}
-// リセット処理
-function resetForm() {
-    totalPullCount.value = 0
-    dischargedItems.value = 0
-    expense.value = 0
-    tags.value = []
-    freeText.value = ''
-    textLength.value = 0
-}
-function formatDate(date: Date): string {
-  return date.toISOString().split('T')[0] // "YYYY-MM-DD" 形式に変換
-}
-// DropDetail[] → DropDetailView[] 変換（UI表示用）
-function toDropDetailViews(details: DropDetail[], options: {
-    rarityMap?: Map<string, SymbolOption>
-    symbolMap?: Map<string, SymbolOption>
-} = {}): DropDetailView[] {
-    const { rarityMap, symbolMap } = options
-
-    return details.map((entry) => {
-        const rarityOpt = rarityMap?.get(entry.rarity ?? '') ?? null
-        const symbolOpt = symbolMap?.get(entry.symbol ?? '') ?? null
-
-        return {
-            ...entry,
-            rarityDisplay: rarityOpt ? `${rarityOpt.symbol ?? ''}${rarityOpt.label}` : entry.rarity ?? '',
-            symbolDisplay: symbolOpt ? `${symbolOpt.symbol ?? ''}${symbolOpt.label}` : entry.symbol ?? '',
-        }
-    })
-}
-
-
-// Watches
-watch(
-  () => [selectedApp.value, targetDate.value],
-  ([newApp, newDate]) => {
-    if (newApp && newDate) {
-      // ここで新しいアプリと日付を使って何か処理を行うことができます
-      console.log('Selected App: ', newApp, 'Target Date: ', newDate)
+    if (!values.username) {
+        errors.username = [{ message: 'Username is required.' }]
     }
-  },
-  { immediate: true }
-)
 
-// Classes
-const inputFieldRow = 'flex flex-nowrap justify-start items-center gap-2'
-const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
+    return {
+        values, // (Optional) Used to pass current form values to submit event.
+        errors
+    }
+}
+
+// @ts-ignore
+const onFormSubmit = ({ valid }) => {
+    if (valid) {
+        toast.add({
+            severity: 'success',
+            summary: 'Form is submitted.',
+            life: 3000
+        })
+    }
+}
+
+const toHome = () => {
+    // Redirect to the home page
+    navigateTo('/')
+}
+
+const onClickHandler = (event: MouseEvent) => {
+    toggleRenderingMode()
+}
+
+// Toggle a class on the <html> tag to switch rendering modes
+const toggleRenderingMode = () => {
+    const htmlElement = document.documentElement
+    htmlElement.classList.toggle('app-dark')
+    isDarkMode.value = htmlElement.classList.contains('app-dark')
+}
+
+onMounted(() => {
+    // Check if the user has a preference for dark mode and set the class accordingly
+    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    if (prefersDarkMode) {
+        document.documentElement.classList.add('app-dark')
+        isDarkMode.value = true
+    } else {
+        document.documentElement.classList.remove('app-dark')
+        isDarkMode.value = false
+    }
+})
 
 </script>
 
 <template>
-  <div class="w-full mx-auto px-4 py-6">
-      <!-- Page Header -->
-      <div id="page-header" class="flex justify-start text-sm text-surface-500 -mt-2 mb-4">
-        <Breadcrumb :home="home" :model="locations" />
+  <div class="flex flex-col gap-12">
+    <div class="flex flex-nowrap justify-center items-center bg-rose-200 dark:bg-rose-400 py-2">
+      <img src="/images/pulllog-icon.svg" alt="Pulllog Icon" class="w-6 h-6 inline-block mr-2 ld ld-swing" />
+      <h2 class="text-primary dark:!text-white font-bold text-2xl text-center" @click="toHome">PullLog - プルログ</h2>
+      <!-- img src="/images/pulllog-icon.svg" alt="Pulllog Icon" class="w-6 h-6 inline-block ml-2 ld ld-spin" /-->
+    </div>
+    <p class="text-center text-gray-600 dark:text-gray-300 font-medium text-base">
+      This is a test of Tailwind CSS with <strong class="text-primary-emphasis!">PrimeVue</strong>.<br>
+      <span class="text-sm">The button below is a PrimeVue button with <strong>Tailwind CSS</strong> classes applied.</span><br>
+      <span class="text-xs">The <strong>smallest font size</strong> button below is a PrimeVue button with Tailwind CSS classes applied.</span><br>
+      日本語の<strong class="text-primary-emphasis!">テキスト</strong>も含まれています。<br>
+      <span class="text-sm">小さい<strong>フォントサイズ</strong>での日本語テキストの見た目を確認します。</span><br>
+      <span class="text-xs">最小フォントサイズでの<strong>日本語テキスト</strong>はこのようになります。</span><br>
+      1つ目のシリアルコード: BR16000019382C<br>
+      2つ目のシリアルコード: BR170000189BCB<br>
+      3つ目のシリアルコード: BR1800001C67C2<br>
+    </p>
+    <Button
+      label="PrimeVue Button"
+      :icon="`pi pi-${isDarkMode ? 'sun' : 'moon'}`"
+      iconPos="right"
+      @click="toggleRenderingMode"
+      class="btn btn-secondary"
+      v-blur-on-click
+    />
+    <div class="card flex justify-center">
+      <Toast />
+
+      <Form v-slot="$form" :initialValues :resolver @submit="onFormSubmit" class="flex flex-col gap-4 w-full sm:w-56">
+        <div class="flex flex-col gap-1">
+          <InputText name="username" type="text" placeholder="Username" fluid class="rounded-border py-1.5 px-2 border border-surface focus:ring-2 focus:ring-primary-100 focus:outline-none dark:focus:ring-primary-800" />
+          <Message v-if="$form.username?.invalid" severity="error" size="small" variant="simple">{{ $form.username.error?.message }}</Message>
+        </div>
+        <Button type="submit" severity="secondary" label="Submit" class="btn btn-primary" v-blur-on-click />
+      </Form>
+    </div>
+    <div class="flex gap-6 flex-wrap">
+      <div class="rounded-border p-4 border border-transparent flex items-center justify-center bg-primary hover:bg-primary-emphasis text-white font-medium flex-auto transition-colors">
+        Primary
       </div>
-
-      <!-- 入力エリアとログ表示エリア -->
-      <div class="w-full flex space-x-6">
-          <!-- 左カラム: 入力フォーム -->
-          <section class="w-2/5 min-w-[448px] space-y-6">
-              <!-- アプリ選択 -->
-              <SelectApps v-model="selectedApp" />
-
-              <!-- 対象日付 -->
-              <CalendarUI
-                v-model="targetDate"
-                label="対象日"
-                :commit="true"
-                commitLabel="変更"
-                :defaultDate="today"
-                :maxDate="today"
-                customIcon="📅"
-                :withFooter="true"
-                :pt="{ root: 'w-64', panel: 'w-80' }"
-              />
-
-              <!-- 最新ログの登録 -->
-              <div class="space-y-2">
-                  <h3>最新ログの登録</h3>
-                  <div :class="inputFieldRow">
-                    <label for="total-pull-count" :class="inputFieldLabel">ガチャ回数</label>
-                    <InputNumber
-                      v-model="totalPullCount"
-                      inputId="total-pull-count"
-                      placeholder="ガチャ回数"
-                      showButtons
-                      :min="0"
-                      class="w-44 min-w-[6rem]"
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="10"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      @click="totalPullCount += 10"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="100"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      @click="totalPullCount += 100"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-eraser"
-                      label="0"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="totalPullCount === 0"
-                      @click="totalPullCount = 0"
-                      v-blur-on-click
-                    />
-                    <div class="w-full"></div>
-                  </div>
-                  <div :class="inputFieldRow">
-                    <label for="discharged-items" :class="inputFieldLabel">最高レア排出数</label>
-                    <InputNumber
-                      v-model="dischargedItems"
-                      inputId="discharged-items"
-                      placeholder="最高レア排出数"
-                      showButtons
-                      :min="0"
-                      :max="totalPullCount"
-                      :disabled="totalPullCount === 0"
-                      class="w-44 min-w-[6rem]"
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="10"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="totalPullCount < 10 || dischargedItems >= totalPullCount"
-                      @click="dischargedItems += 10"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="100"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="totalPullCount < 100 || dischargedItems >= totalPullCount"
-                      @click="dischargedItems += 100"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-eraser"
-                      label="0"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="dischargedItems === 0"
-                      @click="dischargedItems = 0"
-                      v-blur-on-click
-                    />
-                    <div class="w-full"></div>
-                  </div>
-                  <div v-if="dischargedItems > 0" class="scrollable-container max-h-52 overflow-y-auto">
-                    <label class="font-medium block text-md py-2 sticky top-0 z-20 bg-white dark:bg-[#070D19]">排出内容の記録（任意）</label>
-                    <PullItemDetail
-                      :maxEntries="dischargedItems"
-                      v-model="dropDetails"
-                    />
-                  </div>
-                  <div :class="inputFieldRow">
-                    <label for="expense" :class="inputFieldLabel">課金額</label>
-                    <InputNumber
-                      v-model="expense"
-                      inputId="expense"
-                      placeholder="課金額"
-                      showButtons
-                      :minFractionDigits="0"
-                      :maxFractionDigits="2"
-                      :useGrouping="true"
-                      :min="0"
-                      :max="9999999"
-                      class="w-44 min-w-[8rem]"
-                    />
-                    <div class="w-12 px-1 text-md font-medium text-surface-500">{{ currencyUnit }}</div>
-                    <Button
-                      icon="pi pi-calculator"
-                      label=""
-                      class="btn btn-alternative py-2! px-2.5! text-base m-0"
-                      @click="openCalculator"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-eraser"
-                      label="0"
-                      class="btn btn-alternative p-2! text-base m-0"
-                      :disabled="expense === 0"
-                      @click="expense = 0"
-                      v-blur-on-click
-                    />
-                    <div class="w-full"></div>
-                  </div>
-                  <!-- モーダル: 計算機 -->
-                  <CalculatorModal
-                    v-if="showCalculator"
-                    :modelValue="expense"
-                    @commit-add="handleCommitAdd"
-                    @commit-overwrite="handleCommitOverwrite"
-                    @close="showCalculator = false"
-                  />
-                  <div :class="inputFieldRow">
-                    <label for="tags" :class="`${inputFieldLabel} min-w-[136px]! pt-2`">タグ（任意）</label>
-                    <InputTags
-                      v-model="tags"
-                      inputId="tags"
-                      placeholder="タグの追加（最大%maxTags%つまで）"
-                      :maxTags="3"
-                      :maxLength="20"
-                      class="w-full min-h-12 max-h-max"
-                      tagPrefix="symbol"
-                    />
-                  </div>
-                  <div :class="`${inputFieldRow} items-start! mb-4!`">
-                    <label for="note" :class="`${inputFieldLabel} pt-2`">メモ（任意）</label>
-                    <div class="flex-grow w-full">
-                      <Textarea
-                        v-model="freeText"
-                        inputId="note"
-                        autoResize
-                        :placeholder="`メモ（${maxTextLength}文字以内）`"
-                        rows="3"
-                        :maxlength="maxTextLength"
-                        @input="textLength = freeText.length"
-                        :style="{ minWidth: 'calc(100% - 10rem)' }"
-                      />
-                      <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">入力文字数: {{ textLength }}</Message>
-                    </div>
-                  </div>
-                  <Button
-                    label="ログを保存"
-                    fluid
-                    class="btn btn-primary px-3 py-2 text-center text-base"
-                    @click="submitLog"
-                    :disabled="!selectedApp || !targetDate"
-                    v-blur-on-click
-                  />
-              </div>
-          </section>
-
-          <!-- 右カラム: 過去ログとグラフ -->
-          <section class="w-3/5 mt-0 space-y-4">
-              <!-- 推移グラフ (ダミー) -->
-              <div class="border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40">
-                  <h2 class="text-primary-600 dark:text-primary-500 font-semibold mb-2">ガチャ履歴の推移（直近）</h2>
-                  <div class="h-64 bg-gray-200 dark:bg-gray-700/40 flex items-center justify-center text-surface-400 dark:text-surface-500">
-                    <span class="text-antialiasing">[グラフ表示エリア]</span>
-                  </div>
-              </div>
-
-              <!-- ログ一覧 -->
-              <div class="border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40">
-                  <h2 class="text-primary-600 dark:text-primary-500 font-semibold mb-2">過去ログ一覧（直近）</h2>
-                  <div class="-mx-4 border-b border-surface-300 dark:border-surface-700">
-                    <table class="w-full text-sm border-t border-surface-300 dark:border-surface-700">
-                        <thead>
-                            <tr class="bg-surface-100 dark:bg-gray-700/40 text-left">
-                                <th class="py-1 px-2 font-medium text-antialiasing">日付</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">回数</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">最高レア</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">課金額</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">タグ</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">メモ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="i in 7" :key="i" class="border-t border-surface-300 dark:border-surface-700">
-                                <td class="py-1 px-2">2025-04-{{ new Date().getDate() - i }}</td>
-                                <td class="py-1 px-2">10</td>
-                                <td class="py-1 px-2">1</td>
-                                <td class="py-1 px-2">3000</td>
-                                <td class="py-1 px-2"></td>
-                                <td class="py-1 px-2">📃</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                  </div>
-              </div>
-
-              <!-- 対象日のログ統計 -->
-              <div class="border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40">
-                  <h2 class="text-primary-600 dark:text-primary-500 font-semibold mb-2">対象日のログ統計</h2>
-                  <div class="h-12 bg-gray-200 dark:bg-gray-700/40 flex items-center justify-center text-surface-400 dark:text-surface-500">
-                    <span class="text-antialiasing">{{ targetDate }}</span>
-                  </div>
-              </div>
-          </section>
+      <div class="rounded-border p-4 border border-transparent flex items-center justify-center bg-highlight hover:bg-highlight-emphasis font-medium flex-auto transition-colors">
+        Highlight
       </div>
+      <div class="rounded-border p-4 border border-surface flex items-center justify-center text-muted-color hover:text-color hover:bg-emphasis font-medium flex-auto transition-colors">
+        Box
+      </div>
+    </div>
   </div>
 </template>

@@ -11,5 +11,7 @@
 @use "./twe-button" as *;
 @use "./twe-input" as *;
 @use "./twe-dialog" as *;
+@use "./twe-table" as *;
+@use "./twe-loader" as *;
 
 @custom-variant dark (&:where(.app-dark, .app-dark *));

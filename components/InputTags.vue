@@ -9,6 +9,7 @@ const props = defineProps<{
     class?: string
     maxTags?: number // 最大タグ数
     maxLength?: number // 最大文字数
+    disabled?: boolean
     tagPrefix?: string // 'icon' or 'symbol'
 }>()
 
@@ -106,23 +107,38 @@ watch(
 
 <template>
     <Chips
-        :modelValue="props.modelValue"
+        :modelValue="modelValue"
         @update:modelValue="updateValue"
-        :id="props.inputId"
+        :id="inputId"
         :placeholder="placeholderText"
         :class="props.class"
         separator=","
         @add="handleAdd"
+        :disabled="props.disabled"
+        :pt="{
+            root: props.disabled ? 'bg-surface-200/50 text-surface-600/50 dark:bg-gray-800/40! opacity-100' : '',
+            inputitemfield: props.disabled ? 'dark:bg-transparent dark:text-gray-600' : '',
+        }"
     >
         <template #chip="slotProps">
-            <div class="flex items-center gap-1 px-1 py-0.5 rounded-full bg-surface-200 text-surface-600 dark:bg-gray-600/50 dark:text-gray-400">
+            <div
+                class="flex items-center gap-1 px-1 py-0.5 rounded-full"
+                :class="[ props.disabled
+                    ? 'bg-surface-300 text-surface-600 dark:bg-gray-600/50 dark:text-gray-400'
+                    : 'bg-primary-500 text-white dark:bg-primary-700'
+                ]"
+            >
                 <i v-if="props.tagPrefix === 'icon'" class="pi pi-tag ml-1" />
                 <span v-else>🏷️</span>
                 <span class="text-sm">{{ slotProps.value }}</span>
                 <Button
                     icon="pi pi-times"
-                    class="text-surface-400 dark:text-surface-200 hover:text-surface-600 dark:hover:text-surface-100"
+                    :class="[ props.disabled
+                        ? 'text-surface-400 dark:text-gray-500 hover:text-surface-400 dark:hover:text-gray-500'
+                        : 'text-white hover:text-primary-200'
+                    ]"
                     aria-label="remove"
+                    :disabled="props.disabled"
                     @click.stop.prevent="updateValue(internalValue.filter((v) => v !== slotProps.value))"
                     size="small"
                 />

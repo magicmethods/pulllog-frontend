@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { DatePickerPassThroughOptions } from 'primevue';
+import type { DatePickerPassThroughOptions } from 'primevue'
 
 // Props
 const props = defineProps<{
@@ -16,6 +16,7 @@ const props = defineProps<{
     customIcon?: string
     withFooter?: boolean
     pt?: PassThroughValue
+    containerClass?: string
     containerStyle?: string
 }>()
 
@@ -25,37 +26,50 @@ const emit = defineEmits<{
     (e: 'commit', value: CalenderDate): void
 }>()
 
-// Refs & Local variables
-const currentDate = ref<CalenderDate>(props.modelValue ?? props.defaultDate ?? null)
+// State
+const internalDate = ref<CalenderDate>(props.modelValue ?? props.defaultDate ?? null)
+//const currentDate = ref<CalenderDate>(props.modelValue ?? props.defaultDate ?? null)
 const passThroughOptions = computed(() => {
     return (props.pt ? { ...props.pt } : {}) as DatePickerPassThroughOptions
 })
 
 // Methods
+function commitValue() {
+    if (internalDate.value !== null) {
+        emit('update:modelValue', internalDate.value)
+        emit('commit', internalDate.value)
+    }
+}
+/*
 const handleCommit = (event: Event) => {
    if (currentDate.value) {
         emit('commit', currentDate.value)
     }
 }
+*/
 
 // Lifecycle Hooks
 onMounted(() => {
     // マウント時に初期コミット
-    if (currentDate.value !== null) {
-        emit('update:modelValue', currentDate.value)
+    if (internalDate.value !== null && !props.commit) {
+        emit('update:modelValue', internalDate.value)
+        emit('commit', internalDate.value)
     }
 })
 
 // Watches
-watch(
-    () => props.modelValue,
-    newValue => {
-        // props.modelValue（親） → currentDate（子）へ反映
-        if (newValue !== undefined) {
-            currentDate.value = newValue
-        }
-    }
-)
+watch(() => props.modelValue, val => {
+    // props.modelValue（親） → internalDate（子）へ反映
+    if (val !== internalDate.value) internalDate.value = val
+})
+watch(() => internalDate.value, val => {
+    // internalDate（子） → modelValue（親）へ反映
+    if (props.commit) return // commit が true の場合は emit しない
+    if (val === null || val === props.modelValue) return // null または modelValue と同じ場合は emit しない
+    emit('update:modelValue', val)
+    emit('commit', val)
+})
+/*
 watch(
     () => currentDate.value,
     newValue => {
@@ -68,25 +82,26 @@ watch(
         emit('commit', newValue)
     }
 )
-
+*/
 </script>
 
 <template>
-    <div :style="props.containerStyle ?? ''">
-        <h3 v-if="props.label" :for="props.id ?? 'target_date'">{{ props.label }}</h3>
-        <div class="flex items-center space-x-2">
+    <div :class="props.containerClass" :style="props.containerStyle">
+        <h3 v-if="props.label" :for="props.id ?? 'calendar-date'">{{ props.label }}</h3>
+        <div class="flex justify-start items-center gap-2 w-full">
             <DatePicker
-                v-model="currentDate"
-                :id="props.id ?? 'target_date'"
-                :name="props.name ?? 'target_date'"
+                v-model="internalDate"
+                :id="props.id ?? 'calendar-date'"
+                :name="props.name ?? 'calendar_date'"
                 showIcon
-                :showButtonBar="props.withFooter"
+                :showButtonBar="props.timeOnly ? false : props.withFooter"
                 iconDisplay="input"
-                :defaultValue="props.defaultDate"
-                :minDate="props.minDate"
-                :maxDate="props.maxDate"
+                :defaultValue="props.timeOnly ? null : props.defaultDate"
+                :minDate="props.timeOnly ? undefined : props.minDate"
+                :maxDate="props.timeOnly ? undefined : props.maxDate"
                 :timeOnly="props.timeOnly ?? false"
-                :dateFormat="props.timeOnly ? '@' : 'yy-mm-dd'"
+                :manualInput="!props.timeOnly"
+                :dateFormat="props.timeOnly ? undefined : 'yy-mm-dd'"
                 :placeholder="props.timeOnly ? 'HH:MM' : 'YYYY-MM-DD'"
                 :pt="passThroughOptions"
             >
@@ -98,11 +113,11 @@ watch(
                 v-if="props.commit"
                 :label="props.commitLabel ?? 'Commit'"
                 class="btn btn-primary w-36 max-w-max px-4 py-2 text-base! m-0!"
-                :disabled="!currentDate"
-                @click="handleCommit"
+                :disabled="!internalDate"
+                @click="commitValue"
                 v-blur-on-click
             />
-            <div class="w-full"></div>
+            <!-- div class="w-full"></div -->
         </div>
     </div>
 </template>

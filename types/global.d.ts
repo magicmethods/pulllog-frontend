@@ -3,43 +3,79 @@
  */
 type AllowMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 type RequestParams = Record<string, string | number | boolean | Array<string | number | boolean>>
-type RequestData = Record<string, unknown>
+// biome-ignore lint:/suspicious/noExplicitAny
+type RequestData = Record<string, any>
+/** API呼び出しオプション (composables/useAPI.ts) */
+type CallApiOptions = {
+    endpoint: string
+    method: AllowMethod
+    params?: RequestParams
+    data?: RequestData
+    retries?: number // デフォルト0
+    cacheTime?: number // ms, デフォルト0
+    overrideURI?: boolean
+    debug?: boolean
+    timeout?: number // 秒単位, デフォルト10
+    extraHeaders?: Record<string, string>
+    requestInit?: RequestInit
+}
 
 /**
  * DataModel （保存用型）
  */
+/** ユーザーデータ */
+type User = {
+    id: number // ユーザーID: ユーザー登録時に発行される insertId (シーケンシャル番号)
+    name: string // ユーザー名（表示名）
+    email: string // メールアドレス（=ログインID）
+    avatar_url?: string | null // アバター画像URL（nullの場合はデフォルト画像を使用）
+    roles?: string[] // ユーザーの役割（admin, userなど）
+    plan?: string // ユーザープラン（free, proなど）
+    plan_expiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
+    language: string // ユーザーの言語設定（ja, enなど）
+    theme: string // ユーザーのテーマ設定（light, darkなど）
+    created_at: string // ユーザー登録日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
+    updated_at: string // ユーザー情報更新日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
+    last_login: string // 最終ログイン日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
+    last_login_ip?: string // 最終ログインIPアドレス: IPv4形式の文字列
+    last_login_user_agent?: string // 最終ログインユーザーエージェント: ユーザーエージェント文字列
+    is_deleted: boolean // ユーザーが削除されたかどうかのフラグ（論理削除用）
+    is_verified: boolean // ユーザーがメールアドレスを確認したかどうかのフラグ（メール認証用）
+    unread_notifications?: number[] // 未読通知数（通知IDの配列）
+}
 /** アプリケ―ションデータ */
 type AppData = {
-    userId: number // ユーザーID: ユーザー登録時に発行される insertId (AUTO_INCREMENT？)
+    //userId?: number // ユーザーID: ユーザー登録時に発行される insertId (AUTO_INCREMENT？)。アプリの一意性は userId + appId で担保される
     name: string // アプリ名
     appId: string // ULID 形式の文字列（ユーザー毎に一意な値） フロントエンドで発行処理を行う
     url: string | null // アプリURL
     description: string | null // アプリ説明テキスト（maxLength: 400）
     date_update_time: string | null // HH:mm形式の時刻文字列
-    sync_update_time?: boolean // true の場合、UI側の日付切替時刻を当日の date_update_time に変更する
+    sync_update_time: boolean // true の場合、UI側の日付切替時刻を当日の date_update_time に変更する
     currency_unit: string | null // 通貨単位の文字列: optionStore.currencyOptions から選択された要素の label の文字列
-    rarity_defs: SymbolOption[] // レアリティ定義の配列: optionStore.rarityOptions をそのまま使用
-    marker_defs: SymbolOption[] // マーキング定義の配列: optionStore.symbolOptions をそのまま使用
-    task_defs: SymbolOption[] // タスク定義の配列: optionStore.taskOptions をそのまま使用（将来的な機能）
+    rarity_defs?: SymbolOption[] // レアリティ定義の配列: optionStore.rarityOptions をそのまま使用
+    marker_defs?: SymbolOption[] // マーキング定義の配列: optionStore.symbolOptions をそのまま使用
+    task_defs?: SymbolOption[] // タスク定義の配列: optionStore.taskOptions をそのまま使用（将来的な機能）
 }
+type ValidateAppData = AppData & { raw_date_update_time: Date | null }
 /** 各種オプション定義型（通貨単位・レアリティ・マーキング等） */
 type SymbolOption = {
     icon?: string | null
     symbol?: string | null
     label: string
-    value?: string // 同一オプション内では一意に識別される必要がある
+    value: string // 同一オプション内で一意な値。新規追加時は ULID 形式の文字列としてフロントエンドで発行
     desc?: string
     order?: number
 }
 /** 排出詳細: 日付ログデータの一部 */
 type DropDetail = {
-    rarity: string | null // レアリティ: optionStore.rarityOptions の label を想定
+    rarity: string | null // レアリティ: optionStore.rarityOptions の label
     name: string | null // 排出アイテム名
-    symbol: string | null // マーキング: optionStore.symbolOptions の symbol + label を想定
+    marker: string | null // マーキング: optionStore.symbolOptions の label
 }
 /** 日付ログデータ */
 type DateLog = {
-    userId: number // ユーザーID: ログはユーザー毎に管理される
+    //userId?: number // ユーザーID: ログはユーザー毎に管理される。ログの一意性は userId + appId + date で担保される
     appId: string // アプリケーションID: ユーザー毎に一意な値
     date: string // 記録対象となる日付: YYYY-MM-DD形式の文字列
     total_pulls: number // 対象日のガチャ回数の合計値
@@ -76,7 +112,7 @@ type StatisticsData = {
 type PassThroughValue = Record<string, any> | ((v: any) => Record<string, any>) 
 /** カレンダー用日付データ */
 type CalenderDate = Date | Date[] | (Date | null)[] | null | undefined
-/** アプリケーションデータ（UI制御用） */
+/** アプリケーションデータ（UI制御用 → × 廃止） */
 type App = {
     name:  string
     value: string // = AppData.appId

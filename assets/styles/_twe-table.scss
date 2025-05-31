@@ -1,0 +1,70 @@
+/** テーブル系コンポーネント用 */
+.table-bordered {
+    @apply border-separate rounded bg-transparent;
+    @apply dark:text-gray-200;
+    @apply text-surface-600;
+    border-spacing: 0;
+
+    tbody {
+        tr {
+            th, td {
+                @apply border border-t-0 border-gray-300 dark:border-gray-700 p-1;
+                border-style: solid solid dotted;
+
+                &:first-child {
+                    @apply border-r-0 text-left;
+                }
+                &:last-child {
+                    @apply text-center;
+                }
+            }
+            th {
+                @apply bg-surface-200/40 dark:bg-gray-800/40 text-surface-500 dark:text-gray-400;
+            }
+            td {
+                @apply text-surface-600 dark:text-gray-100;
+            }
+            &:first-child {
+                th:first-child {
+                    @apply border-t;
+                    border-top-left-radius: 0.25rem;
+                }
+                td:last-child {
+                    @apply border-t;
+                    border-top-right-radius: 0.25rem;
+                }
+            }
+            &:last-child {
+                th, td {
+                    border-bottom-style: solid !important;
+                }
+                th:first-child {
+                    border-bottom-left-radius: 0.25rem;
+                }
+                td:last-child {
+                    border-bottom-right-radius: 0.25rem;
+                }
+            }
+            &:nth-child(odd) {
+                @apply bg-surface-200/20 dark:bg-gray-800/20;
+            }
+        }
+    }
+}
+.diff-table {
+    @apply flex w-full justify-between items-center gap-1;
+
+    > *:first-child, .prev-cell {
+        @apply flex-1 text-center text-base font-medium;
+    }
+    > *:nth-child(2), .transition-cell {
+        @apply shrink-0 inline-flex flex-col justify-start items-start;
+
+        i, *.pi {
+            @apply text-sm text-surface-400 dark:text-gray-500;
+        }
+    }
+    > *:last-child, .next-cell {
+        @apply flex-1 text-center text-base font-semibold;
+    }
+}

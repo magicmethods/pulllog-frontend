@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SelectPassThroughOptions } from 'primevue';
+import type { SelectPassThroughOptions } from 'primevue'
 
 // Props
 const props = defineProps<{
@@ -7,7 +7,7 @@ const props = defineProps<{
     options: string[] | Record<string, string>[]
     optionLabel?: string
     filtering?: boolean
-    order?: string
+    order?: 'asc' | 'desc'
     defaultOptions?: string[] | Record<string, string>[]
     width?: number | string
     placeholder?: string
@@ -23,34 +23,28 @@ const emit = defineEmits<{
     (e: 'update:options', value: string[]): void
 }>()
 
-// Refs & Local variables
-const containerRef = ref()
-const committedValue = ref<string>(props.modelValue ?? '')
-// Helper for picking label
+// State & Helpers
 const getLabel = (item: string | Record<string, string>): string => 
     typeof item === 'string' ? item : item.label ?? ''
+const isRemoving = ref<boolean>(false)
 const defaultOptions = props.defaultOptions ?? []
 const isProtected = (option: string) => 
     defaultOptions.some(opt => getLabel(opt).toLowerCase() === option.toLowerCase())
-const isRemoving = ref<boolean>(false)
-const passThroughOptions = computed(() => {
-    return (props.pt ? { ...props.pt } : {}) as SelectPassThroughOptions
-})
 
 // Computed
+const passThroughOptions = computed<SelectPassThroughOptions>(() => props.pt ? { ...props.pt } : {}) 
 const filteredOptions = computed(() => {
     let base = props.options.map(opt => getLabel(opt))
 
-    if (props.filtering) {
-        base = base.filter(label => 
-                label.toLowerCase().includes(committedValue.value.toLowerCase())
+    if (props.filtering && props.modelValue) {
+        base = base.filter(label =>
+            label.toLowerCase().includes((props.modelValue ?? '').toLowerCase())
         )
     }
 
     const order = props.order?.toLowerCase()
-    if (order === 'asc') base.sort((a, b) => a.localeCompare(b))
-    if (order === 'desc') base.sort((a, b) => b.localeCompare(a))
-
+    if (props.order === 'asc') base.sort((a, b) => a.localeCompare(b))
+    if (props.order === 'desc') base.sort((a, b) => b.localeCompare(a))
     return base
 })
 const containerWidth = computed(() => ({
@@ -62,51 +56,39 @@ const containerWidth = computed(() => ({
 }))
 
 // Methods
-function onSelectOption(option: string) {
-    committedValue.value = option
-    emit('update:modelValue', option)
-}
-
 function addOption() {
     if (isRemoving.value) return
 
-    const trimmed = (committedValue.value ?? '').trim()
+    const trimmed = (props.modelValue ?? '').trim()
     if (!trimmed) return
 
-    const exists = props.options.some(opt => getLabel(opt).toLowerCase() === trimmed.toLowerCase())
-    //console.log('addOption', exists, trimmed)
-    if (!exists) {
-        emit('update:options', [...filteredOptions.value, trimmed])
-    }
+    const exists = props.options.some(opt =>
+        getLabel(opt).toLowerCase() === trimmed.toLowerCase()
+    )
+    if (!exists) emit('update:options', [...filteredOptions.value, trimmed])
     emit('update:modelValue', trimmed)
 }
-
 function removeOption(option: string) {
     if (isProtected(option)) return
     const updated = filteredOptions.value.filter(o => o !== option)
-    //console.log('removeOption', isProtected(option), updated)
     emit('update:options', updated)
 }
-
-// Watches
-watch(() => props.modelValue, val => {
-    committedValue.value = val ?? ''
-})
 
 </script>
 
 <template>
-    <div ref="containerRef">
+    <div>
         <Select
-            v-model="committedValue"
-            editable
+            :modelValue="modelValue"
             :labelId="props.inputId"
+            editable
             :options="filteredOptions"
-            :optionLabel="props.optionLabel ?? ''"
-            :placeholder="props.placeholder ?? 'Select or Input'"
-            :emptyMessage="props.emptyMessage ?? 'No options found'"
+            :optionLabel="optionLabel ?? ''"
+            :placeholder="placeholder ?? 'Select or Input'"
+            :emptyMessage="emptyMessage ?? 'No options found'"
             showClear
             highlightOnSelect
+            @update:modelValue="val => emit('update:modelValue', val)"
             @keydown.enter.prevent="addOption"
             @blur.prevent="addOption"
             :style="containerWidth"
@@ -116,7 +98,7 @@ watch(() => props.modelValue, val => {
                 <div class="w-full h-8 pl-2 flex justify-between items-center">
                     <span class="flex-1 text-sm truncate">{{ slotProps.option }}</span>
                     <Button
-                        v-if="props.removableOptions && !isProtected(slotProps.option)"
+                        v-if="removableOptions && !isProtected(slotProps.option)"
                         icon="pi pi-trash"
                         variant="text"
                         aria-label="Remove"

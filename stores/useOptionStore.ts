@@ -1,23 +1,23 @@
 export const useOptionStore = defineStore('option', () => {
     // Local defaults
     const defaultCurrencyOptions: SymbolOption[] = [
-        { label: 'JPY', value: 'jpy', desc: '円', symbol: '￥' },
-        { label: 'USD', value: 'usd', desc: 'ドル', icon: 'pi-dollar' },
-        { label: 'EUR', value: 'eur', desc: 'ユーロ', icon: 'pi-euro' },
-        { label: 'CNY', value: 'cny', desc: '人民元', symbol: '￥' },
+        { label: 'JPY', value: 'JPY', desc: 'JPY - 円', symbol: '￥' },
+        { label: 'USD', value: 'USD', desc: 'USD - ドル', icon: 'pi-dollar' },
+        { label: 'EUR', value: 'EUR', desc: 'EUR - ユーロ', icon: 'pi-euro' },
+        { label: 'CNY', value: 'CNY', desc: 'CNY - 人民元', symbol: '￥' },
     ]
     const defaultRarityOptions: SymbolOption[] = [
-        { label: 'SSR', value: 'ssr', order: -1 },
-        { label: 'SR',  value: 'sr', order: -1 },
-        { label: '⭐5', value: '5', order: -1 },
-        { label: '⭐3', value: '3', order: -1 },
+        { symbol: '', label: 'SSR', value: 'ssr' },
+        { symbol: '', label: 'SR',  value: 'sr' },
+        { symbol: '⭐', label: '⭐5', value: '5stars' },
+        { symbol: '⭐', label: '⭐3', value: '3stars' },
     ]
     const defaultSymbolOptions: SymbolOption[] = [
-        { symbol: '🏆', label: 'ピックアップ', value: 'pickup', order: -1 },
-        { symbol: '💔', label: 'すり抜け', value: 'offrate', order: -1 },
-        { symbol: '🎯', label: '狙い', value: 'target', order: -1 },
-        { symbol: '⏫', label: '+1凸', value: 'stack +1', order: -1 },
-        { symbol: '💖', label: '完凸', value: 'complete', order: -1 },
+        { symbol: '🏆', label: '🏆ピックアップ', value: 'pickup' },
+        { symbol: '💔', label: '💔すり抜け', value: 'offrate' },
+        { symbol: '🎯', label: '🎯狙い', value: 'target' },
+        { symbol: '⏫', label: '⏫+1凸', value: 'stack+1' },
+        { symbol: '💖', label: '💖完凸', value: 'complete' },
     ]
 
     // State
@@ -27,15 +27,13 @@ export const useOptionStore = defineStore('option', () => {
 
     // Computed labels (UI表示用)
     const currencyLabels = computed(() =>
-        currencyOptions.value.map(opt =>
-            opt.desc ? `${opt.label} - ${opt.desc}` : opt.label
-        )
+        currencyOptions.value.map(opt => opt.desc ? opt.desc : opt.label)
     )
     const rarityLabels = computed(() =>
-        rarityOptions.value.map(opt => `${opt.symbol ?? ''}${opt.label}`)
+        rarityOptions.value.map(opt => opt.label)
     )
     const markerLabels = computed(() =>
-        symbolOptions.value.map(opt => `${opt.symbol ?? ''}${opt.label}`)
+        symbolOptions.value.map(opt => opt.label)
     )
 
     // Actions

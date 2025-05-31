@@ -3,10 +3,10 @@
 // Refs & Local variables
 const isDarkMode = ref(false)
 const naviLinks = [
-    { name: 'アプリ管理', icon: 'pi pi-crown',      symbol: '🎮', prefix: 'symbol', path: '/?apps' },
-    { name: '履歴登録',   icon: 'pi pi-trophy',     symbol: '📝', prefix: 'symbol', path: '/' },
-    { name: '統計分析',   icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/test' },
-    { name: '個人設定',   icon: 'pi pi-cog',        symbol: '⚙️', prefix: 'symbol', path: '/test?profile' }
+    { name: 'アプリ管理', icon: 'pi pi-crown',      symbol: '🎮', prefix: 'symbol', path: '/apps' },
+    { name: '履歴登録',   icon: 'pi pi-trophy',     symbol: '📝', prefix: 'symbol', path: '/history' },
+    { name: '統計分析',   icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/stats' },
+    { name: '個人設定',   icon: 'pi pi-cog',        symbol: '⚙️', prefix: 'symbol', path: '/settings' }
 ]
 
 // Toggle a class on the <html> tag to switch rendering modes

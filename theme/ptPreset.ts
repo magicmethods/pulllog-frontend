@@ -25,7 +25,7 @@ export const ptPreset = {
     // --- Textarea系 --- (index.vue, AppEditModal.vue)
     Textarea: {
         root: {
-            class: 'input-base input-hoverable',
+            class: 'input-base input-hoverable placeholder:text-surface-400 dark:placeholder:text-gray-400 dark:disabled:placeholder:text-gray-600/50',
         }
     },
 
@@ -69,7 +69,7 @@ export const ptPreset = {
         panel: 'min-w-max border rounded-md border-surface-200 dark:border-gray-700 shadow-lg',
         calendarContainer: 'w-full rounded-md dark:bg-gray-900',
         calender: 'w-full p-0',
-        header: 'flex items-center justify-between mt-1 p-1 pt-0 border-b border-surface-200 dark:border-gray-700 dark:bg-gray-900',
+        header: 'flex items-center justify-between p-1 rounded-t-md border-b border-surface-200 dark:border-gray-700 dark:bg-gray-950',
         pcprevbutton: {
             root: 'p-1 rounded-full hover:bg-surface-200/50 hover:text-primary disabled:text-surface-600/50 dark:hover:bg-gray-700/40',
         },
@@ -104,14 +104,14 @@ export const ptPreset = {
         pcDecrementButton: {
             root: 'p-1 rounded-full hover:bg-surface-200/50 hover:text-primary disabled:text-surface-600/50 dark:hover:bg-gray-700/40',
         },
-        buttonbar: 'flex items-center justify-between p-1 border-t border-surface-200 dark:border-gray-700 dark:bg-gray-900',
+        buttonbar: 'flex items-center justify-between p-1 rounded-b-md border-t border-surface-200 dark:border-gray-700 dark:bg-gray-950',
         pcTodayButton: {
             root: 'px-3 py-1.5 rounded-md hover:bg-surface-200/50 hover:text-primary disabled:text-surface-600/50 dark:hover:bg-gray-700/40',
         },
         pcClearButton: {
             root: 'px-3 py-1.5 rounded-md hover:bg-surface-200/50 hover:text-primary disabled:text-surface-600/50 dark:hover:bg-gray-700/40',
         },
-        timepicker: 'dark:bg-gray-900',
+        timepicker: 'rounded-md dark:bg-gray-950',
     },
 
     // --- Dropdown/SelectBox系 --- (ComboBox.vue, SelectApps.vue)
@@ -131,10 +131,10 @@ export const ptPreset = {
 
     // --- Chips系 --- (InputTags.vue)
     Chips: {
-        root: 'border border-surface dark:border-gray-700 dark:bg-gray-950 rounded focus:ring-2 focus:ring-primary-200/50 focus:dark:ring-primary-800/40 outline-none py-2 pl-3 m-0 items-center',
-        input: 'shadow-none',
+        root: 'border border-surface dark:border-gray-700 dark:bg-gray-950 rounded hover:ring-2 hover:ring-primary-200/50 hover:dark:ring-primary-800/40 outline-none py-2 pl-3 m-0 items-center',
+        input: 'bg-transparent shadow-none',
         inputitemfield: {
-            class: 'w-full border-none outline-none bg-transparent dark:bg-gray-950 focus:ring-2 focus:ring-primary-200/50 focus:dark:ring-primary-800/40',
+            class: 'w-full border-none outline-none bg-transparent dark:bg-gray-950 focus:ring-0',
         },
         clearIcon: 'right-9 -translate-y-1/2',
     },
@@ -170,4 +170,10 @@ export const ptPreset = {
         label: 'text-sm text-surface-500 dark:text-gray-400',
     },
 
+    // --- Toast --- (index.vue)
+    Toast: {
+        message: 'border rounded-lg w-full mb-2 p-2 shadow-lg',
+        messageicon: 'mt-0.5',
+        buttoncontainer: '-mt-1',
+    },
 }
