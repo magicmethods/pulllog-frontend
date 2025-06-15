@@ -11,12 +11,12 @@ import { useAPI } from '~/composables/useAPI'
 import { endpoints } from './endpoints'
 
 export const getApps = () =>
-    useAPI().callApi<App[]>({ endpoint: endpoints.apps.list(), method: 'GET' })
+    useAPI().callApi<AppData[]>({ endpoint: endpoints.apps.list(), method: 'GET' })
 
 export const getAppDetail = (id: string) =>
-    useAPI().callApi<App>({ endpoint: endpoints.apps.detail(id), method: 'GET' })
+    useAPI().callApi<AppData>({ endpoint: endpoints.apps.detail(id), method: 'GET' })
 
-export const updateApp = (id: string, data: Partial<App>) =>
-    useAPI().callApi<App>({ endpoint: endpoints.apps.update(id), method: 'PUT', data })
+export const updateApp = (id: string, data: Partial<AppData>) =>
+    useAPI().callApi<AppData>({ endpoint: endpoints.apps.update(id), method: 'PUT', data })
 
 // ...他のAPIも同様に記述
