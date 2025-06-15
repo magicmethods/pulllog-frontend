@@ -1,14 +1,38 @@
+import { useCsrfStore } from './useCsrfStore'
+import { useGlobalStore } from './globalStore'
+
+/** Types ( types/global.d.ts にて定義済みのため、ここでは参照のみ)
+type User = {
+    id: number // ユーザーID: ユーザー登録時に発行される insertId (シーケンシャル番号)
+    name: string // ユーザー名（表示名）
+    email: string // メールアドレス（=ログインID）
+    avatar_url?: string | null // アバター画像URL（nullの場合はデフォルト画像を使用）
+    roles?: string[] // ユーザーの役割（admin, userなど）
+    plan?: string // ユーザープラン（free, proなど）
+    plan_expiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
+    language: string // ユーザーの言語設定（ja, enなど）
+    theme: string // ユーザーのテーマ設定（light, darkなど）
+    created_at: string // ユーザー登録日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
+    updated_at: string // ユーザー情報更新日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
+    last_login: string // 最終ログイン日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
+    last_login_ip?: string // 最終ログインIPアドレス: IPv4形式の文字列
+    last_login_user_agent?: string // 最終ログインユーザーエージェント: ユーザーエージェント文字列
+    is_deleted: boolean // ユーザーが削除されたかどうかのフラグ（論理削除用）
+    is_verified: boolean // ユーザーがメールアドレスを確認したかどうかのフラグ（メール認証用）
+    unread_notifications?: number[] // 未読通知数（通知IDの配列）
+}
+*/
+
 export const useUserStore = defineStore('user', () => {
     // state
     const user = ref<User | null>(null)
-    const isLoading = ref<boolean>(false)
-    const error = ref<string | null>(null)
+    const isLoggedIn = computed(() => user.value !== null)
 
     // actions
-    function setUser(userData: User) {
-        user.value = userData
+    function setUser(u: User) {
+        user.value = u
     }
-
+    // デバッグ用
     function setDummyUser(partialUserData?: Partial<User>) {
         const baseDummyUser = {
             id: 1,
@@ -32,51 +56,29 @@ export const useUserStore = defineStore('user', () => {
         const dummyUser = { ...baseDummyUser, ...partialUserData } as User
         setUser(dummyUser)
     }
-
     function clearUser() {
         user.value = null
     }
 
-    // ログイン状態判定（getterとして使える）
-    const isAuthenticated = computed(() => !!user.value)
-
     // Methods
-    async function login(userid: string, password: string) {
-        isLoading.value = true
-        error.value = null
-
+    async function logout() {
+        const global = useGlobalStore()
+        global.setLoading(true)
         try {
-            const response = await fetch('/api/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userid, password }),
-            })
-
-            if (!response.ok) {
-                throw new Error('Login failed')
-            }
-
-            const data = await response.json()
-            setUser(data.user)
-        } catch (err) {
-            error.value = (err as Error).message
+            clearUser()
+            useCsrfStore().clearToken()
+            // 必要に応じて他ストアの clear 呼び出しもここに
         } finally {
-            isLoading.value = false
+            global.setLoading(false)
         }
-    }
-    function logout() {
-        clearUser()
     }
 
     return {
         user,
-        isAuthenticated,
-        isLoading,
-        error,
+        isLoggedIn,
         setUser,
         setDummyUser,
         clearUser,
-        login,
         logout,
     }
 })

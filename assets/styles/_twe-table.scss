@@ -68,3 +68,44 @@
         @apply flex-1 text-center text-base font-semibold;
     }
 }
+/** 履歴一覧 */
+.history-list {
+    @apply border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40;
+
+    .list-title {
+        @apply text-primary-600 dark:text-primary-500 font-semibold mb-2;
+    }
+    .list-table-container {
+        @apply -mx-4 border-b border-surface-300 dark:border-surface-700;
+
+        table {
+            @apply table-fixed w-full text-sm border-t border-surface-300 dark:border-surface-700;
+
+            thead {
+                @apply bg-surface-100 dark:bg-gray-700/40 text-left;
+
+                tr {
+                    @apply border-b border-surface-300 dark:border-surface-700;
+                }
+
+                th {
+                    @apply py-1 px-2 font-medium text-surface-600 dark:text-gray-400;
+                }
+            }
+
+            tbody {
+                tr {
+                    @apply border-t border-surface-300 dark:border-surface-700;
+
+                    td {
+                        @apply py-1 px-2 h-8 align-middle;
+
+                        &.empty-list {
+                            @apply py-4! text-center bg-surface-50 dark:bg-gray-800/50 text-surface-400 dark:text-gray-500;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

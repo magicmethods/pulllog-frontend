@@ -127,6 +127,7 @@ function validateForm(): boolean {
 function handleSubmit() {
     if (!validateForm()) return
 
+    // フォームの値が有効な場合、親コンポーネントの submit イベントを発火
     emit('submit', { ...formData.value })
     emit('update:visible', false)
 }
@@ -291,7 +292,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                     </div>
 
                 </Fieldset>
-                <pre v-if="true" class="text-xs whitespace-pre-wrap">{{ formData }}</pre>
+                <pre v-if="false" class="text-xs whitespace-pre-wrap">{{ formData }}</pre>
             </div>
             <div class="flex flex-col gap-2 p-2 md:ml-2">
                 <Fieldset legend="ログ記録用の設定">

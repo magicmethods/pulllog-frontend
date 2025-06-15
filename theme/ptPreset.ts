@@ -127,6 +127,7 @@ export const ptPreset = {
         clearIcon: 'border rounded-full border-surface-400 bg-surface-100 text-surface-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-surface-200 dark:hover:bg-gray-600 w-4 h-4 p-0.5 right-8 -translate-y-1/2',
         dropdown: 'max-w-max bg-white border-surface dark:bg-gray-950 dark:border-gray-700',
         dropdownIcon: 'text-surface-400 hover:text-primary-500',
+        emptymessage: 'py-2 px-3 text-surface-400 dark:text-gray-400/50 select-none',
     },
 
     // --- Chips系 --- (InputTags.vue)
@@ -175,5 +176,11 @@ export const ptPreset = {
         message: 'border rounded-lg w-full mb-2 p-2 shadow-lg',
         messageicon: 'mt-0.5',
         buttoncontainer: '-mt-1',
+    },
+
+    // --- ScrollPanel --- (HistoryList.vue)
+    ScrollPanel: {
+        barX: 'bg-primary-200 focus:bg-primary-400 hover:bg-primary-400 dark:bg-primary-500 dark:focus:bg-primary-600 dark:hover:bg-primary-600',
+        barY: 'bg-primary-200 focus:bg-primary-400 hover:bg-primary-400 dark:bg-primary-500 dark:focus:bg-primary-600 dark:hover:bg-primary-600',
     },
 }

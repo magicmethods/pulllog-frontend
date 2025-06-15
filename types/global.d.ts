@@ -53,6 +53,8 @@ type AppData = {
     date_update_time: string | null // HH:mm形式の時刻文字列
     sync_update_time: boolean // true の場合、UI側の日付切替時刻を当日の date_update_time に変更する
     currency_unit: string | null // 通貨単位の文字列: optionStore.currencyOptions から選択された要素の label の文字列
+    pity_system?: boolean // レア排出保証システム（天井）の有無 c.f. "guaranteed gacha" とも呼ばれる
+    guarantee_count?: number // レア排出保証回数（ガチャ天井の回数）※ pity_system が true の場合のみ有効
     rarity_defs?: SymbolOption[] // レアリティ定義の配列: optionStore.rarityOptions をそのまま使用
     marker_defs?: SymbolOption[] // マーキング定義の配列: optionStore.symbolOptions をそのまま使用
     task_defs?: SymbolOption[] // タスク定義の配列: optionStore.taskOptions をそのまま使用（将来的な機能）
@@ -96,12 +98,30 @@ type HistoryData = Map<string, DateLog[]> // キーは appId で、値は日付�
 type StatisticsData = {
     start_date: string // 集計開始日: YYYY-MM-DD形式の文字列
     end_date: string // 集計終了日: YYYY-MM-DD形式の文字列
+    total_logs: number // 集計期間中の登録ログ数
+    months_in_period: number // 集計期間中の月数
     total_pulls: number // ガチャ回数の合計値
     rare_drop_count: number // レア排出数
     rare_drop_rate: number // レア排出率
     total_expense: number // ガチャにかかった費用の合計値
-    average_expense: number // ガチャ1回あたりの平均費用
-    average_rare_drop_rate: number // レア排出率の平均値（レア排出１回あたりのガチャ回数？）
+    average_monthly_expense: number // 月毎の平均費用
+    average_expense: number // レア排出1回あたりの平均費用
+    average_rare_drop_rate: number // レア排出率の平均値（レア排出１回あたりのガチャ回数）
+}
+interface StatsData {
+    appId: string
+    startDate: string
+    endDate: string
+    totalPulls: number
+    rareDropCount: number
+    rareDropRate: number
+    totalExpense: number
+    averageExpense: number
+    averageRareDropRate: number
+    // 追加項目: [今後拡張可能]
+    totalLogs?: number // 集計期間中の登録ログ数
+    monthsInPeriod?: number // 集計期間中の月数
+    averageMonthlyExpense?: number // 月毎の平均費用
 }
 
 /**
@@ -150,4 +170,29 @@ type StatisticsView = StatisticsData & {
 /** 検索・フィルタ用の事前加工: フィルタリングUIや曖昧検索用 */
 type SearchableView = {
     searchLabel: string // 例: "あぷりめい（えん）"
+}
+/** チャート用 */
+type ChartRange = '1m' | '3m' | '6m' | '1y'
+type RangeOption = {
+    label: string
+    value: ChartRange
+    days: number
+    startDate?: string // YYYY-MM-DD形式
+    endDate?: string // YYYY-MM-DD形式
+}
+type ChartType = 'line' | 'bar' | 'pie' | 'doughnut' | 'radar' | 'polarArea' | 'bubble' | 'scatter'
+type ChartDataPoint = {
+    date: string // YYYY-MM-DD形式
+    [key: string]: number | string // その他のキーは数値または文字列
+}
+type SeriesSetting = {
+    key: string
+    label: string
+    type: ChartType
+    backgroundColor?: string
+    borderColor?: string
+    stack?: string
+    yAxisID?: string
+    tension?: number
+    fill?: boolean
 }

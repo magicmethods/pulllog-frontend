@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import { DateTime } from 'luxon'
 import { z } from 'zod'
-import { useToast } from "primevue/usetoast"
-import { useOptionStore } from '~/stores/useOptionStore'
+import { useToast } from 'primevue/usetoast'
 import { useAppStore } from '~/stores/useAppStore'
+import { useLogStore } from '~/stores/useLogStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
+import { getCurrencyData } from '~/utils/currency'
+import { formatDate } from '~/utils/date'
 
 // Stores
-const optionStore = useOptionStore()
 const appStore = useAppStore()
+const logStore = useLogStore()
 const loader = useLoaderStore()
 
 // Plugins
@@ -31,7 +34,6 @@ const logSchema = z.object({
 const validationErrors = ref<Record<string, string[]>>({})
 
 // State & Local variables
-const selectedApp = ref<AppData | null>(null) // 選択されたアプリケーション
 const calendarDraftDate = ref<CalenderDate>(null) // カレンダーの未確定日付
 const targetDate = ref<CalenderDate>(null) // 確定した対象日付
 const totalPullCount = ref<number>(0) // ガチャ回数
@@ -46,32 +48,75 @@ const locations = ref<Record<string, string>[]>([
   { label: '履歴登録' },
 ])
 const showCalculator = ref<boolean>(false) // 計算機モーダルの表示状態
-const today = new Date()
+const today = computed(() => getTodayByApp(selectedApp.value))
+const todayString = computed(() => formatDate(today.value))
 const maxTextLength = 200 // メモの最大文字数
 const confirmModalVisible = ref<boolean>(false) // 確認モーダルの表示状態
 const pendingLogData = ref<DateLog | null>(null) // 確認モーダルに渡すログデータ
 const pendingValidationErrors = ref<Record<string, string[]> | null>(null) // 確認モーダルに渡すバリデーションエラー
-//const loaderId = loader.show('読み込み中...') // ローダー表示（IDを取得）
+const historyChartReloadKey = ref<number>(0) // 履歴グラフの再読み込みキー（強制更新用）
+const historyStatsReloadKey = ref<number>(0) // 履歴統計の再読み込みキー（強制更新用）
+const historyListReloadKey = ref<number>(0) // 履歴リストの再読み込みキー（強制更新用）
 
 // Computed
-const currentAppList = computed(() => {
-  return appStore.appList.filter(app => app.appId !== 'dummy') // ダミーアプリを除外
+const selectedApp = computed<AppData | null>({
+  get: () => appStore.app,
+  set: (val: AppData | null) => appStore.setApp(val)
 })
 // 通貨表示（選択アプリに依存）
-const currencyUnit = computed(() =>
-  selectedApp.value?.currency_unit ?? 'JPY'
-)
+const currencyUnit = computed(() => {
+  if (!selectedApp.value || !selectedApp.value.currency_unit) return 'JPY' // デフォルトは JPY
+  const currencyData = getCurrencyData(selectedApp.value.currency_unit)
+  if (!currencyData) return selectedApp.value.currency_unit // 通貨データが見つからない場合は登録値
+  return currencyData.code // or symbol_native
+})
 
 // Methods
-const handleDateCommit = (date: CalenderDate) => {
+function getTodayByApp(app: AppData | null): Date {
+  // 基準: 現在日時（タイムゾーンも必要なら `const now = DateTime.now().setZone('Asia/Tokyo')` 等）
+  const now = DateTime.local()
+  let baseDate = now
+  if (app?.sync_update_time && typeof app.date_update_time === 'string') {
+    const [h, m] = app.date_update_time.split(':').map(Number)
+    if (!Number.isNaN(h) && !Number.isNaN(m)) {
+      // 同日0時をベースに、指定時刻で境界DateTime生成
+      const boundary = now.set({ hour: h, minute: m, second: 0, millisecond: 0 })
+      // 現在時刻が境界より前なら1日前
+      if (now < boundary) {
+        baseDate = now.minus({ days: 1 })
+      }
+    }
+  }
+  return baseDate.startOf('day').toJSDate()
+}
+async function handleDateCommit(date: CalenderDate): Promise<void> {
   targetDate.value = date
-  //calendarDraftDate.value = null // カレンダーの未確定日付をクリア
+  console.log('handleDateCommit::', selectedApp.value, targetDate.value)
+  if (!selectedApp.value || !targetDate.value) return
 
-  const loaderId = loader.show('', document.getElementById('graph-area')) // デバッグ：ローダー表示
-  //const loaderId = loader.show('対象日のデータを読み込み中...') // デバッグ：ローダー表示
-  setTimeout(() => {
-    loader.hide(loaderId) // ローダー非表示
-  }, 1500)
+  // 日付のフォーマットを "YYYY-MM-DD" に変換
+  const dateStr = formatDate(targetDate.value)
+  if (!dateStr) return
+
+  // ログ取得前にフォームをリセット
+  resetForm()
+  const loaderId = loader.show('対象日のデータを読み込み中...')
+  // ログ取得
+  const log = await logStore.fetchLog(selectedApp.value.appId, dateStr)
+  loader.hide(loaderId)
+
+  if (!log) {
+    toast.add({ severity: 'warn', summary: 'データ未登録', detail: 'この日付の履歴は未登録です', group: 'notices', life: 2500 })
+    return
+  }
+  // 既存のログがある場合はそれを反映
+  totalPullCount.value = log.total_pulls || 0
+  dischargedItems.value = log.discharge_items || 0
+  dropDetails.value = log.drop_details || []
+  expense.value = log.expense || 0
+  tags.value = log.tags || []
+  freeText.value = log.free_text || ''
+  textLength.value = freeText.value.length
 }
 // 計算機を開く
 const openCalculator = () => {
@@ -87,7 +132,7 @@ const handleCommitOverwrite = (newValue: number) => {
   expense.value = newValue
   showCalculator.value = false
 }
-// ログ保存処理（送信用 DateLog の構築）
+// 履歴保存処理（送信用 DateLog の構築）
 function submitLog() {
   if (!selectedApp.value || !targetDate.value) return
 
@@ -104,18 +149,6 @@ function submitLog() {
     tasks: [],
     last_updated: new Date().toISOString(),
   }
-  /*
-  // View用に変換
-  const rarityMap = new Map(optionStore.rarityOptions.map(opt => [opt.label, opt]))
-  const symbolMap = new Map(optionStore.symbolOptions.map(opt => [opt.label, opt]))
-  const views = toDropDetailViews(dropDetails.value, { rarityMap, symbolMap })
-  // 保存するログの内容をコンソールに出力（デバッグ）
-  views.forEach((v, i) => {
-    console.log(
-        `${i + 1}件目: ${v.rarityDisplay} - ${v.name ?? '(未入力)'} ${v.symbolDisplay ? `[${v.symbolDisplay}]` : ''}`
-    )
-  })
-  */
 
   // Zodによる検証
   const result = logSchema.safeParse(log)
@@ -136,18 +169,37 @@ function submitLog() {
 // 確認モーダルで「保存する」確定時
 async function handleConfirmSave() {
   if (!pendingLogData.value) return
-  // API送信処理をここに追加
-  // ...await apiClient.post()...
-  console.log('✅ 送信データ:', pendingLogData.value)
-  resetForm()
-  confirmModalVisible.value = false
-  toast.add({
-    severity: 'success',
-    summary: 'ログ保存完了',
-    detail: `アプリ: ${selectedApp.value?.name} / 対象日: ${formatDate(targetDate.value)}`,
-    group: 'notices',
-    life: 3000,
-  })
+  try {
+    // API送信処理
+    const saved = await logStore.saveLog(pendingLogData.value)
+    toast.add({
+      severity: 'success',
+      summary: '履歴保存完了',
+      detail: `アプリ: ${selectedApp.value?.name} / 対象日: ${formatDate(targetDate.value)}`,
+      group: 'notices',
+      life: 3000,
+    })
+    // 保存成功時の処理
+    //resetForm()
+    //targetDate.value = null // 対象日をリセットするかは要検討
+    historyChartReloadKey.value++ // 履歴グラフの再読み込みトリガー
+    historyStatsReloadKey.value++ // 履歴統計の再読み込みトリガー
+    historyListReloadKey.value++ // 履歴リストの再読み込みトリガー
+    confirmModalVisible.value = false
+  } catch (
+    // biome-ignore lint:/suspicious/noExplicitAny
+    error: any
+  ) {
+    console.error('履歴の保存に失敗:', error)
+    confirmModalVisible.value = false
+    toast.add({
+      severity: 'error',
+      summary: '履歴保存失敗',
+      detail: error.message ?? '履歴の保存に失敗しました',
+      group: 'notices',
+      life: 4000,
+    })
+  }
 }
 // 確認モーダルで「キャンセル」 or 閉じる
 function handleCloseModal() {
@@ -157,41 +209,12 @@ function handleCloseModal() {
 function resetForm() {
     totalPullCount.value = 0
     dischargedItems.value = 0
+    dropDetails.value = []
     expense.value = 0
     tags.value = []
     freeText.value = ''
     textLength.value = 0
-}
-function formatDate(dateValue: CalenderDate): string {
-  let _d = null
-  if (Array.isArray(dateValue)) {
-    for (const v of dateValue) {
-      if (v instanceof Date) _d = v
-      break
-    }
-  } else if (dateValue instanceof Date) {
-    _d = dateValue
-  }
-  if (!_d) return '' // 日付が無効な場合は空文字を返す
-  return `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
-}
-// DropDetail[] → DropDetailView[] 変換（UI表示用）
-function toDropDetailViews(details: DropDetail[], options: {
-    rarityMap?: Map<string, SymbolOption>
-    symbolMap?: Map<string, SymbolOption>
-} = {}): DropDetailView[] {
-    const { rarityMap, symbolMap } = options
-
-    return details.map((entry) => {
-        const rarityOpt = rarityMap?.get(entry.rarity ?? '') ?? null
-        const symbolOpt = symbolMap?.get(entry.marker ?? '') ?? null
-
-        return {
-            ...entry,
-            rarityDisplay: rarityOpt ? `${rarityOpt.symbol ?? ''}${rarityOpt.label}` : entry.rarity ?? '',
-            symbolDisplay: symbolOpt ? `${symbolOpt.symbol ?? ''}${symbolOpt.label}` : entry.marker ?? '',
-        }
-    })
+    pendingLogData.value = null
 }
 
 // Lifecycle Hooks
@@ -200,11 +223,19 @@ onMounted(async () => {
 })
 
 // Watchers
-/*
-watch(() => appStore.appList, (newApps, prevApps) => {
-  console.log('App list updated:', newApps, prevApps)
-}, { immediate: true })
-*/
+watch(
+  () => appStore.app,
+  (newApp, prevApp) => {
+    console.log('App changed:', newApp?.name, '<-', prevApp?.name)
+    if (newApp) {
+      calendarDraftDate.value = today.value // アプリ変更時はカレンダーの選択を today で初期化
+      targetDate.value = null // 対象日もリセット
+      resetForm() // フォームもリセット
+      historyStatsReloadKey.value++ // 履歴統計の再読み込みトリガー
+    }
+  },
+  { immediate: true }
+)
 
 // Styling
 const inputFieldRow = 'flex flex-nowrap justify-start items-center gap-2'
@@ -227,7 +258,6 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
               <SelectApps
                 v-if="!appStore.isLoading"
                 v-model="selectedApp"
-                :apps="currentAppList"
               />
 
               <!-- 対象日付 -->
@@ -237,6 +267,7 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
                   label="対象日"
                   :commit="true"
                   commitLabel="変更"
+                  :commitDisabled="selectedApp === null"
                   :defaultDate="today"
                   :maxDate="today"
                   customIcon="📅"
@@ -252,9 +283,9 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
                 </div>
               </div>
 
-              <!-- 最新ログの登録 -->
+              <!-- 履歴の登録 -->
               <div class="space-y-2">
-                  <h3>最新ログの登録</h3>
+                  <h3>履歴の登録</h3>
                   <div :class="inputFieldRow">
                     <label for="total-pull-count" :class="inputFieldLabel">ガチャ回数</label>
                     <InputNumber
@@ -352,7 +383,9 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
                       :disabled="!targetDate"
                       class="w-44 min-w-[8rem]"
                     />
-                    <div class="w-12 px-1 text-md font-medium text-surface-500">{{ currencyUnit }}</div>
+                    <div class="flex-grow min-w-[3rem] px-1 text-md font-medium text-surface-500 truncate">
+                      {{ currencyUnit }}
+                    </div>
                     <Button
                       icon="pi pi-calculator"
                       label=""
@@ -393,13 +426,13 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
                     />
                   </div>
                   <div :class="`${inputFieldRow} items-start! mb-4!`">
-                    <label for="note" :class="`${inputFieldLabel} pt-2`">メモ（任意）</label>
+                    <label for="note" :class="`${inputFieldLabel} pt-2`">アクティビティ（任意）</label>
                     <div class="flex-grow w-full">
                       <Textarea
                         v-model="freeText"
                         inputId="note"
                         autoResize
-                        :placeholder="`メモ（${maxTextLength}文字以内）`"
+                        :placeholder="`活動状況など（${maxTextLength}文字以内）`"
                         rows="3"
                         :maxlength="maxTextLength"
                         :disabled="!targetDate"
@@ -409,14 +442,23 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
                       <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">入力文字数: {{ textLength }}</Message>
                     </div>
                   </div>
-                  <Button
-                    label="ログを保存"
-                    fluid
-                    class="btn btn-primary px-3 py-2 text-center text-base"
-                    @click="submitLog"
-                    :disabled="!selectedApp || !targetDate"
-                    v-blur-on-click
-                  />
+                  <div class="flex justify-between items-center gap-2">
+                    <Button
+                      label="入力内容をリセット"
+                      class="btn btn-alternative px-3 py-2 text-center text-base"
+                      @click="resetForm"
+                      :disabled="!selectedApp || !targetDate"
+                      v-blur-on-click
+                    />
+                    <Button
+                      label="履歴を保存"
+                      fluid
+                      class="btn btn-primary px-3 py-2 text-center text-base"
+                      @click="submitLog"
+                      :disabled="!selectedApp || !targetDate"
+                      v-blur-on-click
+                    />
+                  </div>
               </div>
           </section>
 
@@ -432,50 +474,26 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
 
           <!-- 右カラム: 過去ログとグラフ -->
           <section class="w-3/5 mt-0 space-y-4">
-              <!-- 推移グラフ (ダミー) -->
-              <div class="border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40">
-                  <h2 class="text-primary-600 dark:text-primary-500 font-semibold mb-2">ガチャ履歴の推移（直近）</h2>
-                  <div id="graph-area" class="h-64 bg-gray-200 dark:bg-gray-700/40 flex items-center justify-center text-surface-400 dark:text-surface-500">
-                    <span class="text-antialiasing">[グラフ表示エリア]</span>
-                  </div>
-              </div>
+              <!-- 推移グラフ -->
+              <HistoryChart
+                label="履歴の推移（直近）"
+                :key="historyChartReloadKey"
+              />
 
-              <!-- ログ一覧 -->
-              <div class="border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40">
-                  <h2 class="text-primary-600 dark:text-primary-500 font-semibold mb-2">過去ログ一覧（直近）</h2>
-                  <div class="-mx-4 border-b border-surface-300 dark:border-surface-700">
-                    <table class="w-full text-sm border-t border-surface-300 dark:border-surface-700">
-                        <thead>
-                            <tr class="bg-surface-100 dark:bg-gray-700/40 text-left">
-                                <th class="py-1 px-2 font-medium text-antialiasing">日付</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">回数</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">最高レア</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">課金額</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">タグ</th>
-                                <th class="py-1 px-2 font-medium text-antialiasing">メモ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="i in 7" :key="i" class="border-t border-surface-300 dark:border-surface-700">
-                                <td class="py-1 px-2">2025-04-{{ new Date().getDate() - i }}</td>
-                                <td class="py-1 px-2">10</td>
-                                <td class="py-1 px-2">1</td>
-                                <td class="py-1 px-2">3000</td>
-                                <td class="py-1 px-2"></td>
-                                <td class="py-1 px-2">📃</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                  </div>
-              </div>
+              <!-- 対象アプリの履歴統計 -->
+              <HistoryStats
+                :key="historyStatsReloadKey"
+              />
 
-              <!-- 対象日のログ統計 -->
-              <div class="border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40">
-                  <h2 class="text-primary-600 dark:text-primary-500 font-semibold mb-2">対象日のログ統計</h2>
-                  <div class="h-12 bg-gray-200 dark:bg-gray-700/40 flex items-center justify-center text-surface-400 dark:text-surface-500">
-                    <span class="text-antialiasing">{{ targetDate }}</span>
-                  </div>
-              </div>
+              <!-- 履歴一覧 -->
+              <HistoryList
+                label="最新の履歴一覧"
+                :toDate="todayString"
+                :limit="7"
+                :highlightDate="formatDate(targetDate)"
+                :key="historyListReloadKey"
+              />
+
           </section>
       </div>
   </div>

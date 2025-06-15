@@ -37,16 +37,18 @@ const toggleButtonPT = (content: 'label' | 'icon') => {
 }
 
 // Classes
-const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded text-sm text-primary-50 hover:text-primary-200 hover:bg-primary-400/40 dark:hover:bg-primary-500/40'
+const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded text-sm text-surface-100 hover:text-white hover:bg-primary-400/40 dark:hover:bg-primary-500/40'
 
 </script>
 
 <template>
     <header class="flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-700 text-white shadow-md">
-        <div class="flex items-center space-x-4">
-            <img src="/images/pulllog-icon.svg" alt="PullLog" class="w-6 h-6 inline-block mr-2 ld ld-swing" />
-            <h1 class="text-xl font-bold">PullLog</h1>
-        </div>
+        <NuxtLink to="/history">
+            <div class="flex items-center space-x-4">
+                <img src="/images/pulllog-icon.svg" alt="PullLog" class="w-6 h-6 inline-block mr-2 ld ld-swing" />
+                <h1 class="text-xl font-bold">PullLog</h1>
+            </div>
+        </NuxtLink>
         <nav id="navi-links" class="flex-1 flex justify-end items-center px-4 gap-4">
             <NuxtLink
                 v-for="(link, index) in naviLinks"

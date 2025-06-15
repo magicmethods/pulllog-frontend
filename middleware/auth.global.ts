@@ -21,7 +21,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
         return
     }
 
-    if (!userStore.isAuthenticated) {
+    if (!userStore.isLoggedIn) {
         return navigateTo('/auth/login')
     }
 })

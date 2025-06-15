@@ -13,5 +13,6 @@
 @use "./twe-dialog" as *;
 @use "./twe-table" as *;
 @use "./twe-loader" as *;
+@use "./twe-chart" as *;
 
 @custom-variant dark (&:where(.app-dark, .app-dark *));

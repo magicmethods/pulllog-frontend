@@ -1,0 +1,21 @@
+/** チャート系コンポーネント用 */
+.history-chart {
+    @apply border rounded p-4 pb-1 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40;
+
+    .chart-title {
+        @apply text-primary-600 dark:text-primary-500 font-semibold;
+    }
+    .chart-container {
+        @apply -mx-3 h-64 bg-surface-100 dark:bg-gray-800/40 flex items-center justify-center text-surface-400 dark:text-gray-500;
+    }
+}
+.history-stats {
+    @apply border rounded p-4 border-surface-300 dark:border-surface-700 dark:bg-gray-800/40;
+
+    .stats-title {
+        @apply text-primary-600 dark:text-primary-500 font-semibold mb-2;
+    }
+    .stats-container {
+        @apply h-24 flex items-center justify-center;
+    }
+}

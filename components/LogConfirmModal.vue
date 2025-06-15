@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useAppStore } from '~/stores/useAppStore'
+
+// Config
+const appConfig = useAppConfig()
 
 // Props & Emits
 const props = defineProps<{
@@ -12,6 +16,9 @@ const emit = defineEmits<{
     (e: 'confirm'): void
 }>()
 
+// Stores
+const appStore = useAppStore()
+
 // Refs
 const prevData = ref<DateLog | null>(null)
 const isSuccessfullySaved = ref<boolean>(false)
@@ -23,7 +30,7 @@ const isSuccessfullySaved = ref<boolean>(false)
         :visible="visible"
         @update:visible="emit('update:visible', $event)"
         modal
-        header="登録ログの確認"
+        header="登録データの確認"
         :dismissableMask="true"
         :style="{ width: '60vw' }"
     >
@@ -47,7 +54,10 @@ const isSuccessfullySaved = ref<boolean>(false)
                     <tbody>
                         <tr>
                             <th class="w-32">アプリ名</th>
-                            <td class="w-auto text-em">{{ logData?.appId }}</td>
+                            <td class="w-auto flex justify-center items-center gap-2">
+                                <span class="text-em">{{ appStore.app?.name }}</span>
+                                <span v-if="appConfig.isDebug" class="text-sm">（{{ logData?.appId }}）</span>
+                            </td>
                         </tr>
                         <tr>
                             <th>登録対象日</th>
@@ -58,7 +68,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             <td><div class="diff-table">
                                 <div>{{ prevData?.total_pulls ?? 0 }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
-                                <div><strong>{{ logData?.total_pulls }}</strong></div>
+                                <div class="text-em">{{ logData?.total_pulls }}</div>
                             </div></td>
                         </tr>
                         <tr>
@@ -66,7 +76,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             <td><div class="diff-table">
                                 <div class="prev-cell">{{ prevData?.discharge_items ?? 0 }}</div>
                                 <div class="transition-cell"><i class="pi pi-arrow-right"></i></div>
-                                <div class="next-cell"><strong>{{ logData?.discharge_items }}</strong></div>
+                                <div class="next-cell text-em">{{ logData?.discharge_items }}</div>
                             </div></td>
                         </tr>
                         <tr>
@@ -100,7 +110,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             <td><div class="diff-table">
                                 <div class="text-em text-muted">{{ prevData?.expense ?? 0 }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
-                                <div><strong>{{ logData?.expense }}</strong></div>
+                                <div class="text-em">{{ logData?.expense }}</div>
                             </div></td>
                         </tr>
                         <tr>
@@ -127,9 +137,9 @@ const isSuccessfullySaved = ref<boolean>(false)
                             <td><div class="diff-table">
                                 <div class="text-em text-muted">{{ prevData?.free_text ?? '&mdash;' }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
-                                <div>
-                                    <strong v-if="logData?.free_text !== ''" class="text-em text-sm!">{{ logData?.free_text }}</strong>
-                                    <span v-else class="text-em text-base">&mdash;</span>
+                                <div class="text-em">
+                                    <span v-if="logData?.free_text !== ''" class="text-sm!">{{ logData?.free_text }}</span>
+                                    <span v-else class="text-center">&mdash;</span>
                                 </div>
                             </div></td>
                         </tr>

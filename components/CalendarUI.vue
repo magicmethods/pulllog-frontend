@@ -9,6 +9,7 @@ const props = defineProps<{
     label?: string
     commit?: boolean
     commitLabel?: string
+    commitDisabled?: boolean
     defaultDate?: Date
     minDate?: Date
     maxDate?: Date
@@ -113,7 +114,7 @@ watch(
                 v-if="props.commit"
                 :label="props.commitLabel ?? 'Commit'"
                 class="btn btn-primary w-36 max-w-max px-4 py-2 text-base! m-0!"
-                :disabled="!internalDate"
+                :disabled="!internalDate || (props.commitDisabled ?? false)"
                 @click="commitValue"
                 v-blur-on-click
             />

@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores/useUserStore'
+import { useAuth }  from '~/composables/useAuth'
 
 definePageMeta({
     layout: 'auth'
 })
 
 const userStore = useUserStore()
+const { login } = useAuth()
 
 const userId = ref<string>('')
 const password = ref<string>('')
@@ -16,9 +18,9 @@ async function handleLogin() {
     return
   }
 
-  await userStore.login(userId.value, password.value)
+  await login(userId.value, password.value)
     .then(() => {
-      if (userStore.isAuthenticated) {
+      if (userStore.isLoggedIn) {
         // Redirect to the history page after successful login
         navigateTo({ path: '/history' })
       } else {
@@ -29,9 +31,12 @@ async function handleLogin() {
         navigateTo({  path: '/history' })
       }
     })
-    .catch((error) => {
+    .catch((
+      // biome-ignore lint:/suspicious/noExplicitAny
+      e: any
+    ) => {
       // Handle login error
-      console.error('Login failed:', error)
+      console.error('Login failed:', e)
     })
 
 }

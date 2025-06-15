@@ -1,15 +1,16 @@
-/** Typography系のスタイル */
+/** Layout, Typography 等のスタイル */
 @layer components {
+    /** ヘッダー */
+
+    /** フッター */
+
+    /** コンポーネント */
     h3 {
         @apply font-semibold text-primary-600 dark:text-primary-400 mb-1;
     }
     strong {
         @apply font-bold text-surface-600 dark:text-gray-400;
     }
-    /* label
-     * PullItemDetail.vue: block text-sm font-medium mb-1 select-none
-     * AppEditModal.vue:   flex items-center text-sm font-semibold mb-1 select-none
-     */
     label {
         @apply font-semibold text-surface-600 dark:text-gray-400 mb-1 select-none;
     }
@@ -40,6 +41,13 @@
     }
     .text-muted {
         @apply opacity-60! select-none;
+    }
+    .tag-chips {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-surface-200 dark:bg-gray-700 text-surface-600 dark:text-gray-200 text-xs font-medium mr-1;
+
+        i {
+            @apply text-xs;
+        }
     }
     /** for SortableJS in CustomOrderList */
     .drag-ghost {

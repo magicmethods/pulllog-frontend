@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useAppStore } from '~/stores/useAppStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 
 // Props/Emits
@@ -11,14 +12,25 @@ const emit = defineEmits<
 >()
 
 // Stores
+const appStore = useAppStore()
 const optionStore = useOptionStore()
 
 // Refs
 const internalDetails = shallowRef<DropDetail[]>([...props.modelValue])
 
 // Computed
-const rarityOptions = computed(() => optionStore.rarityLabels)
-const markerOptions = computed(() => optionStore.markerLabels)
+const rarityOptions = computed(() => {
+    if (appStore.app?.rarity_defs && appStore.app.rarity_defs.length > 0) {
+        return appStore.app.rarity_defs.map(opt => opt.label)
+    }
+    return optionStore.rarityLabels
+})
+const markerOptions = computed(() => {
+    if (appStore.app?.marker_defs && appStore.app.marker_defs.length > 0) {
+        return appStore.app.marker_defs.map(opt => opt.label)
+    }
+    return optionStore.markerLabels
+})
 
 // Methods
 function updateEntry(index: number, field: keyof DropDetail, value: string | null) {
@@ -70,7 +82,7 @@ watch(() => props.maxEntries, (newMax) => {
                     width="8rem"
                     placeholder="選択/入力"
                     emptyMessage="追加できます"
-                    :removableOptions="true"
+                    :removableOptions="!(appStore.app?.rarity_defs && appStore.app.rarity_defs.length > 0)"
                     class="m-0 p-0"
                     :pt="{ label: 'pr-4' }"
                 />
@@ -104,7 +116,7 @@ watch(() => props.maxEntries, (newMax) => {
                     width="9rem"
                     placeholder="選択/入力"
                     emptyMessage="追加できます"
-                    :removableOptions="true"
+                    :removableOptions="!(appStore.app?.marker_defs && appStore.app.marker_defs.length > 0)"
                     :pt="{ label: 'pr-4' }"
                 />
             </div>
