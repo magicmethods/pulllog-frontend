@@ -12,8 +12,10 @@ type User = {
     planExpiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
     language: string // ユーザーの言語設定（ja, enなど）
     theme: string // ユーザーのテーマ設定（light, darkなど）
+    homePage?: string // ログイン後に表示されるページ（ルートパス）
     createdAt: string // ユーザー登録日時: YYYY-MM-DDTHH:mm:ss形式
     updatedAt: string // ユーザー情報更新日時: YYYY-MM-DDTHH:mm:ss形式
+    lastLogin: string // 最終ログイン日時: YYYY-MM-DDTHH:mm:ss形式
 }
 */
 
@@ -32,12 +34,13 @@ export const useUserStore = defineStore('user', () => {
             id: 1,
             name: 'Ling Xiaoyu',
             email: 'ling-xiaoyu@dev.pulllog.net',
-            avatarUrl: null,
+            avatarUrl: 'sample/ling-xiaoyu.png',
             //roles: ['user'],
             //plan: 'free',
             //planExpiration: '2025-06-30',
             language: 'ja',
             theme: 'light',
+            homePage: '/history',
             createdAt: '2025-05-02T01:23:45',
             updatedAt: '2025-05-02T01:23:45',
             lastLogin: '2025-05-10T04:56:12',

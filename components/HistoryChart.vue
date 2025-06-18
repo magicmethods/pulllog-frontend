@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { DateTime } from 'luxon'
+import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
 
@@ -14,6 +15,7 @@ const props = defineProps<{
 }>()
 
 // Stores
+const userStore = useUserStore()
 const appStore = useAppStore()
 const logStore = useLogStore()
 
@@ -67,6 +69,11 @@ watch(
     [internalAppId, () => currentRange.value],
     () => { loadChartData() },
     { immediate: true }
+)
+watch(
+    // テーマ変更時にチャートを再描画
+    () => userStore.user?.theme,
+    () => { chartReloadKey.value++ }
 )
 
 </script>

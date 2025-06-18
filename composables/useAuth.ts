@@ -62,6 +62,7 @@ export function useAuth() {
             planExpiration: ur.plan_expiration ?? undefined,
             language: ur.language,
             theme: ur.theme,
+            homePage: ur.home_page ?? '/history',
             createdAt: ur.created_at,
             updatedAt: ur.updated_at,
             lastLogin: ur.last_login,

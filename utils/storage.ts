@@ -13,16 +13,26 @@ export class StorageUtil {
     }
 
     getItem<T = unknown>(key: string): T | null {
-        const JSONString = this.storage.getItem(key)
-        if (JSONString === null) {
-            return null
+        const item = this.storage.getItem(key)
+        if (item === null) return null
+        try {
+            return JSON.parse(item).value as T
+        } catch {
+            return item as unknown as T
         }
-        return JSON.parse(JSONString).value as T
     }
 
     setItem(key: string, value: unknown): void {
-        const data = { value }
-        this.storage.setItem(key, JSON.stringify(data))
+        if (
+            typeof value === 'string' ||
+            typeof value === 'number' ||
+            typeof value === 'boolean' ||
+            value === null
+        ) {
+            this.storage.setItem(key, String(value))
+        } else {
+            this.storage.setItem(key, JSON.stringify(value))
+        }
     }
 
     removeItem(key: string): void {

@@ -1,4 +1,8 @@
 /* Helper classes */
+html.theme-switching,
+html.theme-switching * {
+    transition: none !important;
+}
 .text-antialiasing {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useStatsStore } from '~/stores/useStatsStore'
 import { getCurrencyData } from '~/utils/currency'
@@ -10,6 +11,7 @@ const props = defineProps<{
 }>()
 
 // Stores
+const userStore = useUserStore()
 const appStore = useAppStore()
 const statsStore = useStatsStore()
 
@@ -44,6 +46,11 @@ watch(
     internalAppId,
     () => { fetchStats() },
     { immediate: true }
+)
+watch(
+    // テーマ変更時にチャートを再描画
+    () => userStore.user?.theme,
+    () => { reloadStatsChartKey.value++ }
 )
 
 </script>

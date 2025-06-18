@@ -1,16 +1,19 @@
 /**
- * ユーザーデータ */
+ * ユーザーデータ
+ */
 declare global {
     type User = {
         id?: number // 将来的に必要なら使用
         name: string // ユーザー名（表示名）
         email: string // メールアドレス（=ログインID）
+        password?: string // ログインパスワード（パスワード更新時のみ新規パスワードが入る）
         avatarUrl?: string | null // アバター画像URL（nullの場合はデフォルト画像を使用）
         roles?: string[] // ユーザーの役割
         plan?: string // ユーザープラン
         planExpiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
         language: string // ユーザーの言語設定（ja, enなど）
         theme: string // ユーザーのテーマ設定（light, darkなど）
+        homePage?: string // ログイン後に表示されるページ（ルートパス）
         createdAt: string // ユーザー登録日時: YYYY-MM-DDTHH:mm:ss形式
         updatedAt: string // ユーザー情報更新日時: YYYY-MM-DDTHH:mm:ss形式
         lastLogin: string // 最終ログイン日時: YYYY-MM-DDTHH:mm:ss形式
@@ -25,7 +28,8 @@ declare global {
         plan?: string // ユーザープラン（free, proなど）
         plan_expiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
         language: string // ユーザーの言語設定
-        theme: string // ユーザーのテーマ設定（light, darkなど）
+        theme: string // ユーザーのテーマ設定
+        home_page?: string // ログイン後に表示されるページ
         created_at: string // ユーザー登録日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
         updated_at: string // ユーザー情報更新日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
         last_login: string // 最終ログイン日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）

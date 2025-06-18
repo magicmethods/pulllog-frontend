@@ -10,3 +10,4 @@ type CalenderDate = Date | Date[] | (Date | null)[] | null | undefined
 type SearchableView = {
     searchLabel: string // 例: "あぷりめい（えん）"
 }
+type BasicOption = { label: string; value: string }

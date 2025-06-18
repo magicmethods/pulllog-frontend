@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useUserStore } from '~/stores/useUserStore'
 
 // Props
 const props = defineProps<{
@@ -9,9 +10,11 @@ const props = defineProps<{
     height?: number
 }>()
 
+// Stores
+const userStore = useUserStore()
+
 // 色設定
-const isDarkMode = computed(() => document.documentElement.classList.contains('app-dark')) // ダークモードの状態を取得 useUsrStore.isDarkMode
-const palette = computed(() => isDarkMode.value
+const palette = computed(() => userStore.user?.theme === 'dark'
     ? {
         rare: 'oklch(79.5% 0.184 86.047)', // yellow-500
         other: 'oklch(54.1% 0.281 293.009 / .75)',
@@ -19,7 +22,7 @@ const palette = computed(() => isDarkMode.value
         hoverOther: 'oklch(54.1% 0.281 293.009 / .6)',
         borderRare: 'oklch(85.2% 0.199 91.936)', // yellow-400 <- 'oklch(71.8% 0.202 349.761 / .6)',
         borderOther: 'transparent',
-        bg: 'oklch(13% 0.028 261.692)', text: 'oklch(92.8% 0.006 264.531)',
+        bg: 'oklch(21% 0.034 264.665)', text: 'oklch(92.8% 0.006 264.531)',
         //grid: 'oklch(37.3% 0.034 259.733)', axis: 'oklch(70.7% 0.022 261.325)',
         legend: 'oklch(92.8% 0.006 264.531)',
         tooltipBg: 'oklch(21% 0.034 264.665)', tooltipText: 'oklch(92.8% 0.006 264.531)', tooltipBorder: 'oklch(37.3% 0.034 259.733)'

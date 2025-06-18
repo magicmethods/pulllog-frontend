@@ -22,6 +22,18 @@ export const ptPreset = {
         decrementButton: 'hover:text-primary disabled:text-surface-600/50',
     },
 
+    // --- Password系 --- (login.vue, settings.vue)
+    Password: {
+        pcInputText: {
+            root: 'input-base input-hoverable',
+        },
+        maskIcon: '-mt-2',
+        unmaskIcon: '-mt-2',
+        overlay: 'p-4 dark:bg-gray-950',
+        meter: 'bg-surface-200 dark:bg-gray-800',
+        meterText: 'text-surface-600 dark:text-gray-100',
+    },
+
     // --- Textarea系 --- (index.vue, AppEditModal.vue)
     Textarea: {
         root: {
@@ -182,5 +194,39 @@ export const ptPreset = {
     ScrollPanel: {
         barX: 'bg-primary-200 focus:bg-primary-400 hover:bg-primary-400 dark:bg-primary-500 dark:focus:bg-primary-600 dark:hover:bg-primary-600',
         barY: 'bg-primary-200 focus:bg-primary-400 hover:bg-primary-400 dark:bg-primary-500 dark:focus:bg-primary-600 dark:hover:bg-primary-600',
+    },
+
+    // --- Avatar --- (Header.vue, settings.vue)
+    Avatar: {
+        root: 'bg-surface-200 text-primary-600 dark:bg-gray-700 dark:text-primary-400 font-bold',
+    },
+
+    // --- Drawer --- (default.vue)
+    Drawer: {
+        root: 'relative w-96! bg-white text-surface-600 dark:bg-gray-900 dark:text-gray-200',
+        header: 'p-4',
+        title: 'invisible opacity-0',
+        pcCloseButton: { root: 'mt-2 border-0 outline-0 rounded-full hover:bg-surface-200/40 dark:hover:bg-gray-700/40 hover:text-primary-600 dark:hover:text-primary-400 z-10!' },
+        content: 'absolute top-0',
+    },
+
+    // --- FileUpload --- (settings.vue)
+    FileUpload: {
+        root: 'flex flex-nowrap justify-between items-center border border-surface-300 dark:border-gray-800 dark:bg-gray-950 rounded-lg',
+        header: 'flex-grow flex flex-col justify-center items-start gap-2 p-2',
+        pcChooseButton: { root: 'btn btn-xs btn-uploader' },
+        pcUploadButton: { root: 'btn btn-xs btn-uploader' },
+        pcCancelButton: { root: 'btn btn-xs btn-uploader' },
+        content: 'flex-grow min-h-[7rem] p-4 border-l border-surface-300 dark:border-gray-800 flex flex-col justify-center items-start',
+        pcProgressBar: {
+            root: 'w-full h-1 bg-surface-200 dark:bg-gray-800 rounded-full overflow-hidden',
+            value: 'bg-primary-500 dark:bg-primary-600',
+        },
+        pcMessage: { root: 'p-2' },
+        fileThumbnail: 'h-16 w-16 rounded-full',
+        fileInfo: 'text-sm',
+        pcFileBadge: { root: 'px-2 rounded-full text-xs bg-amber-400 text-surface-600 dark:bg-yellow-600 dark:text-white' },
+        pcFileRemoveButton: { root: 'rounded-full text-surface-400 dark:text-gray-600 hover:text-primary-500 dark:hover:text-primary-400 bg-transparent hover:bg-surface-100 dark:hover:bg-gray-800/40' },
+        empty: 'text-sm text-muted',
     },
 }

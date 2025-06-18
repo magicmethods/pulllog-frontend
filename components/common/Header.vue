@@ -1,32 +1,41 @@
 <script setup lang="ts">
+import { useUserStore } from '~/stores/useUserStore'
+
+// Props & Emits
+const props = defineProps<{
+    isDarkMode: boolean
+}>()
+const emit = defineEmits<{
+    (e: 'update:isDarkMode', value: boolean): void
+    (e: 'open-settings'): void
+}>()
+
+// Stores
+const userStore = useUserStore()
 
 // Refs & Local variables
-const isDarkMode = ref(false)
+const isDarkMode = ref<boolean>(props.isDarkMode)
 const naviLinks = [
-    { name: 'アプリ管理', icon: 'pi pi-crown',      symbol: '🎮', prefix: 'symbol', path: '/apps' },
-    { name: '履歴登録',   icon: 'pi pi-trophy',     symbol: '📝', prefix: 'symbol', path: '/history' },
-    { name: '統計分析',   icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/stats' },
-    { name: '個人設定',   icon: 'pi pi-cog',        symbol: '⚙️', prefix: 'symbol', path: '/settings' }
+    { name: 'アプリ管理', icon: 'pi pi-crown', symbol: '🎮', prefix: 'symbol', path: '/apps' },
+    { name: '履歴登録', icon: 'pi pi-trophy', symbol: '📝', prefix: 'symbol', path: '/history' },
+    { name: '統計分析', icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/stats' },
+    //{ name: '設定', icon: 'pi pi-cog', symbol: '⚙️', prefix: 'symbol', path: '/settings' }
 ]
 
-// Toggle a class on the <html> tag to switch rendering modes
-const toggleRenderingMode = () => {
-    const htmlElement = document.documentElement
-    htmlElement.classList.toggle('app-dark')
-    isDarkMode.value = htmlElement.classList.contains('app-dark')
-}
-
-onMounted(() => {
-    // Check if the user has a preference for dark mode and set the class accordingly
-    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-    if (prefersDarkMode) {
-        document.documentElement.classList.add('app-dark')
-        isDarkMode.value = true
-    } else {
-        document.documentElement.classList.remove('app-dark')
-        isDarkMode.value = false
+// Methods
+const avatarProps = () => {
+    const avatarProps = {
+        size: 'normal',
+        shape: 'circle',
     }
-})
+    if (userStore.user?.avatarUrl) {
+        return { ...avatarProps, image: userStore.user.avatarUrl }
+    }
+    if (userStore.user?.name) {
+        return { ...avatarProps, label: userStore.user.name.substring(0, 1).toLocaleUpperCase() }
+    }
+    return { ...avatarProps, icon: 'pi pi-user' }
+}
 
 // Pass Through
 const toggleButtonPT = (content: 'label' | 'icon') => {
@@ -62,33 +71,24 @@ const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded tex
                 <span class="hidden md:inline-block">{{ link.name }}</span>
             </NuxtLink>
         </nav>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-4">
             <ToggleButton
-                v-model="isDarkMode"
+                :modelValue="isDarkMode"
+                @update:modelValue="emit('update:isDarkMode', $event)"
                 onLabel="🔆"
                 offLabel="🌙"
                 onIcon="pi pi-sun"
                 offIcon="pi pi-moon"
                 size="small"
-                @click="toggleRenderingMode"
                 class="min-w-8"
                 :pt="toggleButtonPT('label')"
                 v-blur-on-click
             />
+            <Avatar
+                v-bind="avatarProps()"
+                @click="$emit('open-settings')"
+                class="-my-2"
+            />
         </div>
     </header>
 </template>
-
-<style lang="scss" scoped>
-#navi-links {
-    a[aria-current="true"] {
-        background-color: color-mix(in srgb, var(--p-primary-950) 5%, transparent);
-        color: color-mix(in srgb, var(--p-primary-100) 50%, transparent);
-
-        &:hover {
-            background-color: color-mix(in srgb, var(--p-primary-500) 40%, transparent);
-            color: var(--p-primary-200);
-        }
-    }
-}
-</style>

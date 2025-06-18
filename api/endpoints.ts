@@ -4,13 +4,15 @@ export const API_BASE_URL = appConfig.apiBaseURL
 /** RESTエンドポイント定義 */
 export const endpoints = {
     auth: {
-        login:   () => `${API_BASE_URL}/auth/login`,
-        logout:  () => `${API_BASE_URL}/auth/logout`,
+        login:   () => `${API_BASE_URL}/auth/login`,  // POST
+        logout:  () => `${API_BASE_URL}/auth/logout`, // POST
         refresh: () => `${API_BASE_URL}/auth/refresh`,
     },
     user: {
-        profile: () => `${API_BASE_URL}/user/profile`,
-        update:  () => `${API_BASE_URL}/user/profile/update`,
+        profile: () => `${API_BASE_URL}/user/profile`, // GET
+        create:  () => `${API_BASE_URL}/user/profile`, // POST
+        update:  () => `${API_BASE_URL}/user/profile`, // PUT
+        avatar:  () => `${API_BASE_URL}/user/avatar`,  // POST
     },
     apps: {
         list:   () => `${API_BASE_URL}/apps`, // GET
@@ -18,6 +20,7 @@ export const endpoints = {
         create: () => `${API_BASE_URL}/apps`, // POST
         update: (appId: string | number) => `${API_BASE_URL}/apps/${appId}`, // PUT
         delete: (appId: string | number) => `${API_BASE_URL}/apps/${appId}`, // DELETE
+        image:  (appId: string | number) => `${API_BASE_URL}/apps/${appId}/image`, // POST
     },
     logs: {
         list: (

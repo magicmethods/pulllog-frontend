@@ -20,10 +20,23 @@ export const useOptionStore = defineStore('option', () => {
         { symbol: '💖', label: '💖確定枠', value: 'guaranteed' },
     ]
 
-    // State
+    // Options
     const currencyOptions = ref<SymbolOption[]>([...defaultCurrencyOptions])
     const rarityOptions = ref<SymbolOption[]>([...defaultRarityOptions])
     const symbolOptions = ref<SymbolOption[]>([...defaultSymbolOptions])
+    const languageOptions = ref<BasicOption[]>([
+        { label: '日本語', value: 'ja' },
+        { label: 'English', value: 'en' }
+    ])
+    const themeOptions = ref<BasicOption[]>([
+        { label: '🔆 ライト', value: 'light' },
+        { label: '🌙 ダーク', value: 'dark' }
+    ])
+    const homepageOptions = ref<BasicOption[]>([
+        { label: 'アプリ管理', value: '/apps' },
+        { label: '履歴登録', value: '/history' },
+        { label: '統計分析', value: '/stats' }
+    ])
 
     // Computed labels (UI表示用)
     const currencyLabels = computed(() =>
@@ -35,6 +48,15 @@ export const useOptionStore = defineStore('option', () => {
     const markerLabels = computed(() =>
         symbolOptions.value.map(opt => opt.label)
     )
+    const languageLabels = computed(() =>
+        languageOptions.value.map(opt => opt.label)
+    )
+    const themeLabels = computed(() => 
+        themeOptions.value.map(opt => opt.label)
+    )
+    const homepageLabels = computed(() =>
+        homepageOptions.value.map(opt => opt.label)
+    )
 
     // Actions
     function resetOptions(): void {
@@ -45,19 +67,25 @@ export const useOptionStore = defineStore('option', () => {
 
     function getOptionsAs(
         type: 'array' | 'object',
-        target: 'currency' | 'rarity' | 'symbol'
-    ): string[] | SymbolOption[] {
+        target: 'currency' | 'rarity' | 'symbol' | 'language' | 'theme' | 'homepage'
+    ): string[] | SymbolOption[] | BasicOption[] {
         if (type === 'array') {
             switch (target) {
                 case 'currency': return currencyLabels.value
                 case 'rarity':   return rarityLabels.value
                 case 'symbol':   return markerLabels.value
+                case 'language': return languageLabels.value
+                case 'theme':    return themeLabels.value
+                case 'homepage': return homepageLabels.value
             }
         }
         switch (target) {
             case 'currency': return currencyOptions.value
             case 'rarity':   return rarityOptions.value
             case 'symbol':   return symbolOptions.value
+            case 'language': return languageOptions.value
+            case 'theme':    return themeOptions.value
+            case 'homepage': return homepageOptions.value
         }
     }
 
@@ -83,6 +111,9 @@ export const useOptionStore = defineStore('option', () => {
         currencyOptions,
         rarityOptions,
         symbolOptions,
+        languageOptions,
+        themeOptions,
+        homepageOptions,
         currencyLabels,
         rarityLabels,
         markerLabels,
