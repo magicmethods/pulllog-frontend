@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
+import { useChartPalette } from '~/composables/useChart'
 
 // Props
 const props = defineProps<{
@@ -10,36 +10,24 @@ const props = defineProps<{
     height?: number
 }>()
 
-// Stores
-const userStore = useUserStore()
-
-// 色設定
-const palette = computed(() => userStore.user?.theme === 'dark'
-    ? {
-        rare: 'oklch(79.5% 0.184 86.047)', // yellow-500
-        other: 'oklch(54.1% 0.281 293.009 / .75)',
-        hoverRare: 'oklch(68.1% 0.162 75.834)', // yellow-600
-        hoverOther: 'oklch(54.1% 0.281 293.009 / .6)',
-        borderRare: 'oklch(85.2% 0.199 91.936)', // yellow-400 <- 'oklch(71.8% 0.202 349.761 / .6)',
-        borderOther: 'transparent',
-        bg: 'oklch(21% 0.034 264.665)', text: 'oklch(92.8% 0.006 264.531)',
-        //grid: 'oklch(37.3% 0.034 259.733)', axis: 'oklch(70.7% 0.022 261.325)',
-        legend: 'oklch(92.8% 0.006 264.531)',
-        tooltipBg: 'oklch(21% 0.034 264.665)', tooltipText: 'oklch(92.8% 0.006 264.531)', tooltipBorder: 'oklch(37.3% 0.034 259.733)'
-    }
-    : {
-        rare: 'oklch(76.9% 0.188 70.08)', // amber-500
-        other: 'oklch(60.6% 0.25 292.717 / .75)',
+// Composables
+const { palette } = useChartPalette({
+    light: {
+        other: 'oklch(60.6% 0.25 292.717 / .75)', // violet-500/75
         hoverRare: 'oklch(66.6% 0.179 58.318 / .6)', // amber-600/60
-        hoverOther: 'oklch(60.6% 0.25 292.717 / .6)',
-        borderRare: 'oklch(82.8% 0.189 84.429)', // amber-400 <- 'oklch(74% 0.238 322.16 / .1)',
+        hoverOther: 'oklch(60.6% 0.25 292.717 / .6)', // violet-500/60
+        borderRare: 'oklch(82.8% 0.189 84.429)', // amber-400
         borderOther: 'transparent',
-        bg: '#fff', text: 'oklch(27.9% 0.041 260.031)',
-        //grid: 'oklch(92.9% 0.013 255.508)', axis: 'oklch(70.4% 0.04 256.788)',
-        legend: 'oklch(27.9% 0.041 260.031)',
-        tooltipBg: '#fff', tooltipText: 'oklch(27.9% 0.041 260.031)', tooltipBorder: 'oklch(92.9% 0.013 255.508)'
-    }
-)
+    },
+    dark: {
+        other: 'oklch(54.1% 0.281 293.009 / .75)', // violet-600/75
+        hoverRare: 'oklch(68.1% 0.162 75.834)', // yellow-600
+        hoverOther: 'oklch(54.1% 0.281 293.009 / .6)', // violet-600/60
+        borderRare: 'oklch(85.2% 0.199 91.936)', // yellow-400
+        borderOther: 'transparent',
+    },
+})
+
 // グラフデータ
 const chartData = {
     labels: [

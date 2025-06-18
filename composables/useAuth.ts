@@ -3,6 +3,7 @@ import { useCsrfStore } from '~/stores/useCsrfStore'
 import { useGlobalStore } from '~/stores/globalStore'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
+import { toUser } from '~/utils/user'
 
 export function useAuth() {
     const error = ref<string | null>(null)
@@ -48,27 +49,7 @@ export function useAuth() {
     async function logout() {
         await userStore.logout()
     }
-
-    // Private Methods
-    // ユーザーレスポンスをUser型に変換するヘルパー関数
-    function toUser(ur: UserResponse): User {
-        return {
-            id: ur.id,
-            name: ur.name,
-            email: ur.email,
-            avatarUrl: ur.avatar_url ?? null,
-            roles: ur.roles ?? undefined,
-            plan: ur.plan ?? undefined,
-            planExpiration: ur.plan_expiration ?? undefined,
-            language: ur.language,
-            theme: ur.theme,
-            homePage: ur.home_page ?? '/history',
-            createdAt: ur.created_at,
-            updatedAt: ur.updated_at,
-            lastLogin: ur.last_login,
-        }
-    }    
-
+    
     return {
         login,
         logout,

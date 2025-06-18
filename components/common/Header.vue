@@ -14,13 +14,13 @@ const emit = defineEmits<{
 const userStore = useUserStore()
 
 // Refs & Local variables
-const isDarkMode = ref<boolean>(props.isDarkMode)
 const naviLinks = [
     { name: 'アプリ管理', icon: 'pi pi-crown', symbol: '🎮', prefix: 'symbol', path: '/apps' },
     { name: '履歴登録', icon: 'pi pi-trophy', symbol: '📝', prefix: 'symbol', path: '/history' },
     { name: '統計分析', icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/stats' },
-    //{ name: '設定', icon: 'pi pi-cog', symbol: '⚙️', prefix: 'symbol', path: '/settings' }
+    //{ name: '登録情報変更', icon: 'pi pi-cog', symbol: '⚙️', prefix: 'symbol', path: '/settings' }
 ]
+const homePage = computed(() => userStore.user?.homePage ?? naviLinks[0].path)
 
 // Methods
 const avatarProps = () => {
@@ -52,7 +52,7 @@ const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded tex
 
 <template>
     <header class="flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-700 text-white shadow-md">
-        <NuxtLink to="/history">
+        <NuxtLink :to="homePage">
             <div class="flex items-center space-x-4">
                 <img src="/images/pulllog-icon.svg" alt="PullLog" class="w-6 h-6 inline-block mr-2 ld ld-swing" />
                 <h1 class="text-xl font-bold">PullLog</h1>
@@ -73,7 +73,7 @@ const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded tex
         </nav>
         <div class="flex items-center gap-4">
             <ToggleButton
-                :modelValue="isDarkMode"
+                :modelValue="props.isDarkMode"
                 @update:modelValue="emit('update:isDarkMode', $event)"
                 onLabel="🔆"
                 offLabel="🌙"

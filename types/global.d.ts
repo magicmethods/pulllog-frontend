@@ -1,6 +1,7 @@
 /**
  * その他、UIでの加工や表示用の補助型
  */
+type Theme = 'light' | 'dark'
 /** カスタムコンポーネントから PrimeVue コンポーネントの PassThrough を取り扱うための型  */
 // biome-ignore lint:/suspicious/noExplicitAny
 type PassThroughValue = Record<string, any> | ((v: any) => Record<string, any>) 
@@ -11,3 +12,13 @@ type SearchableView = {
     searchLabel: string // 例: "あぷりめい（えん）"
 }
 type BasicOption = { label: string; value: string }
+// 通貨データ（通貨定義 utils/currency.ts で使用）
+type CurrencyData = {
+    symbol: string; // 通貨記号
+    name: string; // 通貨名
+    symbol_native: string; // ネイティブ通貨記号
+    decimal_digits: number; // 小数点以下の桁数
+    rounding: number; // 四捨五入の単位
+    code: string; // ISO通貨コード
+    name_plural: string; // 複数形の通貨名
+}

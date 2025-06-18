@@ -16,7 +16,7 @@ export const useOptionStore = defineStore('option', () => {
         { symbol: '🏆', label: '🏆ピックアップ', value: 'pickup' },
         { symbol: '💔', label: '💔すり抜け', value: 'offrate' },
         { symbol: '🎯', label: '🎯狙い', value: 'target' },
-        { symbol: '⏫', label: '⏫+1凸', value: 'stack+1' },
+        //{ symbol: '⏫', label: '⏫+1凸', value: 'stack+1' },
         { symbol: '💖', label: '💖確定枠', value: 'guaranteed' },
     ]
 

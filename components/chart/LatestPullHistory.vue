@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
+import { useChartPalette } from '~/composables/useChart'
 import { getLabelsAndMap } from '~/utils/date'
 import { getCurrencyData, getExpenseStepSize, getExpenseYAxisMax } from '~/utils/currency'
-import { StorageUtil } from '~/utils/storage'
 
 // Props & Emits
 const props = defineProps<{
@@ -11,34 +10,8 @@ const props = defineProps<{
     currencyCode: string // アプリごとの通貨コード
 }>()
 
-// Stores
-const userStore = useUserStore()
-
-const storage = new StorageUtil()
-
-// 色設定
-const isDarkMode = computed(() => {
-    // default.vue のマウント時のテーマ優先度（ローカルストレージ > ユーザーストア > ブラウザのレンダリングモード）に準じる
-    const savedTheme = storage.getItem('theme')
-    if (savedTheme) {
-        return savedTheme === 'dark'
-    }
-    return userStore.user?.theme === 'dark'
-})
-const palette = computed(() => isDarkMode.value
-    ? {
-        rare: 'oklch(79.5% 0.184 86.047)', other: 'oklch(54.1% 0.281 293.009)', expense: 'oklch(71.8% 0.202 349.761 / .6)',
-        bg: 'oklch(21% 0.034 264.665)', text: 'oklch(92.8% 0.006 264.531)',
-        grid: 'oklch(37.3% 0.034 259.733)', axis: 'oklch(70.7% 0.022 261.325)', legend: 'oklch(92.8% 0.006 264.531)',
-        tooltipBg: 'oklch(21% 0.034 264.665)', tooltipText: 'oklch(92.8% 0.006 264.531)', tooltipBorder: 'oklch(37.3% 0.034 259.733)'
-    }
-    : {
-        rare: 'oklch(76.9% 0.188 70.08)', other: 'oklch(60.6% 0.25 292.717)', expense: 'oklch(74% 0.238 322.16 / .5)',
-        bg: '#fff', text: 'oklch(27.9% 0.041 260.031)',
-        grid: 'oklch(92.9% 0.013 255.508)', axis: 'oklch(70.4% 0.04 256.788)', legend: 'oklch(27.9% 0.041 260.031)',
-        tooltipBg: '#fff', tooltipText: 'oklch(27.9% 0.041 260.031)', tooltipBorder: 'oklch(92.9% 0.013 255.508)'
-    }
-)
+// Composables
+const { palette } = useChartPalette()
 
 // X軸ラベル・グラフ用データ配列
 const { labels, points } = getLabelsAndMap(props.chartData, props.range)

@@ -1,18 +1,17 @@
 <script setup lang="ts">
 
-const home = ref<{ icon: string }>({ icon: 'pi pi-home' })
-const locations = ref<Record<string, string>[]>([
-  { label: 'アプリ管理' },
-])
+
 
 </script>
 
 <template>
-    <div class="w-full mx-auto px-4 py-6">
-        <!-- Page Header -->
-        <div id="page-header" class="flex justify-start text-sm text-surface-500 -mt-2 mb-4">
-            <Breadcrumb :home="home" :model="locations" />
-        </div>
+    <div class="w-full p-4">
+        <CommonPageHeader
+            title="アプリ管理"
+            :adWidth="728"
+            :adHeight="90"
+            adText="リーダーボード広告"
+        />
         <!-- Page Content -->
         
     </div>

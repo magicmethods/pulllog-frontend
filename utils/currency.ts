@@ -1,14 +1,3 @@
-// Types
-type CurrencyData = {
-    symbol: string; // 通貨記号
-    name: string; // 通貨名
-    symbol_native: string; // ネイティブ通貨記号
-    decimal_digits: number; // 小数点以下の桁数
-    rounding: number; // 四捨五入の単位
-    code: string; // ISO通貨コード
-    name_plural: string; // 複数形の通貨名
-}
-
 // Define a record of currencies with their data
 const currencies: Record<string, CurrencyData> = {
 	"USD": {

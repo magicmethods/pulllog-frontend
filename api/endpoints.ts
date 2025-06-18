@@ -1,26 +1,23 @@
-const appConfig = useAppConfig()
-export const API_BASE_URL = appConfig.apiBaseURL
-
 /** RESTエンドポイント定義 */
 export const endpoints = {
     auth: {
-        login:   () => `${API_BASE_URL}/auth/login`,  // POST
-        logout:  () => `${API_BASE_URL}/auth/logout`, // POST
-        refresh: () => `${API_BASE_URL}/auth/refresh`,
+        login:   () => `${useAppConfig().apiBaseURL}/auth/login`,  // POST
+        logout:  () => `${useAppConfig().apiBaseURL}/auth/logout`, // POST
+        refresh: () => `${useAppConfig().apiBaseURL}/auth/refresh`, // POST
     },
     user: {
-        profile: () => `${API_BASE_URL}/user/profile`, // GET
-        create:  () => `${API_BASE_URL}/user/profile`, // POST
-        update:  () => `${API_BASE_URL}/user/profile`, // PUT
-        avatar:  () => `${API_BASE_URL}/user/avatar`,  // POST
+        profile: () => `${useAppConfig().apiBaseURL}/user/profile`, // GET
+        create:  () => `${useAppConfig().apiBaseURL}/user/profile`, // POST
+        update:  () => `${useAppConfig().apiBaseURL}/user/profile`, // PUT
+        avatar:  () => `${useAppConfig().apiBaseURL}/user/avatar`,  // POST
     },
     apps: {
-        list:   () => `${API_BASE_URL}/apps`, // GET
-        detail: (appId: string | number) => `${API_BASE_URL}/apps/${appId}`, // GET
-        create: () => `${API_BASE_URL}/apps`, // POST
-        update: (appId: string | number) => `${API_BASE_URL}/apps/${appId}`, // PUT
-        delete: (appId: string | number) => `${API_BASE_URL}/apps/${appId}`, // DELETE
-        image:  (appId: string | number) => `${API_BASE_URL}/apps/${appId}/image`, // POST
+        list:   () => `${useAppConfig().apiBaseURL}/apps`, // GET
+        detail: (appId: string | number) => `${useAppConfig().apiBaseURL}/apps/${appId}`, // GET
+        create: () => `${useAppConfig().apiBaseURL}/apps`, // POST
+        update: (appId: string | number) => `${useAppConfig().apiBaseURL}/apps/${appId}`, // PUT
+        delete: (appId: string | number) => `${useAppConfig().apiBaseURL}/apps/${appId}`, // DELETE
+        image:  (appId: string | number) => `${useAppConfig().apiBaseURL}/apps/${appId}/image`, // POST
     },
     logs: {
         list: (
@@ -33,7 +30,7 @@ export const endpoints = {
             }
         ) => {
             // URLSearchParamsを使ってクエリパラメータを生成
-            const url = new URL(`${API_BASE_URL}/logs/${appId}`)
+            const url = new URL(`${useAppConfig().apiBaseURL}/logs/${appId}`)
             if (params) {
                 if (params.from) url.searchParams.append('from', params.from)
                 if (params.to)   url.searchParams.append('to', params.to)
@@ -43,15 +40,15 @@ export const endpoints = {
             return url.toString()
         }, // GET
         // @param date - YYYY-MM-DD format
-        daily:  (appId: string | number, date: string) => `${API_BASE_URL}/logs/daily/${appId}/${date}`, // GET
-        create: (appId: string | number, date: string) => `${API_BASE_URL}/logs/daily/${appId}/${date}`, // POST
-        update: (appId: string | number, date: string) => `${API_BASE_URL}/logs/daily/${appId}/${date}`, // PUT
-        delete: (appId: string | number, date: string) => `${API_BASE_URL}/logs/daily/${appId}/${date}`, // DELETE
+        daily:  (appId: string | number, date: string) => `${useAppConfig().apiBaseURL}/logs/daily/${appId}/${date}`, // GET
+        create: (appId: string | number, date: string) => `${useAppConfig().apiBaseURL}/logs/daily/${appId}/${date}`, // POST
+        update: (appId: string | number, date: string) => `${useAppConfig().apiBaseURL}/logs/daily/${appId}/${date}`, // PUT
+        delete: (appId: string | number, date: string) => `${useAppConfig().apiBaseURL}/logs/daily/${appId}/${date}`, // DELETE
     },
     stats: {
         list: (appId: string | number, start: string, end: string) => {
             // URLSearchParamsを使ってクエリパラメータを生成
-            const url = new URL(`${API_BASE_URL}/stats/${appId}`)
+            const url = new URL(`${useAppConfig().apiBaseURL}/stats/${appId}`)
             url.searchParams.append('start', start)
             url.searchParams.append('end', end)
             return url.toString()

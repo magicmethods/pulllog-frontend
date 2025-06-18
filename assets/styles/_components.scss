@@ -291,3 +291,14 @@
         }
     }
 }
+/** Validation */
+.p-invalid {
+    border-color: var(--p-rose-600);
+    background-color: color-mix(in srgb, var(--p-rose-50) 40%, transparent);
+}
+.app-dark {
+    .p-invalid {
+        border-color: var(--p-rose-700);
+        background-color: color-mix(in srgb, var(--p-rose-950) 33%, transparent);
+    }
+}

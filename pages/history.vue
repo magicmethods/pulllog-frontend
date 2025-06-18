@@ -43,10 +43,6 @@ const expense = ref<number>(0) // 課金額
 const tags = ref<string[]>([]) // タグ（任意）
 const freeText = ref<string>('') // メモ（任意）
 const textLength = ref<number>(0) // メモの文字数
-const home = ref<{ icon: string }>({ icon: 'pi pi-home' })
-const locations = ref<Record<string, string>[]>([
-  { label: '履歴登録' },
-])
 const showCalculator = ref<boolean>(false) // 計算機モーダルの表示状態
 const today = computed(() => getTodayByApp(selectedApp.value))
 const todayString = computed(() => formatDate(today.value))
@@ -244,11 +240,8 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
 </script>
 
 <template>
-  <div class="w-full mx-auto px-4 py-6">
-      <!-- Page Header -->
-      <div id="page-header" class="flex justify-start text-sm text-surface-500 -mt-2 mb-4">
-        <Breadcrumb :home="home" :model="locations" />
-      </div>
+  <div class="w-full p-4">
+      <CommonPageHeader title="履歴登録" />
 
       <!-- 入力エリアとログ表示エリア -->
       <div class="w-full flex space-x-6">
@@ -460,6 +453,13 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
                     />
                   </div>
               </div>
+
+              <!-- 広告バナー -->
+              <CommonInlineAd
+                :adHeight="250"
+                adText="インライン広告"
+              />
+
           </section>
 
           <!-- 確認モーダル -->

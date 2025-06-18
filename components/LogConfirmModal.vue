@@ -36,7 +36,7 @@ const isSuccessfullySaved = ref<boolean>(false)
     >
         <div class="text-sm space-y-4">
             <div v-if="validationErrors && Object.keys(validationErrors).length > 0">
-                <Message severity="error" variant="simple" size="small" class="py-1 px-2">入力内容に不備があります。修正してください。</Message>
+                <Message severity="error" variant="simple" size="small" class="py-1 px-2">入力内容に不備があります。修正してください</Message>
                 <ul class="list-disc list-inside text-red-500">
                     <li v-for="(msgs, field) in validationErrors" :key="field">
                         <strong>{{ field }}:</strong> {{ msgs.join(', ') }}
@@ -44,12 +44,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                 </ul>
             </div>
             <div v-else-if="logData">
-                <Message severity="info" variant="simple" size="small" class="py-1 px-2">以下の内容で登録します。</Message>
-                <!-- /*
-                <pre v-if="false" class="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded whitespace-pre-wrap">
-{{ JSON.stringify(logData, null, 2) }}
-                </pre>
-                */ -->
+                <Message severity="info" variant="simple" size="small" class="py-1 px-2">以下の内容で登録します</Message>
                 <table class="w-full table-bordered">
                     <tbody>
                         <tr>

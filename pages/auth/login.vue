@@ -121,7 +121,7 @@ const backButtonClass = `flex justify-center items-center rounded-full h-4 w-4 p
           placeholder="メールアドレス"
           class="flex-auto w-full"
           autocomplete="username"
-          :class="{ 'border-rose-500! dark:border-rose-600!': touched.email && errors.email }"
+          :class="{ 'p-invalid': touched.email && errors.email }"
           @blur="handleBlur('email')"
         />
         <Message v-if="touched.email && errors.email" severity="error" size="small" variant="simple" class="mb-2">
@@ -135,7 +135,7 @@ const backButtonClass = `flex justify-center items-center rounded-full h-4 w-4 p
           :feedback="false"
           toggleMask
           :pt:pcinputtext:root="{ inputmode: 'text', autocomplete: 'current-password',
-            class: { 'border-rose-500! dark:border-rose-600!': touched.password && errors.password },
+            class: { 'p-invalid': touched.password && errors.password },
           }"
           @blur="handleBlur('password')"
         />
