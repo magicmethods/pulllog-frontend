@@ -114,17 +114,17 @@ pnpm run preview
 │    ├── index.vue     # ランディングページ
 │    └── ***.vue       # 認証後ルーティング（アプリ本体）
 ├── public/             # 静的ファイル
-│    ├── docs/         # 各種文書Markdown
+│    ├── docs/         # 各種文書Markdown群
 │    └── images/       # 公開用画像群
 ├── stores/             # Piniaストア定義
-│    ├── globalStore.ts
-│    ├── useUserStore.ts
-│    ├── useAppStore.ts
-│    ├── useLogStore.ts
-│    ├── useStatsStore.ts
-│    ├── useOptionStore.ts
-│    ├── useCsrfStore.ts
-│    └── useLoaderStore.ts
+│    ├── globalStore.ts    # グローバルストア
+│    ├── useUserStore.ts   # ユーザー管理
+│    ├── useAppStore.ts    # アプリケ―ション管理
+│    ├── useLogStore.ts    # 履歴データ管理
+│    ├── useStatsStore.ts  # 統計データ管理
+│    ├── useOptionStore.ts # プリセット・オプション管理
+│    ├── useCsrfStore.ts   # CSRFトークン管理
+│    └── useLoaderStore.ts # ローディング状態管理
 ├── theme/              # PrimeVueテーマ定義
 │    ├── preset.ts     # グローバルプリセット定義
 │    └── ptPreset.ts   # 各コンポーネントPassThrough定義
