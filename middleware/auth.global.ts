@@ -17,7 +17,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
     const allowedPrefixes = ['/apps', '/history', '/stats', '/settings', '/dashboard']
     const isAllowedRoute = allowedPrefixes.some(prefix => to.path === prefix || to.path.startsWith(`${prefix}/`))
     if (isAllowedRoute) {
-        console.debug('auth.global.ts::', to.path, userStore.isLoggedIn, /^\/dashboard\/?$/.test(to.path))
+        //console.debug('auth.global.ts::', to.path, userStore.isLoggedIn, /^\/dashboard\/?$/.test(to.path))
         if (!userStore.isLoggedIn) {
             // 未認証ならログインページへ
             return navigateTo('/auth/login')

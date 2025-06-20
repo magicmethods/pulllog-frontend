@@ -11,8 +11,8 @@
             :adWidth="468"
             :adHeight="60"
             adText="フルバナー広告"
+            adSrc="/sample/ad_1.jpg"
         />
         <!-- Page Content -->
-        
     </div>
 </template>

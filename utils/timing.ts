@@ -37,3 +37,11 @@ export function debounce<T extends (...args: Arguments) => void>(func: T, delay:
         }, delay)
     }
 }
+
+/** Sleep for a certain amount of time
+ * @param {number} ms - The time to sleep in milliseconds
+ * @returns {Promise<void>} A promise that resolves after the specified time
+ */
+export async function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}

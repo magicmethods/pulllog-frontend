@@ -68,6 +68,7 @@ export const useUserStore = defineStore('user', () => {
             email: 'ling-xiaoyu@dev.pulllog.net',
             avatarUrl: 'sample/ling-xiaoyu.png',
             roles: ['user'],
+            //plan: 'standard',
             plan: 'free',
             planExpiration: '2025-12-31',
             language: localStorage.getItem('language') || 'ja',

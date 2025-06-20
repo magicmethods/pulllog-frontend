@@ -1,9 +1,12 @@
-/** RESTエンドポイント定義 */
+/** 
+ * REST endpoint definition
+ */
 export const endpoints = {
     auth: {
-        login:   () => `${useAppConfig().apiBaseURL}/auth/login`,  // POST
-        logout:  () => `${useAppConfig().apiBaseURL}/auth/logout`, // POST
-        refresh: () => `${useAppConfig().apiBaseURL}/auth/refresh`, // POST
+        login:    () => `${useAppConfig().apiBaseURL}/auth/login`,  // POST
+        register: () => `${useAppConfig().apiBaseURL}/auth/register`, // POST
+        logout:   () => `${useAppConfig().apiBaseURL}/auth/logout`, // POST
+        password: () => `${useAppConfig().apiBaseURL}/auth/password`, // POST
     },
     user: {
         profile: () => `${useAppConfig().apiBaseURL}/user/profile`, // GET
@@ -29,7 +32,7 @@ export const endpoints = {
                 offset?: number
             }
         ) => {
-            // URLSearchParamsを使ってクエリパラメータを生成
+            // Generate query parameters using URLSearchParams
             const url = new URL(`${useAppConfig().apiBaseURL}/logs/${appId}`)
             if (params) {
                 if (params.from) url.searchParams.append('from', params.from)
@@ -47,7 +50,7 @@ export const endpoints = {
     },
     stats: {
         list: (appId: string | number, start: string, end: string) => {
-            // URLSearchParamsを使ってクエリパラメータを生成
+            // Generate query parameters using URLSearchParams
             const url = new URL(`${useAppConfig().apiBaseURL}/stats/${appId}`)
             url.searchParams.append('start', start)
             url.searchParams.append('end', end)

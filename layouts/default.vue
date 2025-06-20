@@ -10,6 +10,7 @@ const isDarkMode = ref<boolean>(userStore.user?.theme === 'dark')
 const isDrawerOpen = ref<boolean>(false)
 const mainContainer = ref<HTMLElement | null>(null)
 const headerReloadKey = ref<number>(0)
+const reloadFABKey = ref<number>(0)
 const storage = new StorageUtil()
 
 // Router
@@ -36,7 +37,6 @@ function handleThemeToggle(value: boolean) {
     // ユーザーストア更新
     if (userStore.user) {
         userStore.user.theme = value ? 'dark' : 'light'
-        // userStore.updateTheme(value ? 'dark' : 'light')
     }
     // ローカルストレージ更新
     storage.setItem('theme', value ? 'dark' : 'light')
@@ -68,6 +68,7 @@ onMounted(() => {
     void html.offsetWidth // Force reflow
     requestAnimationFrame(() => {
         html.classList.remove('theme-switching')
+        reloadFABKey.value++ // Reload FAB to ensure it reflects the theme
     })
 })
 
@@ -100,12 +101,14 @@ watch(
         </Drawer>
         <main
             ref="mainContainer"
-            class="w-full flex flex-col justify-between overflow-y-auto dark:bg-[#070D19]"
+            class="w-full flex flex-col justify-between overflow-y-auto bg-white dark:bg-gray-900"
             style="height: calc(100vh - 60px);"
         >
             <slot />
             <CommonFooter />
         </main>
+        <!-- Floating Action Button -->
+        <CommonScrollToTopButton :target="mainContainer" :key="reloadFABKey" />
         <!-- Loader -->
         <Loader />
         <!-- Flush Notifications -->

@@ -8,7 +8,7 @@ export const ptPreset = {
         separator: 'relative bg-transparent top-[1px] text-surface-300 dark:text-gray-600'
     },
 
-    // --- InputText系 --- (AppEditModal.vue, PullItemDetail.vue)
+    // --- InputText系 --- (login.vue, register.vue, AppEditModal.vue, PullItemDetail.vue etc.)
     InputText: {
         root: 'input-base input-hoverable',
     },
@@ -22,7 +22,7 @@ export const ptPreset = {
         decrementButton: 'hover:text-primary disabled:text-surface-600/50',
     },
 
-    // --- Password系 --- (login.vue, settings.vue)
+    // --- Password系 --- (login.vue, register.vue, settings.vue)
     Password: {
         pcInputText: {
             root: 'input-base input-hoverable',
@@ -39,6 +39,13 @@ export const ptPreset = {
         root: {
             class: 'input-base input-hoverable placeholder:text-surface-400 dark:placeholder:text-gray-400 dark:disabled:placeholder:text-gray-600/50',
         }
+    },
+
+    // --- Checkbox系 --- (register.vue)
+    Checkbox: {
+        root: '-mt-1.5',
+        box: 'border rounded border-surface-300 dark:border-surface-600',
+        icon: 'dark:text-white',
     },
 
     // --- ToggleButton系 --- (Header.vue)

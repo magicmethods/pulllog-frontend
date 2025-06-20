@@ -26,12 +26,7 @@ const settingsSchema = z.object({
     // email, avatarUrlはバリデーションしない（編集不可＆外部アップロードなので）
 })
 
-// Refs & State
-const home = ref<{ icon: string }>({ icon: 'pi pi-home' })
-const locations = ref<Record<string, string>[]>([
-    { label: '登録情報変更', value: '/settings' },
-])
-
+// Refs & Local variables
 const internalUser = reactive<Partial<User>>({
     name: userStore.user?.name ?? '',
     email: userStore.user?.email ?? '',
@@ -199,11 +194,11 @@ const errorMessageProps = () => {
 </script>
 
 <template>
-    <div class="h-full w-full mx-auto px-4 pt-6 pb-2 flex flex-col justify-between items-start">
-        <!-- Page Header -->
-        <div id="page-header" class="flex justify-start text-sm text-surface-500 -mt-2 mb-4">
-            <Breadcrumb :home="home" :model="locations" />
-        </div>
+    <div class="w-full p-4 flex flex-col justify-between items-start">
+        <CommonPageHeader
+            title="登録情報変更"
+            adSrc="/sample/ad_2.jpg"
+        />
         <!-- Page Content -->
         <div class="flex items-start gap-4 mb-4">
             <label for="input-name" class="w-40 mt-2">表示名</label>

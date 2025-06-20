@@ -45,6 +45,11 @@ declare global {
         user: UserResponse
         csrfToken: string | null
     } | null
+    /** パスワードリセットレスポンス */
+    type PasswordResetResponse = {
+        success: boolean
+        message?: string
+    } | null
 
 }
 export {}

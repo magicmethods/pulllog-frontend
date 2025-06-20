@@ -23,6 +23,7 @@ const form = reactive({
   password: '',
 })
 const errors = reactive<{ email?: string, password?: string }>({})
+const globalError = ref<string | null>(null) // グローバルエラーメッセージ
 const touched = reactive<{ email: boolean, password: boolean }>({
   email: false,
   password: false,
@@ -64,20 +65,19 @@ async function handleLogin() {
     if (userStore.isLoggedIn) {
       // Redirect to the home page after successful login
       navigateTo({ path: userStore.user?.homePage ?? '/apps' })
-    } else {
-      // Handle case where login was not successful
+    }
+    // Handle case where login was not successful
+    globalError.value = 'ログインに失敗しました。メールアドレスとパスワードを確認してください'
+  } catch (e: unknown) {
+    // Handle login error
+    const appConfig = useAppConfig()
+    if (appConfig.isDebug) {
       // 暫定処理: 強制ログイン
       userStore.setDummyUser({ id: 999, email: form.email })
-      console.error('Login failed: Invalid credentials', userStore.user)
-      navigateTo({ path: userStore.user?.homePage ?? '/history' })
+      navigateTo({ path: userStore.user?.homePage ?? '/apps' })
+      return
     }
-  } catch (
-    // biome-ignore lint:/suspicious/noExplicitAny
-    e: any
-  ) {
-    // Handle login error
-    errors.password = 'ログインに失敗しました。メールアドレスとパスワードを確認してください'
-    // サーバー側エラーを拾う場合はここでMessage等を表示してもOK
+    globalError.value = e instanceof Error ? e.message : 'ログインに失敗しました。メールアドレスとパスワードを確認してください'
     console.error('Login failed:', e)
   } finally {
     isSubmitting.value = false
@@ -98,12 +98,6 @@ function handleBack() {
 
 // Watchers
 watch(form, () => validate(), { deep: true })
-
-// Styles
-const backButtonClass = `flex justify-center items-center rounded-full h-4 w-4 p-4
-                         bg-transparent hover:bg-surface-200/50 dark:hover:bg-gray-800/50
-                         text-surface-400 dark:text-gray-600 hover:text-primary-500 dark:hover:text-primary-400
-                         cursor-pointer`
 
 </script>
 
@@ -143,6 +137,11 @@ const backButtonClass = `flex justify-center items-center rounded-full h-4 w-4 p
           {{ errors.password }}
         </Message>
 
+        <!-- グローバルエラー表示 -->
+        <Message v-if="globalError" severity="error" size="small" class="mb-2">
+          {{ globalError }}
+        </Message>
+
         <div class="flex justify-end gap-2">
           <Button
             type="submit"
@@ -176,7 +175,7 @@ const backButtonClass = `flex justify-center items-center rounded-full h-4 w-4 p
       </Message>
       <div class="absolute top-0 right-0">
         <div
-          :class="backButtonClass"
+          class="btn-back"
           @click="handleBack"
           aria-label="戻る"
         >

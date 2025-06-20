@@ -27,6 +27,9 @@ const lastLoginDate = computed(() => {
     return userStore.user?.lastLogin ? strFromDate(userStore.user.lastLogin, '%Y-%m-%d %H:%M') : '&mdash;'
 })
 const storage = new StorageUtil()
+// デバッグ用
+const showModal = ref<boolean>(false)
+const showPPModal = ref<boolean>(false)
 
 // Methods
 function handleEditProfile() {
@@ -160,8 +163,26 @@ watch(
             <template v-if="appConfig.isDebug">
                 <Divider />
                 <p class="text-antialiasing mb-2">その他の設定項目があれば…</p>
-                <div class="border rounded-lg mb-2 p-2 bg-surface-100 dark:bg-gray-950 border-surface-300 dark:border-gray-700">
+                <div class="border rounded-lg mb-4 p-2 bg-surface-100 dark:bg-gray-950 border-surface-300 dark:border-gray-700 h-80 overflow-y-auto">
                     <pre class="font-mono text-sm text-surface-600 dark:text-gray-400 whitespace-pre-wrap">{{ JSON.stringify(userStore.user, null, 2) }}</pre>
+                </div>
+                <CommonDocumentModal
+                    v-model:visible="showModal"
+                    src="/docs/template.md"
+                    title="Markdown スタイルテンプレート"
+                    width="80vw"
+                    maxWidth="800px"
+                />
+                <CommonDocumentModal
+                    v-model:visible="showPPModal"
+                    :src="`/docs/privacy_policy_${internalLang}.md`"
+                    :title="internalLang === 'en' ? 'PullLog Privacy Policy' : 'PullLog プライバシーポリシー'"
+                    width="80vw"
+                    maxWidth="800px"
+                />
+                <div class="flex items-center gap-4">
+                    <Button label="文書を表示" class="btn btn-alt" @click="showModal = true" />
+                    <Button label="プライバシーポリシー" class="btn btn-alt" @click="showPPModal = true" />
                 </div>
             </template>
         </div>

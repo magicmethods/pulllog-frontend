@@ -31,4 +31,13 @@
     .loader-text {
         @apply text-gray-600 dark:text-gray-100;
     }
+    /* その他のローダー関連スタイル */
+    #document-loading-container {
+        @apply flex items-center justify-center h-32;
+        
+        div {
+            @apply bg-transparent! dark:bg-transparent!;
+        }
+    }
+
 }

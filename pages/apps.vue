@@ -11,6 +11,7 @@
             :adWidth="728"
             :adHeight="90"
             adText="リーダーボード広告"
+            adSrc="/sample/ad_3.jpg"
         />
         <!-- Page Content -->
         

@@ -241,7 +241,10 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
 
 <template>
   <div class="w-full p-4">
-      <CommonPageHeader title="履歴登録" />
+      <CommonPageHeader
+        title="履歴登録"
+        :adItems="[{ image: '/sample/ad_2.jpg' }, { image: '/sample/ad_3.jpg' }, { image: '/sample/ad_4.jpg' }]"
+      />
 
       <!-- 入力エリアとログ表示エリア -->
       <div class="w-full flex space-x-6">
@@ -458,6 +461,7 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
               <CommonInlineAd
                 :adHeight="250"
                 adText="インライン広告"
+                :adSrc="['/sample/ad_5.jpg', '/sample/ad_6.jpg', '/sample/ad_7.jpg', '/sample/ad_8.jpg']"
               />
 
           </section>
