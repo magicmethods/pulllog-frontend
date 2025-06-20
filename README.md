@@ -195,10 +195,10 @@ MAGIC METHODS に帰属します。
 - [PullLog バックエンドリポジトリ](https://github.com/magicmethods/pulllog-backend)
 - [PullLog API仕様書](https://github.com/magicmethods/pulllog-contract)
 - ドキュメント
-  - [利用規約（日本語）](https://raw.githubusercontent.com/magicmethods/pulllog-frontend/refs/heads/main/public/docs/terms_ja.md)
-  - [利用規約（English）](https://raw.githubusercontent.com/magicmethods/pulllog-frontend/refs/heads/main/public/docs/terms_en.md)
-  - [プライバシーポリシー（日本語）](https://raw.githubusercontent.com/magicmethods/pulllog-frontend/refs/heads/main/public/docs/privacy_policy_ja.md)
-  - [プライバシーポリシー（English）](https://raw.githubusercontent.com/magicmethods/pulllog-frontend/refs/heads/main/public/docs/privacy_policy_en.md)
+  - [利用規約（日本語）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_ja.md)
+  - [利用規約（English）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_en.md)
+  - [プライバシーポリシー（日本語）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/privacy_policy_ja.md)
+  - [プライバシーポリシー（English）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/privacy_policy_en.md)
 
 ---
 
