@@ -93,11 +93,29 @@ pnpm run preview
 ```plaintext
 /
 ├── components/         # Vueコンポーネント群
+│    ├── common/       # 共通コンポーネント群
+│    ├── chart/        # 個別グラフコンポーネント群
+│    └── ***.vue       # 各種コンポーネント
 ├── composables/        # カスタムフック・共通ロジック
+│    ├── useAPI.ts     # API制御コンポーザブル
+│    ├── useAuth.ts    # 認証制御コンポーザブル
+│    ├── useChart.ts   # グラフ制御コンポーザブル
+│    └── useWebIcon.ts # Webアイコン制御コンポーザブル
+├── config/             # アプリ設定（リポジトリ管理下からは除外）
+├── directives/         # Vueディレクティブ拡張
 ├── layouts/            # レイアウトファイル
+│    ├── auth.vue      # 認証画面系レイアウト
+│    ├── default.vue   # アプリ画面レイアウト
+│    ├── error.vue     # エラー画面レイアウト
+│    └── landing.vue   # ランディングページレイアウト
 ├── middleware/         # ミドルウェア（認証ガード等）
 ├── pages/              # ルーティング単位Vue
-├── public/             # 静的ファイル（画像・Markdown等）
+│    ├── auth/         # 認証系ルーティング
+│    ├── index.vue     # ランディングページ
+│    └── ***.vue       # 認証後ルーティング（アプリ本体）
+├── public/             # 静的ファイル
+│    ├── docs/         # 各種文書Markdown
+│    └── images/       # 公開用画像群
 ├── stores/             # Piniaストア定義
 │    ├── globalStore.ts
 │    ├── useUserStore.ts
@@ -107,12 +125,24 @@ pnpm run preview
 │    ├── useOptionStore.ts
 │    ├── useCsrfStore.ts
 │    └── useLoaderStore.ts
+├── theme/              # PrimeVueテーマ定義
+│    ├── preset.ts     # グローバルプリセット定義
+│    └── ptPreset.ts   # 各コンポーネントPassThrough定義
 ├── types/              # 型定義
 ├── utils/              # 共通ユーティリティ
 ├── assets/             # SCSS/画像
+│    ├── index.scss    # オーバーライドスタイルインポータ―
+│    ├── _***.scss     # 各種オーバーライドスタイル定義
+│    ├── tailwind_v4.scss # TailwindCSS拡張スタイルインポータ―
+│    └── _twe-***.scss # 各種TailwindCSS拡張スタイル定義
+├── api/                # API定義
+│    ├── endpoints.ts  # RESTエンドポイント定義
+│    └── index.ts      # サービスレイヤー用ラッパーメソッド（未使用）
+├── app.vue             # アプリケーションコンテナ
 ├── app.config.ts       # Nuxtアプリ設定
 ├── tailwind.config.ts  # TailwindCSS設定
 ├── nuxt.config.ts      # Nuxt設定
+├── package.json        # パッケージ管理
 └── README.md           # このファイル
 ```
 
