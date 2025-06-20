@@ -22,3 +22,22 @@ type CurrencyData = {
     code: string; // ISO通貨コード
     name_plural: string; // 複数形の通貨名
 }
+// 広告埋め込みコンポーネントのProps
+type AdItem = {
+    image: string
+    link?: string
+    alt?: string
+    text?: string // テキストバナー対応も可
+    // 追加情報あればここに
+}
+type AdProps = {
+    adWidth?: number
+    adHeight?: number
+    adText?: string
+    adItems?: AdItem[]
+    adHtml?: string
+    adSlotName?: string
+    adClient?: string
+    adType?: 'image' | 'carousel' | 'html' | 'slot'
+    disableForPlan?: string
+}

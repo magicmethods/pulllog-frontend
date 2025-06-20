@@ -76,7 +76,7 @@ function validateAll(): boolean {
     return true
 }
 
-// blur時にtouched＋バリデーション
+// blur 時に touched & バリデーション
 function handleBlur(field: keyof typeof internalUser) {
     touched[field] = true
     validateField(field)
@@ -116,15 +116,13 @@ async function handleSave() {
             detail: '変更を保存しました',
             life: 2500
         })
-    } catch (
-        // biome-ignore lint:/suspicious/noExplicitAny
-        e: any
-    ) {
-        console.error('Error saving user settings:', e.message ?? e)
+    } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : '不明なエラーが発生しました'
+        console.error('Error saving user settings:', e)
         toast.add({
             severity: 'error',
             summary: '保存エラー',
-            detail: '保存に失敗しました',
+            detail: errorMessage,
             life: 3500
         })
     } finally {
@@ -161,10 +159,12 @@ function handleUploadFile(event: FileUploadUploadEvent) {
 function handleClearFile() {
     if (fileUploadRef.value) {
         console.log('handleClearFile', fileUploadRef.value)
+        // 処理は未実装
     }
 }
 function handleRemoveFile(event: FileUploadRemoveEvent) {
     console.log('handleRemoveFile', event)
+    // 処理は未実装
 }
 function handleCancel() {
     navigateTo({ path: '/history' })
@@ -191,13 +191,21 @@ const errorMessageProps = () => {
     }
 }
 
+// Ad Setting
+const adConfig: Record<string, AdProps> = {
+    default: {
+        adItems: [{ image: '/sample/ad_4.jpg', link: 'https://example.com', alt: '広告1' }],
+        adType: 'image',
+    },
+}
+
 </script>
 
 <template>
     <div class="w-full p-4 flex flex-col justify-between items-start">
         <CommonPageHeader
             title="登録情報変更"
-            adSrc="/sample/ad_2.jpg"
+            :adProps="adConfig.default"
         />
         <!-- Page Content -->
         <div class="flex items-start gap-4 mb-4">

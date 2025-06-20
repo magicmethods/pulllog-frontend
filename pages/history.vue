@@ -87,7 +87,7 @@ function getTodayByApp(app: AppData | null): Date {
 }
 async function handleDateCommit(date: CalenderDate): Promise<void> {
   targetDate.value = date
-  console.log('handleDateCommit::', selectedApp.value, targetDate.value)
+  //console.log('handleDateCommit::', selectedApp.value, targetDate.value)
   if (!selectedApp.value || !targetDate.value) return
 
   // 日付のフォーマットを "YYYY-MM-DD" に変換
@@ -182,16 +182,14 @@ async function handleConfirmSave() {
     historyStatsReloadKey.value++ // 履歴統計の再読み込みトリガー
     historyListReloadKey.value++ // 履歴リストの再読み込みトリガー
     confirmModalVisible.value = false
-  } catch (
-    // biome-ignore lint:/suspicious/noExplicitAny
-    error: any
-  ) {
-    console.error('履歴の保存に失敗:', error)
+  } catch (e: unknown) {
+    const errorMessage = e instanceof Error ? e.message : '不明なエラーが発生しました'
+    console.error('Failed to save history log:', e)
     confirmModalVisible.value = false
     toast.add({
       severity: 'error',
       summary: '履歴保存失敗',
-      detail: error.message ?? '履歴の保存に失敗しました',
+      detail: errorMessage,
       group: 'notices',
       life: 4000,
     })
@@ -221,8 +219,7 @@ onMounted(async () => {
 // Watchers
 watch(
   () => appStore.app,
-  (newApp, prevApp) => {
-    console.log('App changed:', newApp?.name, '<-', prevApp?.name)
+  (newApp) => {
     if (newApp) {
       calendarDraftDate.value = today.value // アプリ変更時はカレンダーの選択を today で初期化
       targetDate.value = null // 対象日もリセット
@@ -237,13 +234,38 @@ watch(
 const inputFieldRow = 'flex flex-nowrap justify-start items-center gap-2'
 const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
 
+// Ad Setting
+const adConfig: Record<string, AdProps> = {
+  // 上部バナー広告
+  banner: {
+    adType: 'carousel',
+    adItems: [
+      { image: '/sample/ad_2.jpg', link: 'https://example.com/?ad=2' },
+      { image: '/sample/ad_3.jpg', link: 'https://example.com/?ad=3' },
+      { image: '/sample/ad_4.jpg', link: 'https://example.com/?ad=4' },
+    ],
+    adWidth: 1020, // カルーセル画像の最大幅を指定
+  },
+  // インライン広告
+  inline: {
+    adType: 'image',
+    adItems: [
+      { image: '/sample/ad_5.jpg', link: 'https://example.com/?ad=5', alt: '広告バナー 5' },
+      { image: '/sample/ad_6.jpg', link: 'https://example.com/?ad=6', alt: '広告バナー 6' },
+      { image: '/sample/ad_7.jpg', link: 'https://example.com/?ad=7', alt: '広告バナー 7' },
+      { image: '/sample/ad_8.jpg', link: 'https://example.com/?ad=8', alt: '広告バナー 8' },
+    ],
+    adHeight: 250,
+  }
+}
+
 </script>
 
 <template>
   <div class="w-full p-4">
       <CommonPageHeader
         title="履歴登録"
-        :adItems="[{ image: '/sample/ad_2.jpg' }, { image: '/sample/ad_3.jpg' }, { image: '/sample/ad_4.jpg' }]"
+        :adProps="adConfig.banner"
       />
 
       <!-- 入力エリアとログ表示エリア -->
@@ -458,11 +480,9 @@ const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
               </div>
 
               <!-- 広告バナー -->
-              <CommonInlineAd
-                :adHeight="250"
-                adText="インライン広告"
-                :adSrc="['/sample/ad_5.jpg', '/sample/ad_6.jpg', '/sample/ad_7.jpg', '/sample/ad_8.jpg']"
-              />
+              <div class="w-full pt-3 pb-7">
+                <CommonEmbedAd v-bind="adConfig.inline" />
+              </div>
 
           </section>
 
