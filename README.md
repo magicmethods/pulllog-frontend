@@ -41,17 +41,19 @@
 
 ## 技術スタック
 
-- **フレームワーク**: Nuxt.js v3.16.2
-- **UIフレームワーク**: PrimeVue v4.3.3
-- **状態管理**: Pinia v3.0.2
-- **スタイル**: TailwindCSS v4.1.4, SCSS
+- **フレームワーク**: Nuxt.js v3.17.5
+- **UIフレームワーク**: PrimeVue v4.3.5
+- **状態管理**: Pinia v3.0.3
+- **スタイル**: TailwindCSS v4.1.10, SCSS
 - **言語**: TypeScript
-- **日付管理**: Luxon
-- **グラフ描画**: Chart.js
-- **バリデーション**: Zod
+- **日付管理**: Luxon v3.6.1
+- **グラフ描画**: Chart.js v4.5.0
+- **マークダウン制御**: Marked v15.0.12
+- **ソート制御**: SortableJS v1.15.6
+- **バリデーション**: Zod v3.25.67
 - **パッケージ管理**: pnpm
-- **API通信**: fetch（useFetchは非推奨／APIプロキシ経由でCORSフリーにアクセス可）
-- **その他**: ESLint, Prettier, Biomeなど
+- **API通信**: fetch（useFetchは非推奨／APIプロキシ・`.env`/runtimeConfig経由で設定）
+- **その他**: Ulid, ESLint, PostCSS, TypeDoc, Biomeなど
 
 ---
 
@@ -62,13 +64,35 @@
 - Node.js (v20推奨)
 - pnpm
 
-### 2. インストール
+### 2. .envファイルの作成
+
+- APIエンドポイントや各種秘匿情報は `.env` ファイルで管理できます。
+- 必要に応じて下記のようなファイルをルート直下に作成してください。
+
+```dotenv
+# .env.example
+APP_NAME=PullLog
+APP_VERSION=0.9.0
+COPYRIGHT=© 2025 MAGIC METHODS
+
+API_BASE_URL=http://localhost:3000/api
+API_PROXY=/api
+SECRET_API_KEY=foo-bar-1234
+
+IS_DEBUG=true
+MOCK_MODE=false
+```
+
+- `.env` ファイルはGit管理対象外（`.gitignore`）です。
+- 複数環境（ローカル・本番など）で値を切り替えて運用します。
+
+### 3. インストール
 
 ```sh
 pnpm install
 ```
 
-### 3. 開発サーバ起動
+### 4. 開発サーバ起動
 
 ```sh
 pnpm run dev
@@ -79,7 +103,7 @@ pnpm run dev
 - **APIエンドポイント（例： `/api/` など）へのリクエストは、フロントエンドからバックエンドサーバへプロキシ経由（ `nuxt.config.ts` で設定）で自動ルーティングされます。**  
 ローカル開発時は `API_BASE_URL` の設定やCORS制御の心配なく利用できます。本番ビルド時は実サーバ用のAPI URLを `app.config.ts` で指定してください。
 
-### 4. 本番ビルド
+### 5. 本番ビルド
 
 ```sh
 pnpm run build
@@ -218,8 +242,13 @@ PrimeVueのFormは使用せず、Zodによるバリデーションのみ使用�
 - **APIプロキシ設定**
   - Nuxtの`nuxt.config.ts`にて `/api/` などのパスは自動でバックエンドAPI（`API_BASE_URL`）へプロキシ転送されるように設定済み
   - 開発時はCORS問題を気にせずAPI通信が可能
-  - バックエンドのURLを切り替える場合は `app.config.ts` の `apiBaseURL` を編集
+  - バックエンドのURLを切り替える場合は `runtimeConfig` の `apiBaseURL` を編集
   - `fetch`などでのリクエスト先は絶対パス・相対パスどちらでも可（詳細は`composables/useAPI.ts`等参照）
+- **runtimeConfig / .env管理**
+  - Nuxt 3の `runtimeConfig`（`nuxt.config.ts` の `runtimeConfig` セクション）で環境ごとの設定値（APIエンドポイント等）を一元管理
+  - 例えば `process.env.API_BASE_URL` は `useRuntimeConfig().public.apiBaseURL` から取得可能
+  - 開発/本番でのAPIルートの切り替えは `.env` または `nuxt.config.ts` の該当箇所を編集
+  - **.envの変更を反映するには、開発サーバ再起動が必要**
 
 ---
 
