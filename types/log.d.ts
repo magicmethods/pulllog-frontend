@@ -52,6 +52,13 @@ declare global {
             end: string
         }
     }
+    /** 履歴アップロード用データ型 */
+    type UploadData = {
+        format: 'json' | 'csv'
+        mode: 'overwrite' | 'merge'
+        file: File
+    }
+
 
 }
 export {}

@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
         delete headers['content-length']
     }
 
-    // ボディ取得
+    // ボディは取得しない（ファイルストリームのまま送信するため）
     //const body = await readBody(event)
     
     // fetch&レスポンス返却

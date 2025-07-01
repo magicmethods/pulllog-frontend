@@ -48,7 +48,7 @@ export const endpoints = {
         create: (appId: string | number, date: string) => `${useConfig().apiProxy}/logs/daily/${appId}/${date}`, // POST
         update: (appId: string | number, date: string) => `${useConfig().apiProxy}/logs/daily/${appId}/${date}`, // PUT
         delete: (appId: string | number, date: string) => `${useConfig().apiProxy}/logs/daily/${appId}/${date}`, // DELETE
-        import: (appId: string | number) => `${useConfig().apiProxy}/logs/import/${appId}`, // POST
+        import: (appId: string | number, mode: 'overwrite' | 'merge') => `${useConfig().apiProxy}/logs/import/${appId}?mode=${mode}`, // POST
     },
     stats: {
         list: (appId: string | number, start: string, end: string) => {

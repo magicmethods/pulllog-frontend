@@ -8,13 +8,13 @@ const props = defineProps<{
 }>()
 const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void
-    (e: 'upload', value: { format?: 'json' | 'csv', file?: File }): void
+    (e: 'upload', value: UploadData): void
 }>()
 
 // State
 const internalFile = ref<File | undefined>(undefined)
 const fileUploadRef = ref(null)
-const mode = ref<'override' | 'merge'>('override')
+const mode = ref<'overwrite' | 'merge'>('overwrite')
 const format = ref<'json' | 'csv' | undefined>(undefined)
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
 const uploadHelperMessage = 'ファイルをここへドラッグ＆ドロップすることもできます' // Drag and drop files to here to upload.
@@ -69,8 +69,9 @@ function handleUpload() {
 
     emit('upload', {
         format: format.value,
+        mode: mode.value,
         file: internalFile.value
-    })
+    } as UploadData)
     emit('update:visible', false)
 }
 
@@ -80,7 +81,7 @@ watch(
     (v) => {
         if (v) {
             // 初期化
-            mode.value = 'override'
+            mode.value = 'overwrite'
             format.value = undefined
         }
     }
@@ -121,8 +122,8 @@ const fileUploadPT = {
                 <label class="font-semibold">インポート方式</label>
                 <div class="flex flex-wrap items-center gap-6 mt-2">
                     <div class="flex items-center gap-2">
-                        <RadioButton v-model="mode" inputId="mode-override" name="mode" value="override" />
-                        <label for="mode-override" class="font-medium mb-0">上書き</label>
+                        <RadioButton v-model="mode" inputId="mode-overwrite" name="mode" value="overwrite" />
+                        <label for="mode-overwrite" class="font-medium mb-0">上書き</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="mode" inputId="mode-merge" name="mode" value="merge" />
@@ -130,7 +131,7 @@ const fileUploadPT = {
                     </div>
                 </div>
                 <Message v-if="mode" severity="info" variant="simple" size="small" class="w-auto mt-2">
-                    <template v-if="mode === 'override'">
+                    <template v-if="mode === 'overwrite'">
                         既存の履歴は全て削除され、アップロードした履歴で上書きされます
                     </template>
                     <template v-else>

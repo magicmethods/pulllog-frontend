@@ -246,17 +246,20 @@ export const useLogStore = defineStore('log', () => {
      * @returns 成功した場合はtrue、失敗した場合はfalse
      * @throws エラー時はerrorにメッセージがセットされる
      */
-    async function importLogsFile(appId: string, file: File): Promise<boolean> {
+    async function importLogsFile(appId: string, uploadData: UploadData): Promise<boolean> {
         isLoading.value = true
         error.value = null
         // ローダー表示はオプションにするかもしれない
         //const loaderStore = useLoaderStore()
         //const loaderId = loaderStore.show('履歴をインポート中...')
         try {
+            const formData = new FormData()
+            formData.append('file', uploadData.file)
+
             const response = await callApi<{ state: 'success' | 'error', message?: string } | null>({
-                endpoint: endpoints.logs.import(appId),
+                endpoint: endpoints.logs.import(appId, uploadData.mode),
                 method: 'POST',
-                data: { file }
+                data: formData
             })
             console.log('importLogsFile: APIレスポンス', response)
             if (response?.state === 'success') {

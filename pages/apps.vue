@@ -249,9 +249,10 @@ async function handleAppDownload(settings: HistoryDownloadSettings) {
     }
 }
 // 履歴アップロード処理
-async function handleAppUpload(uploadData: { format?: 'json' | 'csv', file?: File }) {
+async function handleAppUpload(uploadData: UploadData) {
     if (!editTarget.value || !uploadData.format || !uploadData.file) return
     if (!['json', 'csv'].includes(uploadData.format) || uploadData.file.type.indexOf(uploadData.format) === -1) return
+    if (!['overwrite', 'merge'].includes(uploadData.mode)) return
 
     let loaderId: string | undefined = undefined
     let notice: Partial<ToastMessageOptions> = {}
@@ -260,13 +261,24 @@ async function handleAppUpload(uploadData: { format?: 'json' | 'csv', file?: Fil
     console.log('apps.vue::handleAppUpload:', uploadData)
     try {
         // API通信して履歴をアップロード
-        const result = await logStore.importLogsFile(editTarget.value.appId, uploadData.file)
+        const result: boolean = await logStore.importLogsFile(editTarget.value.appId, uploadData)
+        if (!result) {
+            throw new Error('履歴のインポートに失敗しました。')
+        }
+        // 履歴統計データのキャッシュクリア後、再読み込み
+        statsStore.clearStatsCache(editTarget.value.appId)
+        const newStats = await statsStore.fetchStats(editTarget.value.appId, '', '', undefined, false)
+        console.log('apps.vue::handleAppUpload:result:', result, newStats)
+        if (newStats) {
+            appStats.value.set(editTarget.value.appId, newStats)
+        } else {
+            appStats.value.delete(editTarget.value.appId) // データが取得できなかった場合は削除
+        }
         await nextTick()
-        console.log('apps.vue::handleAppUpload:result:', result)
-        notice = { severity: 'success', summary: '履歴のアップロード', detail: `${editTarget.value.name} の履歴をアップロードしました。` }
+        notice = { severity: 'success', summary: '履歴のインポート', detail: `${editTarget.value.name} の履歴を更新しました。` }
     } catch (e: unknown) {
         console.error('Upload Error:', e)
-        notice = { severity: 'error', summary: 'アップロードエラー', detail: '履歴のアップロードに失敗しました。' }
+        notice = { severity: 'error', summary: 'インポートエラー', detail: '履歴のインポートに失敗しました。' }
     } finally {
         // ローダーを非表示
         if (loaderId) loaderStore.hide(loaderId)
