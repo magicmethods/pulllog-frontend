@@ -36,5 +36,6 @@ declare global {
         /** 表示用に整形したラベル */
         displayLabel: string
     }
+
 }
 export {}

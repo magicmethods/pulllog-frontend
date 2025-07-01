@@ -94,7 +94,7 @@ async function handleAppSubmit(app: AppData | undefined) {
 <template>
     <div>
         <h3>対象アプリケ―ション</h3>
-        <div class="w-full flex justify-between gap-2">
+        <div class="w-full flex flex-wrap md:flex-nowrap justify-between gap-2">
             <Select
                 v-model="selectedApp"
                 :options="registeredApps"
@@ -102,7 +102,7 @@ async function handleAppSubmit(app: AppData | undefined) {
                 :placeholder="placeholderText"
                 :emptyMessage="emptyText"
                 @change="handleChangeApp($event.value)"
-                :pt="{ root: 'flex-1 h-max pl-3' }"
+                :pt="{ root: 'w-full md:w-1/2 h-max' }"
             >
                 <template #value="slotProps">
                     <div v-if="slotProps.value" class="w-full truncate px-1 flex justify-start items-center">
@@ -126,21 +126,23 @@ async function handleAppSubmit(app: AppData | undefined) {
                     </div>
                 </template>
             </Select>
-            <Button
-                icon="pi pi-pen-to-square"
-                label="編集"
-                class="btn btn-alternative max-w-max mb-0"
-                :disabled="!selectedApp"
-                @click="openModal('edit', $event)"
-                v-blur-on-click
-            />
-            <Button
-                icon="pi pi-plus"
-                label="追加"
-                class="btn btn-primary max-w-max mb-0"
-                @click="openModal('add', $event)"
-                v-blur-on-click
-            />
+            <div class="w-full md:w-1/2 h-max flex justify-end items-center gap-2">
+                <Button
+                    icon="pi pi-pen-to-square"
+                    label="編集"
+                    class="btn btn-alternative w-full mb-0"
+                    :disabled="!selectedApp"
+                    @click="openModal('edit', $event)"
+                    v-blur-on-click
+                />
+                <Button
+                    icon="pi pi-plus"
+                    label="追加"
+                    class="btn btn-primary w-full mb-0"
+                    @click="openModal('add', $event)"
+                    v-blur-on-click
+                />
+            </div>
         </div>
         <!-- アプリケーション設定モーダル -->
         <AppEditModal

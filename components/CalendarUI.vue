@@ -28,8 +28,8 @@ const emit = defineEmits<{
 }>()
 
 // State
-const internalDate = ref<CalenderDate>(props.modelValue ?? props.defaultDate ?? null)
-//const currentDate = ref<CalenderDate>(props.modelValue ?? props.defaultDate ?? null)
+//const internalDate = ref<CalenderDate>(props.modelValue ?? props.defaultDate ?? null)
+const internalDate = ref<CalenderDate>(null)
 const passThroughOptions = computed(() => {
     return (props.pt ? { ...props.pt } : {}) as DatePickerPassThroughOptions
 })
@@ -41,20 +41,13 @@ function commitValue() {
         emit('commit', internalDate.value)
     }
 }
-/*
-const handleCommit = (event: Event) => {
-   if (currentDate.value) {
-        emit('commit', currentDate.value)
-    }
-}
-*/
 
 // Lifecycle Hooks
 onMounted(() => {
+    internalDate.value = props.modelValue ?? props.defaultDate ?? null
     // マウント時に初期コミット
-    if (internalDate.value !== null && !props.commit) {
-        emit('update:modelValue', internalDate.value)
-        emit('commit', internalDate.value)
+    if (!props.commit) {
+        commitValue()
     }
 })
 
@@ -70,20 +63,7 @@ watch(() => internalDate.value, val => {
     emit('update:modelValue', val)
     emit('commit', val)
 })
-/*
-watch(
-    () => currentDate.value,
-    newValue => {
-        // currentDate（子） → 親へ emit（commit が false または未定義時のみ）
-        emit('update:modelValue', newValue)
-        if (props.commit) return // commit が true の場合は emit しない
-        if (newValue === null) return // null の場合は emit しない
-        if (newValue === props.modelValue) return // modelValue と同じ場合は emit しない
-        if (newValue instanceof Date && Number.isNaN(newValue.getTime())) return // 無効な日付の場合は emit しない
-        emit('commit', newValue)
-    }
-)
-*/
+
 </script>
 
 <template>
@@ -113,12 +93,11 @@ watch(
             <Button
                 v-if="props.commit"
                 :label="props.commitLabel ?? 'Commit'"
-                class="btn btn-primary w-36 max-w-max px-4 py-2 text-base! m-0!"
+                class="btn btn-primary flex-1 w-full md:w-max max-w-1/2 md:max-w-1/2 px-4 py-2 text-base! m-0!"
                 :disabled="!internalDate || (props.commitDisabled ?? false)"
                 @click="commitValue"
                 v-blur-on-click
             />
-            <!-- div class="w-full"></div -->
         </div>
     </div>
 </template>

@@ -87,8 +87,8 @@ function toggleEmojiPicker() {
 </script>
 
 <template>
-    <div class="w-full flex gap-4">
-        <div class="w-3/5 flex-grow flex flex-col gap-2">
+    <div class="w-full flex flex-wrap md:flex-nowrap gap-4">
+        <div class="w-full md:w-3/5 flex-grow flex flex-col gap-2">
             <InputGroup>
                 <InputGroupAddon
                     class="bg-transparent hover:bg-surface-50 dark:hover:bg-gray-600 border-r-0 border-surface-300 dark:border-gray-400 dark:text-gray-300 dark:hover:text-gray-200 cursor-pointer"
@@ -137,7 +137,7 @@ function toggleEmojiPicker() {
                 {{ helpText }}
             </Message>
         </div>
-        <div class="w-2/5 flex-grow">
+        <div class="w-full md:w-2/5 flex-grow">
             <CustomOrderList
                 :modelValue="currentOptions"
                 @update:modelValue="(val) => currentOptions = (val as SymbolOption[])"
@@ -153,6 +153,7 @@ function toggleEmojiPicker() {
         <EmojiPicker
             v-if="showEmojiPicker"
             :target="symbolButtonRef"
+            modalId="appEditModal"
             :id="`emoji-picker-${props.inputId}`"
             @select="insertEmoji"
             @close="showEmojiPicker = false"

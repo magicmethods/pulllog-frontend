@@ -33,5 +33,25 @@ declare global {
         tags: string[]
         displayLabel: string // e.g. "2025-04-29: 100連 ¥30,000"
     }
+    /** ログ取得条件オプション */
+    type FetchLogsOptions = {
+        fromDate?: string // 取得範囲の開始日 YYYY-MM-DD形式
+        toDate?: string // 取得範囲の終了日 YYYY-MM-DD形式
+        limit?: number // 取得件数（デフォルトは無制限）
+        offset?: number
+    }
+    /** ログキャッシュのMap型 */
+    type LogsMap = Map<string, Map<string, DateLog>> // appId -> date -> DateLog
+    type LogsListMap = Map<string, Map<string, DateLog[]>> // appId -> queryKey -> DateLog[]
+    /** 履歴ダウンロード用設定 */
+    type HistoryDownloadSettings = {
+        format: 'csv' | 'json'
+        includeImages: boolean
+        dateRange: {
+            start: string
+            end: string
+        }
+    }
+
 }
 export {}

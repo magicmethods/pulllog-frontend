@@ -6,8 +6,7 @@ import { PrimeVueResolver } from '@primevue/auto-import-resolver'
 import { PullLogPreset } from './theme/preset'
 import { ptPreset } from './theme/ptPreset'
 import tailwindcssPostcss from '@tailwindcss/postcss'
-//import autoprefixer from 'autoprefixer'
-const autoprefixer = require('autoprefixer') as typeof import('autoprefixer')
+import autoprefixer from 'autoprefixer'
 
 // Set paths of SSL Cert. and secret-key
 const httpsOptions = {
@@ -25,18 +24,32 @@ export default defineNuxtConfig({
     },
   },
   ssr: false,
-  /* Move to "app.config.ts"
   runtimeConfig: {
+    // サーバーサイド専用の環境変数
+    apiBaseURL: process.env.API_BASE_URL,
+    apiProxy: process.env.API_PROXY || '/api',
+    secretApiKey: process.env.SECRET_API_KEY,
+    // クライアントサイドでも使用する環境変数
     public: {
-      apiBaseURL: process.env.API_BASE_URL || 'https://pulllog.net/api',
-      apiKey: process.env.API_KEY || '',
-      appVersion: process.env.APP_VERSION || '0.0.0',
-    },
+        appName: process.env.APP_NAME,
+        appVersion: process.env.APP_VERSION,
+        copyright: process.env.COPYRIGHT,
+        apiBaseURL: process.env.API_BASE_URL,
+        apiProxy: process.env.API_PROXY || '/api',
+        isDebug: process.env.IS_DEBUG === 'true',
+        mockMode: process.env.MOCK_MODE === 'true'
+    }
   },
-  */
   app: {
     baseURL: '/',
     head: {
+      script: [
+        {
+          src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8602791446931111',
+          async: true,
+          crossorigin: 'anonymous',
+        },
+      ],
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
@@ -75,7 +88,7 @@ export default defineNuxtConfig({
       postcss: {
         plugins: [
           tailwindcssPostcss,
-          autoprefixer,
+          autoprefixer(),
         ],
       },
       preprocessorOptions: {
@@ -85,12 +98,6 @@ export default defineNuxtConfig({
           quietDeps: false,
           silenceDeprecations: ['legacy-js-api'],
         },
-        /* `sass: { ... }` block is able to remove if you are not using `sass` in your project
-        sass: {
-          sourceMapContents: true,
-          quietDeps: false,
-          silenceDeprecations: ['legacy-js-api'],
-        },*/
       },
     },
     server: {

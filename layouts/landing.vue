@@ -7,12 +7,15 @@
 <template>
     <div class="landing-wrapper min-h-screen flex flex-col bg-gradient-to-b from-purple-50 to-white">
         <!-- ヘッダー -->
-        <header class="landing-header flex items-center justify-between px-8 py-6 bg-transparent">
+        <header class="landing-header flex items-center justify-between p-4 border-b border-gray-400 bg-transparent">
             <NuxtLink to="/" class="text-2xl font-bold flex items-center gap-2">
                 <img src="/images/pulllog-icon.svg" alt="PullLog" class="h-8 w-8" />
                 <span class="tracking-tight">PullLog</span>
             </NuxtLink>
-            <nav>
+            <nav class="flex m-0 p-0 items-center gap-4">
+                <NuxtLink to="/auth/register" class="landing-login-btn px-5 py-2 rounded-lg border border-primary-400 text-primary-700 font-semibold hover:bg-primary-100 transition">
+                    新規登録
+                </NuxtLink>
                 <NuxtLink to="/auth/login" class="landing-login-btn px-5 py-2 rounded-lg border border-primary-400 text-primary-700 font-semibold hover:bg-primary-100 transition">
                     ログイン
                 </NuxtLink>
@@ -20,7 +23,7 @@
         </header>
 
         <!-- メインコンテンツ -->
-        <main class="flex-1 flex flex-col items-center justify-center px-4">
+        <main class="flex-1 flex flex-col items-center justify-center p-4">
             <slot />
         </main>
 

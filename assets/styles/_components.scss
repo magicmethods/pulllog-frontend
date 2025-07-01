@@ -302,3 +302,10 @@
         background-color: color-mix(in srgb, var(--p-rose-950) 33%, transparent);
     }
 }
+/** RadioButton */
+.p-radiobutton-checked {
+    .p-radiobutton-box {
+        border-color: var(--p-radiobutton-checked-border-color) !important;
+    }
+}
+

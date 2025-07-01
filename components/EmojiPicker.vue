@@ -3,6 +3,7 @@
 // Props & Emit
 const props = defineProps<{
     target: HTMLElement | null // 表示位置の基準要素
+    modalId?: string // モーダル内で使用する場合はモーダル要素のID
     id?: string
 }>()
 const emit = defineEmits<{
@@ -44,19 +45,44 @@ onMounted(async () => {
     const pickerEl = pickerRef.value
     if (!targetEl || !pickerEl) return
 
+    const rect = targetEl.getBoundingClientRect()
+    // rect.top/left: ビューポート（画面）内の絶対座標
+    // rect.bottom: ビューポート上での下端座標
+    let modalRect = null
+    if (props.modalId) {
+        modalRect = document.getElementById(props.modalId)?.getBoundingClientRect()
+    }
+
     // Approximate: Math.ceil(emojis.length / 8) (line) * 40 (symbol + gap) + 16 (padding) + 2 (border)
     const pickerHeight = Math.ceil(emojis.length / 8) * 40 + 16 + 2
-    const spaceBelow = window.innerHeight - (targetEl.offsetTop + targetEl.offsetHeight)
-    const spaceAbove = targetEl.offsetTop
+
+    // ビューポート下端までのスペース
+    // const spaceBelow = window.innerHeight - (targetEl.offsetTop + targetEl.offsetHeight)
+    const spaceBelow = modalRect ? modalRect.bottom - rect.bottom : window.innerHeight - rect.bottom
+    // const spaceAbove = targetEl.offsetTop
+    const spaceAbove = modalRect ? rect.top - modalRect.top : rect.top
 
     position.value = spaceBelow > pickerHeight ? 'bottom' : 'top'
-
-    left.value = `${targetEl.offsetLeft}px`
-    top.value = position.value === 'bottom'
-        ? `${targetEl.offsetTop + targetEl.offsetHeight}px`
-        : `${targetEl.offsetTop - pickerHeight}px`
-
-    console.log('EmojiPicker mounted:', [targetEl], pickerHeight, spaceBelow, spaceAbove, position.value, left.value, top.value)
+    if (modalRect) {
+        // モーダル内での位置調整
+        const leftInModal = rect.left - modalRect.left
+        const topInModal = rect.top - modalRect.top
+        const bottomInModal = rect.bottom - modalRect.top
+        left.value = `${leftInModal}px`
+        top.value = position.value === 'bottom'
+            ? `${bottomInModal}px`
+            : `${topInModal - pickerHeight}px`
+    } else {
+        // ビューポート内での位置調整
+        // left.value = `${targetEl.offsetLeft}px`
+        left.value = `${rect.left + window.scrollX}px`
+        top.value = position.value === 'bottom'
+            // ? `${targetEl.offsetTop + targetEl.offsetHeight}px`
+            ? `${rect.bottom + window.scrollY}px`
+            // : `${targetEl.offsetTop - pickerHeight}px`
+            : `${rect.top + window.scrollY - pickerHeight}px`
+    }
+    //console.log('EmojiPicker mounted:', [targetEl], pickerHeight, spaceBelow, spaceAbove, position.value, left.value, top.value, window.scrollX, window.scrollY)
 })
 
 onBeforeUnmount(() => {

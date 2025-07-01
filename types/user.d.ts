@@ -42,14 +42,26 @@ declare global {
     }
     /** ログインレスポンス */
     type LoginResponse = {
-        user: UserResponse
+        state: 'success' | 'error'
+        message?: string
+        user: UserResponse | null
         csrfToken: string | null
+    } | null
+    /** 登録レスポンス */
+    type RegisterResponse = {
+        state: 'success' | 'error'
+        message?: string
     } | null
     /** パスワードリセットレスポンス */
     type PasswordResetResponse = {
         success: boolean
         message?: string
     } | null
-
+    /** ユーザー情報更新レスポンス */
+    type UserUpdateResponse = {
+        state: 'success' | 'error'
+        message?: string
+        user: UserResponse | null
+    } | null
 }
 export {}

@@ -35,8 +35,6 @@ const appCurrencyCode = computed(() => appStore.getAppCurrencyCode())
 const isChangeable = computed(() => internalRanges.value.length > 1 && internalAppId.value)
 const chartReloadKey = ref<number>(0)
 
-//console.log('HistoryChart::internalAppId:', internalAppId.value, appStore.app, appCurrencyCode.value)
-
 // Methods
 async function loadChartData() {
     if (!internalAppId.value) {
@@ -95,6 +93,7 @@ watch(
                     :class="{
                         'bg-primary-500 dark:bg-primary-600 text-white! hover:bg-primary-500! dark:hover:bg-primary-600!': currentRange.value === range.value,
                         'opacity-50 cursor-not-allowed': !isChangeable,
+                        'hidden md:block': '1y' === range.value,
                     }"
                     :disabled="!isChangeable"
                     @click="changeRange(range.value)"

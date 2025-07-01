@@ -20,6 +20,12 @@ declare global {
         extraHeaders?: Record<string, string>
         requestInit?: RequestInit
     }
+    /** 削除レスポンス（汎用） */
+    type DeleteResponse = {
+        state: 'success' | 'error'
+        message?: string
+    } | null
+
 
 }
 export {}

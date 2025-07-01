@@ -4,17 +4,6 @@ import { useLoaderStore } from '~/stores/useLoaderStore'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
 
-// Types
-type FetchLogsOptions = {
-    fromDate?: string // 取得範囲の開始日 YYYY-MM-DD形式
-    toDate?: string // 取得範囲の終了日 YYYY-MM-DD形式
-    limit?: number // 取得件数（デフォルトは100）
-    offset?: number
-}
-// ログキャッシュのMap型
-type LogsMap = Map<string, Map<string, DateLog>> // appId -> date -> DateLog
-type LogsListMap = Map<string, Map<string, DateLog[]>> // appId -> queryKey -> DateLog[]
-
 // ユーティリティ関数
 function createQueryKey(options: FetchLogsOptions): string {
     // 必ずソート済みで一意化
@@ -122,11 +111,9 @@ export const useLogStore = defineStore('log', () => {
             }
             setLog(appId, date, response)
             return response
-        } catch (
-            // biome-ignore lint:/suspicious/noExplicitAny
-            e: any
-        ) {
-            error.value = e.message ?? '履歴データ取得エラー'
+        } catch (e: unknown) {
+            console.error('Failed to fetch log:', e)
+            error.value = e instanceof Error ? e.message : '履歴データ取得エラー'
             return null
         } finally {
             isLoading.value = false
@@ -185,11 +172,9 @@ export const useLogStore = defineStore('log', () => {
             // キャッシュを作らず、明示的に該当Keyを削除（既にあれば）
             logsList.value.get(appId)?.delete(queryKey)
             return []
-        } catch (
-            // biome-ignore lint:/suspicious/noExplicitAny
-            e: any
-        ) {
-            error.value = e.message ?? '履歴リスト取得エラー'
+        } catch (e: unknown) {
+            console.error('Failed to fetch logs:', e)
+            error.value = e instanceof Error ? e.message : '履歴リスト取得エラー'
             // キャッシュせず、既存キャッシュも削除
             logsList.value.get(appId)?.delete(queryKey)
             return []
@@ -245,15 +230,52 @@ export const useLogStore = defineStore('log', () => {
             }
             error.value = '履歴の保存に失敗しました'
             throw new Error(error.value)
-        } catch (
-            // biome-ignore lint:/suspicious/noExplicitAny
-            e: any
-        ) {
-            error.value = e.message ?? '履歴の保存に失敗しました'
+        } catch (e: unknown) {
+            console.error('Failed to save log:', e)
+            error.value = e instanceof Error ? e.message : '履歴の保存に失敗しました'
             throw e
         } finally {
             isLoading.value = false
             loaderStore.hide(loaderId)
+        }
+    }
+/**
+     * API経由で履歴ファイルをインポートする
+     * @param appId アプリケーションID
+     * @param file インポートするファイル（Fileオブジェクト）
+     * @returns 成功した場合はtrue、失敗した場合はfalse
+     * @throws エラー時はerrorにメッセージがセットされる
+     */
+    async function importLogsFile(appId: string, file: File): Promise<boolean> {
+        isLoading.value = true
+        error.value = null
+        // ローダー表示はオプションにするかもしれない
+        //const loaderStore = useLoaderStore()
+        //const loaderId = loaderStore.show('履歴をインポート中...')
+        try {
+            const response = await callApi<{ state: 'success' | 'error', message?: string } | null>({
+                endpoint: endpoints.logs.import(appId),
+                method: 'POST',
+                data: { file }
+            })
+            console.log('importLogsFile: APIレスポンス', response)
+            if (response?.state === 'success') {
+                // インポート成功時は対象appIdのキャッシュをクリア
+                logs.value.delete(appId) // 全てのキャッシュをクリア
+                logsList.value.delete(appId) // リストキャッシュもクリア
+                // 対象appIdの履歴（全期間）を再取得 -> コンポーネント側で後続処理
+                //await fetchLogs(appId)
+                return true
+            }
+            error.value = response?.message ?? '履歴のインポートに失敗しました'
+            throw new Error(error.value)
+        } catch (e: unknown) {
+            console.error('Failed to import history:', e)
+            error.value = e instanceof Error ? e.message : '履歴のインポートに失敗しました'
+            return false
+        } finally {
+            isLoading.value = false
+            //loaderStore.hide(loaderId)
         }
     }
     /** 全キャッシュクリア */
@@ -274,6 +296,7 @@ export const useLogStore = defineStore('log', () => {
         fetchLog,
         fetchLogs,
         saveLog,
+        importLogsFile,
         clearLogs,
         clearLogsListCache,
     }

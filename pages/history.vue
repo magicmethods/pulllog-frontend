@@ -230,19 +230,18 @@ watch(
   { immediate: true }
 )
 
-// Styling
-const inputFieldRow = 'flex flex-nowrap justify-start items-center gap-2'
-const inputFieldLabel = 'font-medium block w-40 min-w-[8rem]'
-
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
   // 上部バナー広告
   banner: {
     adType: 'carousel',
     adItems: [
-      { image: '/sample/ad_2.jpg', link: 'https://example.com/?ad=2' },
-      { image: '/sample/ad_3.jpg', link: 'https://example.com/?ad=3' },
-      { image: '/sample/ad_4.jpg', link: 'https://example.com/?ad=4' },
+      { image: '/sample/ad_2.jpg',  link: 'https://example.com/?ad=2',  alt: '1020x160' },
+      { image: '/sample/ad_3.jpg',  link: 'https://example.com/?ad=3',  alt: '724x145' },
+      { image: '/sample/ad_4.jpg',  link: 'https://example.com/?ad=4',  alt: '940x140' },
+      { image: '/sample/ad_9.png',  link: 'https://example.com/?ad=9',  alt: '728x90' },
+      { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: '728x90' },
+      { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: '728x90' },
     ],
     adWidth: 1020, // カルーセル画像の最大幅を指定
   },
@@ -250,28 +249,32 @@ const adConfig: Record<string, AdProps> = {
   inline: {
     adType: 'image',
     adItems: [
-      { image: '/sample/ad_5.jpg', link: 'https://example.com/?ad=5', alt: '広告バナー 5' },
-      { image: '/sample/ad_6.jpg', link: 'https://example.com/?ad=6', alt: '広告バナー 6' },
-      { image: '/sample/ad_7.jpg', link: 'https://example.com/?ad=7', alt: '広告バナー 7' },
-      { image: '/sample/ad_8.jpg', link: 'https://example.com/?ad=8', alt: '広告バナー 8' },
+      { image: '/sample/ad_5.jpg',  link: 'https://example.com/?ad=5',  alt: '広告バナー 5 (616x353)' },
+      { image: '/sample/ad_6.jpg',  link: 'https://example.com/?ad=6',  alt: '広告バナー 6 (1200x652)' },
+      { image: '/sample/ad_7.jpg',  link: 'https://example.com/?ad=7',  alt: '広告バナー 7 (1200x675)' },
+      { image: '/sample/ad_8.jpg',  link: 'https://example.com/?ad=8',  alt: '広告バナー 8 (616x353)' },
+      { image: '/sample/ad_14.jpg', link: 'https://example.com/?ad=14', alt: '広告バナー 14 (800x800)' },
+      { image: '/sample/ad_15.jpg', link: 'https://example.com/?ad=15', alt: '広告バナー 15 (1080x1080)' },
+      { image: '/sample/ad_16.jpg', link: 'https://example.com/?ad=16', alt: '広告バナー 16 (300x250)' },
+      { image: '/sample/ad_17.jpg', link: 'https://example.com/?ad=17', alt: '広告バナー 17 (600x338)' },
     ],
-    adHeight: 250,
+    // adHeight: 250,
   }
 }
 
 </script>
 
 <template>
-  <div class="w-full p-4">
+  <div class="w-full p-2 md:p-4">
       <CommonPageHeader
         title="履歴登録"
         :adProps="adConfig.banner"
       />
 
       <!-- 入力エリアとログ表示エリア -->
-      <div class="w-full flex space-x-6">
+      <div class="w-full flex flex-wrap md:flex-nowrap gap-6">
           <!-- 左カラム: 入力フォーム -->
-          <section class="w-2/5 min-w-[448px] space-y-6">
+          <section class="w-full md:w-1/2 lg:w-2/5 min-h-fit max-h-max flex flex-col gap-6">
               <!-- アプリ選択 -->
               <SelectApps
                 v-if="!appStore.isLoading"
@@ -279,7 +282,7 @@ const adConfig: Record<string, AdProps> = {
               />
 
               <!-- 対象日付 -->
-              <div class="flex justify-start items-center gap-4">
+              <div class="flex flex-wrap md:flex-nowrap justify-start items-center gap-4">
                 <CalendarUI
                   v-model="calendarDraftDate"
                   label="対象日"
@@ -290,94 +293,96 @@ const adConfig: Record<string, AdProps> = {
                   :maxDate="today"
                   customIcon="📅"
                   :withFooter="true"
-                  :pt="{ root: 'w-80', panel: 'w-80' }"
+                  :pt="{ root: 'flex-grow w-max md:w-max', panel: 'w-[calc(100%_-_20px)] md:w-80' }"
                   containerClass="flex-1 w-64"
                   @commit="handleDateCommit"
                 />
-                <div class="flex-grow w-1/2 flex items-center justify-start">
-                  <Message v-if="targetDate" severity="info" size="small" class="mt-6.5 p-2.5 text-base">
+                <div class="flex-grow w-full md:w-1/2 flex items-center justify-start">
+                  <Message v-if="targetDate" severity="info" size="small" class="mt-0 md:mt-6.5 p-2.5 w-full text-base">
                     現在の登録対象日: <strong>{{ formatDate(targetDate) }}</strong>
                   </Message>
                 </div>
               </div>
 
               <!-- 履歴の登録 -->
-              <div class="space-y-2">
+              <div class="flex flex-col gap-2">
                   <h3>履歴の登録</h3>
-                  <div :class="inputFieldRow">
-                    <label for="total-pull-count" :class="inputFieldLabel">ガチャ回数</label>
-                    <InputNumber
-                      v-model="totalPullCount"
-                      inputId="total-pull-count"
-                      placeholder="ガチャ回数"
-                      showButtons
-                      :min="0"
-                      :disabled="!targetDate"
-                      class="w-44 min-w-[6rem]"
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="10"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      @click="totalPullCount += 10"
-                      :disabled="!targetDate"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="100"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      @click="totalPullCount += 100"
-                      :disabled="!targetDate"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-eraser"
-                      label="0"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="!targetDate || totalPullCount === 0"
-                      @click="totalPullCount = 0"
-                      v-blur-on-click
-                    />
-                    <div class="w-full"></div>
+                  <div class="input-group-row">
+                    <label for="total-pull-count" class="input-group-label">ガチャ回数</label>
+                    <div class="input-group-control">
+                      <InputNumber
+                        v-model="totalPullCount"
+                        inputId="total-pull-count"
+                        placeholder="ガチャ回数"
+                        showButtons
+                        :min="0"
+                        :disabled="!targetDate"
+                        class="input-number-md"
+                      />
+                      <Button
+                        icon="pi pi-plus"
+                        label="10"
+                        class="btn btn-alternative p-2! text-base! m-0!"
+                        @click="totalPullCount += 10"
+                        :disabled="!targetDate"
+                        v-blur-on-click
+                      />
+                      <Button
+                        icon="pi pi-plus"
+                        label="100"
+                        class="btn btn-alternative p-2! text-base! m-0!"
+                        @click="totalPullCount += 100"
+                        :disabled="!targetDate"
+                        v-blur-on-click
+                      />
+                      <Button
+                        icon="pi pi-eraser"
+                        label="0"
+                        class="btn btn-alternative p-2! text-base! m-0!"
+                        :disabled="!targetDate || totalPullCount === 0"
+                        @click="totalPullCount = 0"
+                        v-blur-on-click
+                      />
+                    </div>
                   </div>
-                  <div :class="inputFieldRow">
-                    <label for="discharged-items" :class="inputFieldLabel">最高レア排出数</label>
-                    <InputNumber
-                      v-model="dischargedItems"
-                      inputId="discharged-items"
-                      placeholder="最高レア排出数"
-                      showButtons
-                      :min="0"
-                      :max="totalPullCount"
-                      :disabled="totalPullCount === 0"
-                      class="w-44 min-w-[6rem]"
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="10"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="totalPullCount < 10 || dischargedItems >= totalPullCount"
-                      @click="dischargedItems += 10"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-plus"
-                      label="100"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="totalPullCount < 100 || dischargedItems >= totalPullCount"
-                      @click="dischargedItems += 100"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-eraser"
-                      label="0"
-                      class="btn btn-alternative p-2! text-base! m-0!"
-                      :disabled="dischargedItems === 0"
-                      @click="dischargedItems = 0"
-                      v-blur-on-click
-                    />
-                    <div class="w-full"></div>
+                  <div class="input-group-row">
+                    <label for="discharged-items" class="input-group-label">最高レア排出数</label>
+                    <div class="input-group-control">
+                      <InputNumber
+                        v-model="dischargedItems"
+                        inputId="discharged-items"
+                        placeholder="最高レア排出数"
+                        showButtons
+                        :min="0"
+                        :max="totalPullCount"
+                        :disabled="totalPullCount === 0"
+                        class="input-number-md"
+                      />
+                      <Button
+                        icon="pi pi-plus"
+                        label="10"
+                        class="btn btn-alternative p-2! text-base! m-0!"
+                        :disabled="totalPullCount < 10 || dischargedItems >= totalPullCount"
+                        @click="dischargedItems += 10"
+                        v-blur-on-click
+                      />
+                      <Button
+                        icon="pi pi-plus"
+                        label="100"
+                        class="btn btn-alternative p-2! text-base! m-0!"
+                        :disabled="totalPullCount < 100 || dischargedItems >= totalPullCount"
+                        @click="dischargedItems += 100"
+                        v-blur-on-click
+                      />
+                      <Button
+                        icon="pi pi-eraser"
+                        label="0"
+                        class="btn btn-alternative p-2! text-base! m-0!"
+                        :disabled="dischargedItems === 0"
+                        @click="dischargedItems = 0"
+                        v-blur-on-click
+                      />
+                    </div>
                   </div>
                   <div v-if="dischargedItems > 0" class="scrollable-container max-h-52 overflow-y-auto">
                     <label class="font-medium block text-md py-2 sticky top-0 z-20 bg-white dark:bg-[#070D19]">排出内容の記録（任意）</label>
@@ -386,41 +391,42 @@ const adConfig: Record<string, AdProps> = {
                       v-model="dropDetails"
                     />
                   </div>
-                  <div :class="inputFieldRow">
-                    <label for="expense" :class="inputFieldLabel">課金額</label>
-                    <InputNumber
-                      v-model="expense"
-                      inputId="expense"
-                      placeholder="課金額"
-                      showButtons
-                      :minFractionDigits="0"
-                      :maxFractionDigits="2"
-                      :useGrouping="true"
-                      :min="0"
-                      :max="9999999"
-                      :disabled="!targetDate"
-                      class="w-44 min-w-[8rem]"
-                    />
-                    <div class="flex-grow min-w-[3rem] px-1 text-md font-medium text-surface-500 truncate">
-                      {{ currencyUnit }}
+                  <div class="input-group-row">
+                    <label for="expense" class="input-group-label">課金額</label>
+                    <div class="input-group-control">
+                      <InputNumber
+                        v-model="expense"
+                        inputId="expense"
+                        placeholder="課金額"
+                        showButtons
+                        :minFractionDigits="0"
+                        :maxFractionDigits="2"
+                        :useGrouping="true"
+                        :min="0"
+                        :max="9999999"
+                        :disabled="!targetDate"
+                        class="input-number-lg"
+                      />
+                      <div class="min-w-[3rem] px-1 text-md font-medium text-surface-500 truncate">
+                        {{ currencyUnit }}
+                      </div>
+                      <Button
+                        icon="pi pi-calculator"
+                        label=""
+                        class="btn btn-alternative py-2! px-2.5! text-base m-0"
+                        @click="openCalculator"
+                        :disabled="!targetDate"
+                        v-blur-on-click
+                      />
+                      <Button
+                        icon="pi pi-eraser"
+                        label="0"
+                        class="btn btn-alternative p-2! text-base m-0"
+                        :disabled="!targetDate || expense === 0"
+                        @click="expense = 0"
+                        v-blur-on-click
+                      />
                     </div>
-                    <Button
-                      icon="pi pi-calculator"
-                      label=""
-                      class="btn btn-alternative py-2! px-2.5! text-base m-0"
-                      @click="openCalculator"
-                      :disabled="!targetDate"
-                      v-blur-on-click
-                    />
-                    <Button
-                      icon="pi pi-eraser"
-                      label="0"
-                      class="btn btn-alternative p-2! text-base m-0"
-                      :disabled="!targetDate || expense === 0"
-                      @click="expense = 0"
-                      v-blur-on-click
-                    />
-                    <div class="w-full"></div>
                   </div>
                   <!-- モーダル: 計算機 -->
                   <CalculatorModal
@@ -430,40 +436,44 @@ const adConfig: Record<string, AdProps> = {
                     @commit-overwrite="handleCommitOverwrite"
                     @close="showCalculator = false"
                   />
-                  <div :class="inputFieldRow">
-                    <label for="tags" :class="`${inputFieldLabel} pt-2`">タグ（任意）</label>
-                    <InputTags
-                      v-model="tags"
-                      inputId="tags"
-                      placeholder="タグの追加（最大%maxTags%つまで）"
-                      :maxTags="3"
-                      :maxLength="20"
-                      class="w-full min-h-12 max-h-max"
-                      :disabled="!targetDate"
-                      tagPrefix="symbol"
-                    />
-                  </div>
-                  <div :class="`${inputFieldRow} items-start! mb-4!`">
-                    <label for="note" :class="`${inputFieldLabel} pt-2`">アクティビティ（任意）</label>
-                    <div class="flex-grow w-full">
-                      <Textarea
-                        v-model="freeText"
-                        inputId="note"
-                        autoResize
-                        :placeholder="`活動状況など（${maxTextLength}文字以内）`"
-                        rows="3"
-                        :maxlength="maxTextLength"
+                  <div class="input-group-row">
+                    <label for="tags" class="input-group-label pt-0 md:pt-2">タグ（任意）</label>
+                    <div class="input-group-control">
+                      <InputTags
+                        v-model="tags"
+                        inputId="tags"
+                        placeholder="タグの追加（最大%maxTags%つまで）"
+                        :maxTags="3"
+                        :maxLength="20"
+                        class="w-full min-h-12 max-h-max"
                         :disabled="!targetDate"
-                        @input="textLength = freeText.length"
-                        :style="{ minWidth: 'calc(100% - 10rem)' }"
+                        tagPrefix="symbol"
                       />
-                      <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">入力文字数: {{ textLength }}</Message>
+                    </div>
+                  </div>
+                  <div class="input-group-row items-start! mb-4!">
+                    <label for="note" class="input-group-label pt-0 md:pt-2">アクティビティ（任意）</label>
+                    <div class="input-group-control">
+                      <div class="flex-grow w-full">
+                        <Textarea
+                          v-model="freeText"
+                          inputId="note"
+                          autoResize
+                          :placeholder="`活動状況など（${maxTextLength}文字以内）`"
+                          rows="3"
+                          :maxlength="maxTextLength"
+                          :disabled="!targetDate"
+                          @input="textLength = freeText.length"
+                          :style="{ minWidth: 'calc(100% - 10rem)' }"
+                        />
+                        <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">入力文字数: {{ textLength }}</Message>
+                      </div>
                     </div>
                   </div>
                   <div class="flex justify-between items-center gap-2">
                     <Button
                       label="入力内容をリセット"
-                      class="btn btn-alternative px-3 py-2 text-center text-base"
+                      class="btn btn-alternative w-1/2 lg:w-1/3 px-3 py-2 text-center text-base"
                       @click="resetForm"
                       :disabled="!selectedApp || !targetDate"
                       v-blur-on-click
@@ -471,7 +481,7 @@ const adConfig: Record<string, AdProps> = {
                     <Button
                       label="履歴を保存"
                       fluid
-                      class="btn btn-primary px-3 py-2 text-center text-base"
+                      class="btn btn-primary w-1/2 lg:w-2/3 px-3 py-2 text-center text-base"
                       @click="submitLog"
                       :disabled="!selectedApp || !targetDate"
                       v-blur-on-click
@@ -480,24 +490,14 @@ const adConfig: Record<string, AdProps> = {
               </div>
 
               <!-- 広告バナー -->
-              <div class="w-full pt-3 pb-7">
+              <div class="w-full h-max">
                 <CommonEmbedAd v-bind="adConfig.inline" />
               </div>
 
           </section>
 
-          <!-- 確認モーダル -->
-          <LogConfirmModal
-            :visible="confirmModalVisible"
-            :logData="pendingLogData"
-            :validationErrors="pendingValidationErrors"
-            @update:visible="confirmModalVisible = $event"
-            @close="handleCloseModal"
-            @confirm="handleConfirmSave"
-          />
-
           <!-- 右カラム: 過去ログとグラフ -->
-          <section class="w-3/5 mt-0 space-y-4">
+          <section class="w-full md:w-1/2 lg:w-3/5 mt-0 flex flex-col gap-4">
               <!-- 推移グラフ -->
               <HistoryChart
                 label="履歴の推移（直近）"
@@ -520,5 +520,16 @@ const adConfig: Record<string, AdProps> = {
 
           </section>
       </div>
+
+      <!-- 確認モーダル -->
+      <LogConfirmModal
+        :visible="confirmModalVisible"
+        :logData="pendingLogData"
+        :validationErrors="pendingValidationErrors"
+        @update:visible="confirmModalVisible = $event"
+        @close="handleCloseModal"
+        @confirm="handleConfirmSave"
+      />
+
   </div>
 </template>

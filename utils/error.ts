@@ -1,4 +1,7 @@
 export const ERROR_URL = {
-    Unauthorized: '/error/401/',
-    Forbidden: '/error/403/',
+    BadRequest: '/error/400',
+    Unauthorized: '/error/401',
+    Forbidden: '/error/403',
+    NotFound: '/error/404',
+    InternalServerError: '/error/500',
 }

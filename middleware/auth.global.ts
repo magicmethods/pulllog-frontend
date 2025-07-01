@@ -1,17 +1,19 @@
 export default defineNuxtRouteMiddleware((to, from) => {
-    const appConfig = useAppConfig()
     const userStore = useUserStore()
 
     // 認証不要ページ
-    const isPublicRoute = to.path === '/' || to.path.startsWith('/auth/')
+    const isPublicRoute = to.path === '/' || to.path.startsWith('/auth/') || to.path.startsWith('/error/')
     if (isPublicRoute) return
 
+    /*
     // デバッグ時に認証スキップ用にダミーユーザーをセット
+    const appConfig = useConfig()
     if (appConfig.isDebug && !userStore.isLoggedIn) {
         localStorage.removeItem('theme')
         localStorage.removeItem('language')
         userStore.setDummyUser({ id: 999, homePage: '/history' })
     }
+    */
 
     // 認証が必要なルート
     const allowedPrefixes = ['/apps', '/history', '/stats', '/settings', '/dashboard']

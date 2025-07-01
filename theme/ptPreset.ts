@@ -13,8 +13,12 @@ export const ptPreset = {
         root: 'input-base input-hoverable',
     },
 
-    // --- InputNumber系 --- (index.vue)
+    // --- InputNumber系 --- (history.vue, )
     InputNumber: {
+        root: {
+            class: 'w-min',
+            style: 'inset-inline-end: auto;'
+        },
         pcinputtext: {
             root: 'input-base input-hoverable',
         },
@@ -34,7 +38,7 @@ export const ptPreset = {
         meterText: 'text-surface-600 dark:text-gray-100',
     },
 
-    // --- Textarea系 --- (index.vue, AppEditModal.vue)
+    // --- Textarea系 --- (history.vue, AppEditModal.vue)
     Textarea: {
         root: {
             class: 'input-base input-hoverable placeholder:text-surface-400 dark:placeholder:text-gray-400 dark:disabled:placeholder:text-gray-600/50',
@@ -46,6 +50,12 @@ export const ptPreset = {
         root: '-mt-1.5',
         box: 'border rounded border-surface-300 dark:border-surface-600',
         icon: 'dark:text-white',
+    },
+
+    // --- RadioButton系 --- (AppDownloadModal.vue etc.)
+    RadioButton: {
+        root: { style: '--p-radiobutton-checked-border-color: transparent;' },
+        box: { class: 'border border-surface-300 dark:border-gray-500/60' },
     },
 
     // --- ToggleButton系 --- (Header.vue)
@@ -168,14 +178,15 @@ export const ptPreset = {
 
     // --- ToggleSwitch系 --- (AppEditModal.vue) ※ 色指定は DesignToken(dt) で行う必要がある
     ToggleSwitch: {
+        root: 'w-[40px]',
         slider: 'border border-surface-400/50 dark:border-gray-700/40',
         handle: '-translate-y-1/2',
     },
 
     // --- Fieldset系 --- (AppEditModal.vue)
     Fieldset: {
-        root: 'border border-dotted rounded-lg border-surface-500/50 dark:border-gray-700 p-4 bg-transparent',
-        legend: 'text-md font-semibold text-primary-600 dark:text-primary-400 bg-transparent px-2',
+        root: 'border-0 md:border md:border-dotted md:rounded-lg border-surface-500/50 dark:border-gray-700 p-0 md:p-4 bg-transparent',
+        legend: 'text-md font-semibold text-primary-600 dark:text-primary-400 bg-transparent px-0 md:px-2 mb-2 md:mb-0',
     },
 
     // --- FormField系 --- (AppEditModal.vue)
@@ -235,5 +246,15 @@ export const ptPreset = {
         pcFileBadge: { root: 'px-2 rounded-full text-xs bg-amber-400 text-surface-600 dark:bg-yellow-600 dark:text-white' },
         pcFileRemoveButton: { root: 'rounded-full text-surface-400 dark:text-gray-600 hover:text-primary-500 dark:hover:text-primary-400 bg-transparent hover:bg-surface-100 dark:hover:bg-gray-800/40' },
         empty: 'text-sm text-muted',
+    },
+
+    // --- Menu --- (apps.vue)
+    Menu: {
+        root: 'min-w-max border rounded-md border-surface-300 dark:border-gray-800 bg-white dark:bg-gray-950 shadow-lg',
+        list: 'w-max p-2',
+        submenuLabel: 'font-semibold text-sm p-1 text-surface-400 dark:text-gray-500',
+        item: 'flex justify-start items-baseline w-full gap-2 text-sm text-surface-700 dark:text-gray-200',
+        itemContent: 'w-full p-2 rounded hover:bg-primary-50 dark:hover:bg-primary-950 hover:text-primary-700 dark:hover:text-primary-400',
+        separator: 'my-1 h-px bg-surface-300 dark:bg-gray-700',
     },
 }

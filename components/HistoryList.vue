@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
+import { useToast } from 'primevue/usetoast'
+import { copySelectedText } from '~/utils/clipboard'
 
 // Types
 type HistoryListColumn = 
@@ -35,6 +37,7 @@ const props = defineProps<{
 // Stores
 const appStore = useAppStore()
 const logStore = useLogStore()
+const toast = useToast()
 
 // Refs & Local variables
 const logs = ref<DateLog[]>([])
@@ -106,6 +109,40 @@ async function fetchLogs() {
     //console.log('HistoryList::fetchLogs::data:', data, tagsMap.value)
     logs.value = data ? [...data] : []
 }
+function resizeHandler() {
+    // ウィンドウサイズが640px未満（Breakpoint: sm）の場合は、列の表示を調整
+    if (window.innerWidth < 640) {
+        const tableElm = document.querySelector<HTMLTableElement>('.list-table-container table')
+        if (tableElm && logs.value.length === 0) {
+            const tbody = tableElm.getElementsByTagName('tbody')[0]
+            const rows = tbody.getElementsByTagName('tr')
+            for (const row of rows) {
+                const cells = row.getElementsByTagName('td')
+                if (cells.length === 1) {
+                    cells[0].setAttribute('colspan', String(totalColumns.value - 1))
+                }
+            }
+        }
+    }
+}
+async function handleSelectionCopy() {
+    // 選択テキストがあればコピー
+    const success = await copySelectedText()
+    if (success) {
+        toast.add({ severity: 'success', summary: 'クリップボードにコピー', detail: '選択したテキストをコピーしました。', group: 'notices', life: 2000 })
+        // ブラウザによっては選択解除してもよい（不要なら省略）
+        window.getSelection()?.removeAllRanges()
+    }
+}
+
+// Lifecycle hooks
+onMounted(() => {
+    resizeHandler()
+    window.addEventListener('resize', resizeHandler)
+})
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', resizeHandler)
+})
 
 // Watchers
 watch(
@@ -117,7 +154,7 @@ watch(
 
 // PassThrough
 const scrollPanelPT = {
-    contentContainer: 'pr-4 text-xs whitespace-nowrap text-antialiasing',
+    contentContainer: 'pr-6 text-xs whitespace-nowrap text-antialiasing',
 }
 
 </script>
@@ -125,16 +162,16 @@ const scrollPanelPT = {
 <template>
     <div class="history-list">
         <h2 v-if="label" class="list-title">{{ label }}</h2>
-        <div class="list-table-container">
+        <div class="list-table-container overflow-x-auto">
             <table class="table-fixed">
-                <thead>
+                <thead class="bg-surface-100 dark:bg-gray-800">
                     <tr>
                         <th v-if="showColumn('date')" class="w-24">日付</th>
                         <th v-if="showColumn('total_pulls')" class="w-14 text-center">回数</th>
                         <th v-if="showColumn('discharge_items')" class="w-12 text-xs text-center">最高レア</th>
                         <th v-if="showColumn('expense')" class="w-20 text-center">課金額</th>
-                        <th v-if="showColumn('tags')" class="w-auto">タグ</th>
-                        <th v-if="showColumn('free_text')" class="w-72">アクティビティ</th>
+                        <th v-if="showColumn('tags')" class="w-auto min-w-[3rem]">タグ</th>
+                        <th v-if="showColumn('free_text')" class="w-auto min-w-[6rem] hidden md:table-cell">アクティビティ</th>
                     </tr>
                 </thead>
                 <tbody id="HistoryListContainer">
@@ -146,7 +183,7 @@ const scrollPanelPT = {
                             >ロード中...</td>
                         </tr>
                     </template>
-                    <template v-else-if="logs.length > 0">    
+                    <template v-else-if="logs.length > 0">
                         <tr v-for="log in logs" :key="log.date"
                             :class="{ 'bg-amber-100/66 dark:bg-amber-500/33': props.highlightDate && log.date === props.highlightDate }"
                         >
@@ -160,7 +197,10 @@ const scrollPanelPT = {
                                         style="width: 100%; height: 2rem;"
                                         :pt="scrollPanelPT"
                                     >
-                                        <div class="flex flex-row flex-nowrap gap-1">
+                                        <div
+                                            class="flex flex-row flex-nowrap gap-1 select-text"
+                                            @click="handleSelectionCopy"
+                                        >
                                             <span
                                                 v-for="tag in tagsMap.get(log.date)"
                                                 :key="tag.text"
@@ -170,9 +210,11 @@ const scrollPanelPT = {
                                     </ScrollPanel>
                                 </template>
                             </td>
-                            <td v-if="showColumn('free_text')">
+                            <td v-if="showColumn('free_text')" class="hidden md:table-cell">
                                 <ScrollPanel v-if="log.free_text.trim() !== ''" style="width: 100%; height: 2rem;" :pt="scrollPanelPT">
-                                    {{ log.free_text }}
+                                    <span class="select-text" @click="handleSelectionCopy">
+                                        {{ log.free_text }}
+                                    </span>
                                 </ScrollPanel>
                             </td>
                         </tr>

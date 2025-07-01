@@ -34,7 +34,8 @@ const errors = ref<any>(null)
 
 // Refs & Local variables
 const rawDateUpdateTime = ref<Date | null>(null)
-const formData = ref<AppData>({...createAppDataFromApp(props.app)})
+//const formData = ref<AppData>({...createAppDataFromApp(props.app)})
+const formData = ref<AppData>({} as AppData) // 初期値は空のオブジェクト
 const maxDescLength = 400
 const descLength = ref<number>(0)
 const activeEmojiPickerId = ref<string | null>(null)
@@ -89,7 +90,7 @@ function createAppDataFromApp(app?: AppData): AppData {
         marker_defs: defaultMarkerDefs,
         task_defs: app?.task_defs ?? [],
     }
-    //console.log('AppEditModal::createAppDataFromApp:', app, defaultAppData)
+    //console.log('AppEditModal::createAppDataFromApp:', app, defaultAppData, rawDateUpdateTime.value)
     return defaultAppData
 }
 // ツールチップを表示する
@@ -116,7 +117,7 @@ function validateForm(): boolean {
     const result = schema.safeParse(formData.value)
     if (!result.success) {
         const { error } = result
-        console.warn('Validation Error:', error.issues, error.format(), error.flatten())
+        //console.warn('Validation Error:', error.issues, error.format(), error.flatten())
         errors.value = error.flatten().fieldErrors
     } else {
         errors.value = null
@@ -149,7 +150,7 @@ watch(() => props.visible, (val) => {
         formData.value = {...createAppDataFromApp()}
         descLength.value = 0
     }
-    console.log(`AppEditModal: ${val ? 'shown' : 'hidden'} / mode: ${isEditMode.value ? 'edit' : 'register'}`, formData.value)
+    //console.log(`AppEditModal: ${val ? 'shown' : 'hidden'} / mode: ${isEditMode.value ? 'edit' : 'register'}`, formData.value)
 }, { immediate: true })
 watch(() => formData.value, (val) => {
     // フォーム値が変更されたらバリデーション実行
@@ -167,6 +168,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
         v-model:visible="isShown"
         :maximizable="true"
         modal
+        id="appEditModal"
         :header="`アプリケーションの${isEditMode ? '設定編集' : '新規追加'}`"
         :dismissableMask="true"
         :blockScroll="true"
@@ -174,12 +176,12 @@ watch(() => rawDateUpdateTime.value, (val) => {
         appendTo="self"
         :style="{ width: '80vw', height: '80vh' }"
     >
-        <div class="grid grid-cols-2 space-y-4">
+        <div class="flex flex-wrap md:flex-nowrap justify-between items-start gap-4">
 
-            <div class="flex flex-col gap-2 p-2 md:mr-2">
+            <div class="w-full md:w-1/2">
                 <Fieldset legend="アプリケーションの基本情報">
                     <p v-if="false" class="lead">PullLogで取り扱うアプリケーションの登録内容を設定します。</p>
-                    <div class="mb-2">
+                    <div class="mb-4">
                         <label for="app_name" class="label-flex text-sm">
                             <span class="required">アプリケ―ション名</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appName')"></i>
@@ -195,7 +197,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         </Message>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-4">
                         <label for="piblic_url" class="label-flex text-sm">
                             <span>WEBサイトのURL（任意）</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appUrl')"></i>
@@ -211,7 +213,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         </Message>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-4">
                         <label for="description" class="label-flex text-sm">
                             <span>アプリケーションの説明（任意）</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appDesc')"></i>
@@ -230,7 +232,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         </Message>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-4">
                         <label for="currency_unit" class="label-flex text-sm">
                             <span>通貨単位</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('currencyUnit')"></i>
@@ -249,7 +251,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         </Message>
                     </div>
 
-                    <div v-if="false" class="mb-2">
+                    <div v-if="false" class="mb-4">
                         <label for="app_image" class="label-flex text-sm">
                             <span>アプリケーション画像（任意）</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appImage')" title=""></i>
@@ -265,12 +267,12 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         </Message>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-4 md:mb-0">
                         <label for="date_update_time" class="label-flex text-sm">
                             <span>アプリケーション内の日付更新時間</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('dateUpdateTime')"></i>
                         </label>
-                        <div class="flex justify-start items-center gap-2">
+                        <div class="flex justify-between items-center gap-2">
                             <CalendarUI
                                 id="date_update_time"
                                 v-model="rawDateUpdateTime"
@@ -279,11 +281,13 @@ watch(() => rawDateUpdateTime.value, (val) => {
                                 customIcon="🕒"
                                 :pt="{ root: 'min-w-[8rem]! w-36' }"
                             />
-                            <ToggleSwitch
-                                inputId="sync_update_time"
-                                v-model="formData.sync_update_time"
-                                :disabled="!rawDateUpdateTime"
-                            />
+                            <div class="w-max">
+                                <ToggleSwitch
+                                    inputId="sync_update_time"
+                                    v-model="formData.sync_update_time"
+                                    :disabled="!rawDateUpdateTime"
+                                />
+                            </div>
                             <label for="sync_update_time" class="flex-grow ml-1 pt-1 font-medium text-sm">日付更新時間とログ登録対象日を同期する</label>
                         </div>
                         <Message v-if="errors?.date_update_time" severity="error" size="small" variant="simple" class="mt-1">
@@ -294,11 +298,11 @@ watch(() => rawDateUpdateTime.value, (val) => {
                 </Fieldset>
                 <pre v-if="false" class="text-xs whitespace-pre-wrap">{{ formData }}</pre>
             </div>
-            <div class="flex flex-col gap-2 p-2 md:ml-2">
+            <div class="w-full md:w-1/2">
                 <Fieldset legend="ログ記録用の設定">
                     <p v-if="true" class="lead mb-4">PullLogでのログ記録時に使用するアプリ内の設定情報や任意のマーカー等を定義できます。</p>
 
-                    <div class="mb-2">
+                    <div class="mb-4">
                         <label for="rarity_defs" class="label-flex text-sm">
                             <span>レアリティ定義（任意）</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('rarityDefs')"></i>
@@ -319,7 +323,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         </Message>
                     </div>
 
-                    <div class="mb-2">
+                    <div class="mb-0">
                         <label for="marker_defs" class="label-flex text-sm">
                             <span>マーカー定義（任意）</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('markerDefs')"></i>
@@ -352,22 +356,22 @@ watch(() => rawDateUpdateTime.value, (val) => {
             />
         </template>
         <template #footer>
-            <div class="mx-auto flex justify-center items-center gap-4">
-                <div class="w-auto"></div>
+            <div class="w-full flex justify-between items-center gap-4">
+                <div class="flex-grow hidden md:block md:w-auto"></div>
                 <Button
                     label="キャンセル"
-                    class="w-56 btn btn-alternative"
+                    class="w-1/2 md:w-56 btn btn-alternative"
                     @click="emit('update:visible', false)"
                     v-blur-on-click
                 />
                 <Button
                     label="保存"
-                    class="w-56 btn btn-primary"
+                    class="w-1/2 md:w-56 btn btn-primary"
                     @click="handleSubmit"
                     :disabled="!isValidAll"
                     v-blur-on-click
                 />
-                <div class="w-auto"></div>
+                <div class="flex-grow hidden md:block md:w-auto"></div>
             </div>
         </template>
     </Dialog>

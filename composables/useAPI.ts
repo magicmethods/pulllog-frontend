@@ -1,27 +1,6 @@
 import { useCsrfStore } from '~/stores/useCsrfStore'
 import { ERROR_URL } from '~/utils/error'
 
-/* Types (Moved to `types/global.d.ts`)
-export type AllowMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
-export type RequestParams = Record<string, string | number | boolean | (string | number | boolean)[]>
-// biome-ignore lint:/suspicious/noExplicitAny
-export type RequestData = Record<string, any>
-// API呼び出しオプション型
-export type CallApiOptions = {
-    endpoint: string
-    method: AllowMethod
-    params?: RequestParams
-    data?: RequestData
-    retries?: number // デフォルト0
-    cacheTime?: number // ms, デフォルト0
-    overrideURI?: boolean
-    debug?: boolean
-    timeout?: number // 秒単位, デフォルト10
-    extraHeaders?: Record<string, string>
-    requestInit?: RequestInit
-}
-*/
-
 const OK_RESPONSE_CODES = new Set([
     200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
 ])
@@ -29,12 +8,11 @@ const OK_RESPONSE_CODES = new Set([
 const apiCache = new Map<string, { timestamp: number; data: unknown }>()
 
 export function useAPI() {
-    const appConfig = useAppConfig()
-    const baseURL = appConfig.apiBaseUrl as string ?? ''
-    const apiKey = appConfig.apiKey as string ?? ''
-    const mockMode = appConfig.mockMode as boolean ?? false
+    const appConfig = useConfig()
+    const apiProxy = appConfig.apiProxy ?? '/api'
+    const apiBaseURL = appConfig.apiBaseURL ?? ''
+    const mockMode = appConfig.mockMode ?? false
     const csrfStore = useCsrfStore()
-    const csrfToken = csrfStore.token ?? ''
 
     // ユーティリティ
     function createQueryParams(params: RequestParams): string {
@@ -80,9 +58,11 @@ export function useAPI() {
             data,
             retries = 0,
             cacheTime = 0,
-            overrideURI = false,
+            overrideURI = false, // trueなら「絶対パス・外部API等」に直接リクエスト
             debug = false,
             timeout = 10,
+            extraHeaders = {},
+            requestInit = {},
         } = options
 
         const cacheKey = generateCacheKey(options)
@@ -101,31 +81,59 @@ export function useAPI() {
             return await loadMockData<T>(endpoint)
         }
 
-        let url = overrideURI ? endpoint : baseURL + endpoint
+        // URL組み立て
+        let url = ''
+        if (overrideURI) {
+            // 絶対パスや外部APIへのリクエスト
+            url = endpoint
+        } else {
+            // APIプロキシ経由の相対パス
+            url = endpoint.startsWith(apiProxy)
+                ? endpoint
+                : apiProxy.replace(/\/$/, '') + (endpoint.startsWith('/') ? endpoint : `/${endpoint}`)
+        }
         if (method === 'GET' && params) {
             url += `?${createQueryParams(params)}`
         }
 
         // リクエストヘッダ
-        const baseHeaders = {
-            'Content-Type': 'application/json',
-            'X-API-KEY': apiKey, // APIキー自動付与
-            'X-CSRF-Token': csrfToken, // CSRFトークン自動付与
+        // CSRFトークンの最新値を取得
+        const currentCSRFToken = csrfStore.token ?? ''
+        // extraHeadersを全て小文字キーに正規化（念のため）
+        const normalizedExtraHeaders = Object.fromEntries(
+            Object.entries(extraHeaders).map(([k, v]) => [k.toLowerCase(), v])
+        )
+        const headers: Record<string, string> = {}
+        // content-typeの自動付与ロジック
+        const isFormData = typeof FormData !== 'undefined' && data instanceof FormData
+        if (!isFormData && !('content-type' in normalizedExtraHeaders)) {
+            headers['content-type'] = 'application/json'
         }
-        const mergedHeaders = {
-            ...baseHeaders,
-            ...(options.extraHeaders ?? {}),
+        // CSRFトークンを自動付与
+        if (!('x-csrf-token' in normalizedExtraHeaders)) {
+            headers['x-csrf-token'] = currentCSRFToken
         }
+        // extraHeadersで上書き（明示的なcontent-typeや他ヘッダも反映）
+        Object.assign(headers, normalizedExtraHeaders)
         const requestOptions: RequestInit = {
             method,
-            headers: mergedHeaders,
-            ...(options.requestInit ?? {}),
+            headers,
+            ...requestInit,
         }
-        if (['POST', 'PUT', 'PATCH'].includes(method) && data) {
-            requestOptions.body = JSON.stringify(data)
+        if (['POST', 'PUT', 'PATCH'].includes(method)) {
+            if (isFormData) {
+                // FormDataの場合はbodyにそのままセット
+                requestOptions.body = data as FormData
+                // FormDataのときはcontent-typeを明示的に削除（念のため）
+                if (headers['content-type']) {
+                    (requestOptions.headers as Record<string, string | undefined>)['content-type'] = undefined
+                }
+            } else if (data) {
+                requestOptions.body = JSON.stringify(data)
+            }
         }
 
-        console.log('APIリクエスト:', { url, requestOptions })
+        console.log('APIリクエスト:', { url, requestOptions, endpoint, overrideURI, currentCSRFToken })
 
         // リトライロジック
         for (let attempt = 0; attempt <= retries; attempt++) {
@@ -157,11 +165,8 @@ export function useAPI() {
                     apiCache.set(cacheKey, { timestamp: now, data: responseJson })
                 }
                 return responseJson
-            } catch (
-                // biome-ignore lint:/suspicious/noExplicitAny
-                error: any
-            ) {
-                if (error.name === 'AbortError') {
+            } catch (error: unknown) {
+                if (error instanceof Error && error.name === 'AbortError') {
                     // タイムアウト
                     throw new Error('APIリクエストがタイムアウトしました')
                 }
@@ -198,7 +203,8 @@ export function useAPI() {
         if (response.status === 401) {
             navigateTo(ERROR_URL.Unauthorized, { external: true })
         } else if (response.status === 403) {
-            navigateTo(ERROR_URL.Forbidden, { external: true })
+            //navigateTo(ERROR_URL.Forbidden, { external: true })
+            throw new Error(`403 Error: ${errorJson?.detail ?? 'Forbidden'}`)
         } else if (response.status === 422) {
             // 画面側でバリデーションエラー表示
             throw new Error(errorJson?.detail ?? 'バリデーションエラーが発生しました')
@@ -236,7 +242,8 @@ export function useAPI() {
 
     // モックデータ取得
     async function loadMockData<T = unknown>(endpoint: string): Promise<T | null> {
-        const sanitized = endpoint.replace(baseURL as string, '').replace(/^\//, '').replace(/\//g, '_')
+        // mockMode時は/api以下のパスも有効にする
+        const sanitized = endpoint.replace(apiProxy, '').replace(/^\//, '').replace(/\//g, '_')
         const mockFilePath = `/mocks/${sanitized}.json`
         try {
             const response = await fetch(mockFilePath)

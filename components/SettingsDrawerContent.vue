@@ -10,7 +10,7 @@ const emit = defineEmits<
 >()
 
 // Config
-const appConfig = useAppConfig()
+const appConfig = useConfig()
 
 // Stores
 const userStore = useUserStore()
@@ -70,20 +70,6 @@ watch(
     (newTheme) => {
         if (userStore.user) {
             userStore.user.theme = newTheme
-        }
-        storage.setItem('theme', newTheme)
-        if (typeof window !== 'undefined') {
-            const html = document.documentElement
-            html.classList.add('theme-switching')
-            if (newTheme === 'dark') {
-                html.classList.add('app-dark')
-            } else {
-                html.classList.remove('app-dark')
-            }
-            void html.offsetWidth
-            requestAnimationFrame(() => {
-                html.classList.remove('theme-switching')
-            })
         }
     }
 )

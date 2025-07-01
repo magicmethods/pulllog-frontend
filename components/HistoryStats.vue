@@ -60,18 +60,18 @@ watch(
         <h2 v-if="label !== ''" class="stats-title">{{ displayLabel }}</h2>
         <div
             id="statsContainer"
-            class="stats-container"
+            class="stats-container justify-between! h-28! overflow-x-scroll md:overflow-x-auto overflow-y-hidden"
             :class="{ 'bg-transparent gap-8': statsData, 'bg-surface-100 dark:bg-gray-800/40': !statsData }"
         >
             <span v-if="isLoading" class="text-surface-400/60 dark:text-gray-500/60 text-antialiasing select-none">ロード中...</span>
             <!-- span v-else-if="error" class="text-rose-500 dark:text-rose-600 text-antialiasing">{{ error }}</span -->
-            <template v-else-if="statsData">
+            <div v-else-if="statsData" class="flex justify-between items-center gap-4 md:gap-6 min-w-max">
                 <!-- ドーナッツチャート（レア排出率） -->
                 <ChartRarePullsRate
                     :data="statsData"
                     :key="reloadStatsChartKey"
                 />
-                <div class="flex items-center justify-center gap-6">
+                <div class="flex items-center justify-start gap-6">
                     <div class="grid grid-cols-1 gap-y-2">
                         <div>
                             <div class="text-xs text-gray-400">集計期間</div>
@@ -131,8 +131,8 @@ watch(
                         </div>
                     </div>
                 </div>
-            </template>
-            <span v-else class="text-surface-400/60 dark:text-gray-500/60 text-antialiasing select-none">データがありません</span>
+            </div>
+            <span v-else class="mx-auto text-surface-400/60 dark:text-gray-500/60 text-antialiasing select-none">データがありません</span>
         </div>
     </div>
 </template>

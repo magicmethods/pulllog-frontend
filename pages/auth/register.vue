@@ -15,7 +15,7 @@ const registerSchema = z.object({
 })
 
 // 認証処理
-const { register: registerUser } = useAuth()
+const { register } = useAuth()
 
 // State
 const form = reactive({
@@ -105,13 +105,26 @@ async function handleRegister() {
     if (!validateAll()) return
     isSubmitting.value = true
     try {
-        await registerUser(form.name, form.email, form.password)
+        await register(form.name, form.email, form.password)
         isAccepted.value = true
     } catch (e: unknown) {
         globalError.value = e instanceof Error ? e.message : '登録に失敗しました。入力内容をご確認ください'
         console.error('Register failed:', e)
-    } finally {
         isSubmitting.value = false
+    } finally {
+        if (isAccepted.value) {
+          // 登録が受理された場合はフォームをリセット
+          form.name = ''
+          form.email = ''
+          form.password = ''
+          form.isAgreed = false
+          touched.name = false
+          touched.email = false
+          touched.password = false
+          touched.isAgreed = false
+          await nextTick() // DOM更新を待つ
+          isSubmitting.value = false
+        }
     }
 }
 function handleBack() {
@@ -244,6 +257,7 @@ watch(
               label="新規登録"
               class="btn btn-primary"
               :disabled="isSubmitting || !isFormValid"
+              :loading="isSubmitting"
             />
           </div>
         </form>

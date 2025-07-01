@@ -1,6 +1,19 @@
 /**
  * その他、UIでの加工や表示用の補助型
  */
+/** Runtime Config */
+interface AppConfig {
+    appName: string
+    appVersion: string
+    copyright: string
+    apiBaseURL: string
+    apiProxy: string
+    isDebug: boolean
+    mockMode: boolean
+}
+/** パースされたクエリ情報 */
+type QueryObject = string | string[][] | Record<string, string> | URLSearchParams | undefined
+/** テーマ名 */
 type Theme = 'light' | 'dark'
 /** カスタムコンポーネントから PrimeVue コンポーネントの PassThrough を取り扱うための型  */
 // biome-ignore lint:/suspicious/noExplicitAny

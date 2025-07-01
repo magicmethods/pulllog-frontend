@@ -2,7 +2,7 @@
 import { useAppStore } from '~/stores/useAppStore'
 
 // Config
-const appConfig = useAppConfig()
+const appConfig = useConfig()
 
 // Props & Emits
 const props = defineProps<{

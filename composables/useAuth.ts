@@ -26,11 +26,11 @@ export function useAuth() {
                 data: { userid, password },
             })
 
-            if (!response || !response.user) {
-                throw new Error('ログインレスポンスが不正です')
+            if (!response || !response.state || response.state !== 'success') {
+                throw new Error(response?.message || 'ログインレスポンスが不正です')
             }
-            if (response.user.is_deleted || !response.user.is_verified) {
-                throw new Error('このアカウントは使用できません')
+            if (!response.user || response.user.is_deleted || !response.user.is_verified) {
+                throw new Error(response?.message || 'このアカウントは使用できません')
             }
 
             userStore.setUser(toUser(response.user))
@@ -40,8 +40,9 @@ export function useAuth() {
             }
 
             globalStore.setInitialized(true)
-        } catch (err) {
-            error.value = (err as Error).message
+        } catch (err: unknown) {
+            console.error('Login error:', err)
+            error.value = err instanceof Error ? err.message : 'ログイン中にエラーが発生しました'
             throw err
         } finally {
             isLoading.value = false
@@ -53,27 +54,20 @@ export function useAuth() {
         error.value = null
 
         try {
-            const response: LoginResponse = await callApi({
+            const response: RegisterResponse = await callApi({
                 endpoint: endpoints.auth.register(),
                 method: 'POST',
                 data: { name, email, password },
             })
+            //console.log('Registration response:', response)
 
-            if (!response || !response.user) {
-                throw new Error('登録レスポンスが不正です')
-            }
-            if (response.user.is_deleted) {
-                throw new Error('このアカウントは使用できません')
+            if (!response || response.state !== 'success') {
+                throw new Error(response?.message || '登録レスポンスが不正です')
             }
 
-            // 最終仕様は登録後、メール認証完了後にログインフラグが立つ
-            // 以下は暫定処理で、そのままログイン状態とする（ログイン同等の処理）
-            userStore.setUser(toUser(response.user))
-            if (response.csrfToken) {
-                csrfStore.setToken(response.csrfToken)
-            }
             globalStore.setInitialized(true)
-        } catch (err) {
+        } catch (err: unknown) {
+            console.error('Registration error:', err)
             error.value = (err as Error).message
             throw err
         } finally {

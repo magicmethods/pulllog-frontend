@@ -65,22 +65,27 @@ async function handleLogin() {
     if (userStore.isLoggedIn) {
       // Redirect to the home page after successful login
       navigateTo({ path: userStore.user?.homePage ?? '/apps' })
+      return
     }
     // Handle case where login was not successful
-    globalError.value = 'ログインに失敗しました。メールアドレスとパスワードを確認してください'
+    throw new Error()
   } catch (e: unknown) {
     // Handle login error
-    const appConfig = useAppConfig()
+    /*
+    const appConfig = useConfig()
     if (appConfig.isDebug) {
       // 暫定処理: 強制ログイン
       userStore.setDummyUser({ id: 999, email: form.email })
       navigateTo({ path: userStore.user?.homePage ?? '/apps' })
       return
     }
+    */
     globalError.value = e instanceof Error ? e.message : 'ログインに失敗しました。メールアドレスとパスワードを確認してください'
     console.error('Login failed:', e)
-  } finally {
     isSubmitting.value = false
+  } finally {
+    // 次ページへの遷移完了までローディング状態を維持するため
+    // isSubmitting.value = false
   }
 }
 async function handleOauthLogin(service: string) {
@@ -145,9 +150,10 @@ watch(form, () => validate(), { deep: true })
         <div class="flex justify-end gap-2">
           <Button
             type="submit"
-            label="ログイン"
-            class="btn btn-primary"
+            :label="isSubmitting ? 'ログイン中...' : 'ログイン'"
+            class="btn btn-primary w-40"
             :disabled="!validate() || isSubmitting"
+            :loading="isSubmitting"
           />
         </div>      
       </form>

@@ -41,8 +41,15 @@ async function handleSubmit() {
     } catch (e: unknown) {
         globalError.value = e instanceof Error ? e.message : 'パスワードリセットに失敗しました。'
         console.error('Password reset failed:', e)
-    } finally {
         isSubmitting.value = false
+    } finally {
+        if (!isAccepted.value) {
+            email.value = '' // フォームをリセット
+            emailError.value = null // エラーメッセージをリセット
+            isTouched.value = false // タッチ状態をリセット
+            await nextTick() // DOM更新を待つ
+            isSubmitting.value = false
+        }
     }
 }
 function handleBack() {
@@ -99,6 +106,7 @@ function handleBack() {
                             label="送信する"
                             class="btn btn-primary"
                             :disabled="isSubmitting || !isFormValid"
+                            :loading="isSubmitting"
                         />
                     </div>
                 </form>

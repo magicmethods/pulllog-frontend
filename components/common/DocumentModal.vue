@@ -22,10 +22,16 @@ const loaderStore = useLoaderStore()
 // State
 const loading = ref<boolean>(false)
 const content = ref<string>('')
-const dialogStyle = computed(() => ({
-    width: props.width || '60vw',
-    maxWidth: props.maxWidth || '640px',
-}))
+const isMaximized = ref<boolean>(false)
+
+const dialogStyle = computed(() => {
+    // maximize中はstyleを空にしてPrimeVueのデフォルトに委譲
+    if (isMaximized.value) return {}
+    return {
+        width: props.width || '60vw',
+        maxWidth: props.maxWidth || '640px',
+    }
+})
 
 // Methods
 async function fetchMarkdown() {
@@ -37,15 +43,24 @@ async function fetchMarkdown() {
         const md = await res.text()
         const html = await marked.parse(md)
         content.value = DOMPurify.sanitize(html)
-        console.log('Markdown fetched and sanitized:', html, content.value)
+        //console.log('Markdown fetched and sanitized:', html, content.value)
     } catch (e: unknown) {
         content.value = e instanceof Error ? e.message : '文書を取得できませんでした。'
         console.error('Markdown fetch error:', e)
     } finally {
-        await sleep(200) // Simulate delay
+        const appConfig = useConfig()
+        if (appConfig.isDebug) {
+            await sleep(300) // Simulate delay
+        }
         loaderStore.hide(lid)
         loading.value = false
     }
+}
+function onMaximize() {
+    isMaximized.value = true
+}
+function onUnmaximize() {
+    isMaximized.value = false
 }
 
 // Lifecycle Hooks
@@ -69,8 +84,11 @@ watch(
         @update:visible="(v) => emit('update:visible', v)"
         modal
         :header="title"
+        :maximizable="true"
         :style="dialogStyle"
         :dismissableMask="true"
+        @maximize="onMaximize"
+        @unmaximize="onUnmaximize"
     >
         <div class="markdown-body" v-if="!loading" v-html="content" />
         <div v-else id="document-loading-container"></div>

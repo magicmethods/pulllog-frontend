@@ -78,6 +78,16 @@ watch(
     (newTheme) => {
         isDarkMode.value = newTheme === 'dark'
         headerReloadKey.value++
+        //  <html> のクラスを変更
+        const html = document.documentElement
+        html.classList.add('theme-switching')
+        html.classList.toggle('app-dark', newTheme === 'dark')
+        void html.offsetWidth // Force reflow
+        requestAnimationFrame(() => {
+            html.classList.remove('theme-switching')
+        })
+        // ローカルストレージも更新
+        storage.setItem('theme', newTheme ?? 'light')
     }
 )
 

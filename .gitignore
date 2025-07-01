@@ -12,6 +12,7 @@ node_modules
 # Logs
 logs
 *.log
+!server/api/logs
 
 # Misc
 .DS_Store
@@ -23,7 +24,6 @@ desktop.ini
 .env
 .env.*
 !.env.example
-config/
 
 # Development temporary files
 public/sample/

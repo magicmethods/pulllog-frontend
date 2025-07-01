@@ -57,6 +57,7 @@ export const useStatsStore = defineStore('stats', () => {
      * @param start 集計開始日（YYYY-MM-DD形式）
      * @param end 集計終了日（YYYY-MM-DD形式）
      * @param loaderElement ローダー表示用の要素（オプション）
+     * @param showLoader ローダー表示フラグ（デフォルトはtrue）
      * @returns 集計データ（StatsData）またはnull（エラー時）
      * @throws エラー時はerrorにメッセージがセットされる
      */
@@ -64,7 +65,8 @@ export const useStatsStore = defineStore('stats', () => {
         appId: string,
         start: string,
         end: string,
-        loaderElement?: HTMLElement | null
+        loaderElement?: HTMLElement | null,
+        showLoader = true
     ): Promise<StatsData | null> {
         error.value = null
         const queryKey = generateStatsQueryKey({ start, end })
@@ -76,8 +78,11 @@ export const useStatsStore = defineStore('stats', () => {
 
         isLoading.value = true
         const loaderStore = useLoaderStore()
-        const targetElement = loaderElement ? loaderElement : null
-        const loaderId = loaderStore.show('統計データを読み込み中...', targetElement)
+        let loaderId: string | undefined
+        if (showLoader) {
+            const targetElement = loaderElement ? loaderElement : null
+            loaderId = loaderStore.show('統計データを読み込み中...', targetElement)
+        }
         try {
             const userStore = useUserStore()
             if (!userStore.user?.id) throw new Error('未ログイン')
@@ -94,15 +99,13 @@ export const useStatsStore = defineStore('stats', () => {
             }
             setStats(appId, queryKey, response)
             return response
-        } catch (
-            // biome-ignore lint:/suspicious/noExplicitAny
-            e: any
-        ) {
-            error.value = '統計情報の取得に失敗しました'
+        } catch (e: unknown) {
+            console.error('fetchStats error:', e)
+            error.value = e instanceof Error ? e.message : '統計情報の取得に失敗しました'
             return null
         } finally {
             isLoading.value = false
-            loaderStore.hide(loaderId)
+            if (showLoader && loaderId) loaderStore.hide(loaderId)
         }
     }
     // 指定アプリの統計キャッシュをクリア

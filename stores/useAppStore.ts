@@ -99,11 +99,42 @@ export const useAppStore = defineStore('app', () => {
             }
             error.value = '保存に失敗しました'
             throw new Error(error.value)
-        } catch (
-            // biome-ignore lint:/suspicious/noExplicitAny
-            e: any
-        ) {
-            error.value = e?.message || '保存に失敗しました'
+        } catch (e: unknown) {
+            console.error('Failed to save app:', e)
+            error.value = (e as Error)?.message || '保存に失敗しました'
+            throw e
+        } finally {
+            isLoading.value = false
+            loaderStore.hide(loaderId)
+        }
+    }
+    /**
+     * アプリケーションを削除
+     * @param appId 削除するアプリケーションのID
+     */
+    async function deleteApp(appId: string): Promise<void> {
+        isLoading.value = true
+        error.value = null
+        const loaderStore = useLoaderStore()
+        const loaderId = loaderStore.show('アプリケーションを削除中...')
+        try {
+            const deleted = await callApi<DeleteResponse>({
+                endpoint: endpoints.apps.delete(appId),
+                method: 'DELETE',
+            })
+            if (!deleted || deleted.state !== 'success') {
+                error.value = deleted?.message || '削除に失敗しました'
+                throw new Error(error.value)
+            }
+            // ローカルappListからも削除
+            appList.value = appList.value.filter(a => a.appId !== appId)
+            // 選択中のアプリもクリア
+            if (app.value?.appId === appId) {
+                clearApp()
+            }
+        } catch (e: unknown) {
+            console.error('Failed to delete app:', e)
+            error.value = e instanceof Error ? e.message : '削除に失敗しました'
             throw e
         } finally {
             isLoading.value = false
@@ -123,5 +154,6 @@ export const useAppStore = defineStore('app', () => {
         getAppCurrencyCode,
         loadApps,
         saveApp,
+        deleteApp,
     }
 })
