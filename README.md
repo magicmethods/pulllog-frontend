@@ -50,7 +50,7 @@
 - **グラフ描画**: Chart.js
 - **バリデーション**: Zod
 - **パッケージ管理**: pnpm
-- **API通信**: fetch（useFetchは非推奨）
+- **API通信**: fetch（useFetchは非推奨／APIプロキシ経由でCORSフリーにアクセス可）
 - **その他**: ESLint, Prettier, Biomeなど
 
 ---
@@ -76,6 +76,8 @@ pnpm run dev
 
 - `http://localhost:3000` でアプリが起動します
 - APIバックエンド（pullog-api等）も別途起動しておいてください
+- **APIエンドポイント（例： `/api/` など）へのリクエストは、フロントエンドからバックエンドサーバへプロキシ経由（ `nuxt.config.ts` で設定）で自動ルーティングされます。**  
+ローカル開発時は `API_BASE_URL` の設定やCORS制御の心配なく利用できます。本番ビルド時は実サーバ用のAPI URLを `app.config.ts` で指定してください。
 
 ### 4. 本番ビルド
 
@@ -138,6 +140,15 @@ pnpm run preview
 ├── api/                # API定義
 │    ├── endpoints.ts  # RESTエンドポイント定義
 │    └── index.ts      # サービスレイヤー用ラッパーメソッド（未使用）
+├── server/             # サーバーサイド処理
+│    ├── api/          # APIプロキシ（RESTエンドポイント準拠）
+│    │    ├─ apps/
+│    │    ├─ auth/
+│    │    ├─ logs/
+│    │    ├─ stats/
+│    │    ├─ user/
+│    │    └─ [...path].ts # APIプロキシ・フォールバック
+│    └── utils/        # APIプロキシ用ユーティリティ
 ├── app.vue             # アプリケーションコンテナ
 ├── app.config.ts       # Nuxtアプリ設定
 ├── tailwind.config.ts  # TailwindCSS設定
@@ -204,6 +215,11 @@ PrimeVueのFormは使用せず、Zodによるバリデーションのみ使用�
 - マークダウンファイルをfetchで取得する場合は `public/` 配下に配置
 - エラー画面カスタマイズは `layouts/error.vue` で対応（Nuxtのデフォルトと競合する場合は注意）
 - コミット前に必ず `pnpm run lint` を実行
+- **APIプロキシ設定**
+  - Nuxtの`nuxt.config.ts`にて `/api/` などのパスは自動でバックエンドAPI（`API_BASE_URL`）へプロキシ転送されるように設定済み
+  - 開発時はCORS問題を気にせずAPI通信が可能
+  - バックエンドのURLを切り替える場合は `app.config.ts` の `apiBaseURL` を編集
+  - `fetch`などでのリクエスト先は絶対パス・相対パスどちらでも可（詳細は`composables/useAPI.ts`等参照）
 
 ---
 
