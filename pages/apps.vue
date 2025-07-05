@@ -4,6 +4,7 @@ import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
 import { useStatsStore } from '~/stores/useStatsStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useOptionStore } from '~/stores/useOptionStore'
 import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
 import { useWebIcon } from '~/composables/useWebIcon'
@@ -19,6 +20,7 @@ const appStore = useAppStore()
 const logStore = useLogStore()
 const statsStore = useStatsStore()
 const loaderStore = useLoaderStore()
+const optionStore = useOptionStore()
 const toast = useToast()
 
 // Composables
@@ -231,7 +233,7 @@ async function handleAppDownload(settings: HistoryDownloadSettings) {
         const response = await logStore.fetchLogs(editTarget.value.appId, options)
         const result = downloadFile(response, settings)
         await nextTick()
-        console.log('apps.vue::handleAppDownload:result:', result)
+        //console.log('apps.vue::handleAppDownload:result:', result)
         if (!result) {
             throw new Error('ダウンロードファイルの作成に失敗しました。')
         }
@@ -258,7 +260,7 @@ async function handleAppUpload(uploadData: UploadData) {
     let notice: Partial<ToastMessageOptions> = {}
     loaderId = loaderStore.show('履歴をアップロード中...')
 
-    console.log('apps.vue::handleAppUpload:', uploadData)
+    //console.log('apps.vue::handleAppUpload:', uploadData)
     try {
         // API通信して履歴をアップロード
         const result: boolean = await logStore.importLogsFile(editTarget.value.appId, uploadData)
@@ -268,7 +270,7 @@ async function handleAppUpload(uploadData: UploadData) {
         // 履歴統計データのキャッシュクリア後、再読み込み
         statsStore.clearStatsCache(editTarget.value.appId)
         const newStats = await statsStore.fetchStats(editTarget.value.appId, '', '', undefined, false)
-        console.log('apps.vue::handleAppUpload:result:', result, newStats)
+        //console.log('apps.vue::handleAppUpload:result:', result, newStats)
         if (newStats) {
             appStats.value.set(editTarget.value.appId, newStats)
         } else {
@@ -335,11 +337,11 @@ const tooltipPT = {
 const adConfig: Record<string, AdProps> = {
     default: {
         adItems: [
-            { image: '/sample/ad_9.png',  link: 'https://example.com/?ad=9',  alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: 'リーダーボード広告 (728x90)' },
+            { image: '/sample/ad_1.jpg',  link: 'https://example.com', alt: '広告1 (500x220)' },
+            { image: '/sample/ad_12.jpg', link: 'https://example.com', alt: '広告12 (1440x550)' },
+            { image: '/sample/ad_13.jpg', link: 'https://example.com', alt: '広告13 (1200x675)' },
         ],
-        adType: 'slot',
+        adType: 'image',// 'slot'
         adClient: 'ca-pub-8602791446931111',
         adSlotName: '8956575261',
     },
@@ -349,7 +351,8 @@ const adConfig: Record<string, AdProps> = {
             { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: 'リーダーボード広告 (728x90)' },
             { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: 'リーダーボード広告 (728x90)' },
         ],
-        adType: 'slot',
+        adType: 'carousel', // 'slot'
+        adHeight: 90,// must set carousel height
         adClient: 'ca-pub-8602791446931111',
         adSlotName: '5664134061',
     }
@@ -358,7 +361,7 @@ const adConfig: Record<string, AdProps> = {
 </script>
 
 <template>
-    <div class="w-full h-full p-4 flex flex-col justify-between">
+    <div class="w-full h-max p-4 flex flex-col justify-between">
         <CommonPageHeader
             title="アプリ管理"
             :adProps="adConfig.default"
@@ -369,7 +372,7 @@ const adConfig: Record<string, AdProps> = {
             <p class="font-normal text-base text-surface-600 dark:text-gray-200">現在登録しているアプリの一覧です。最大{{ maxApps }}件まで登録できます。</p>
             <template v-if="false"><Button v-if="apps.length < maxApps" label="アプリを追加" icon="pi pi-plus" class="btn btn-primary" @click="addNewApp" /></template>
         </div>
-        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <template v-if="apps.length">
                 <div v-for="app in apps" :key="app.appId">
                     <div :class="containerClass(app.appId === currentApp?.appId)">
@@ -380,7 +383,7 @@ const adConfig: Record<string, AdProps> = {
                         >
                             <template #header>
                                 <div class="flex items-center gap-4">
-                                    <Avatar :image="fetchWebIcon(app.url ?? '')" size="large" shape="square" :pt="{ root:'rounded-lg overflow-hidden' }" />
+                                    <Avatar :image="fetchWebIcon(app.url ?? '')" size="large" shape="square" :pt="{ root:'min-w-[48px] rounded-lg overflow-hidden' }" />
                                     <span class="font-bold">{{ app.name }}</span>
                                 </div>
                             </template>
@@ -403,7 +406,7 @@ const adConfig: Record<string, AdProps> = {
                                     <li class="inline-flex items-baseline gap-1 text-muted">
                                         <i class="pi pi-calendar text-surface-400 dark:text-gray-400"></i>
                                         <span>{{ appStats.get(app.appId)?.startDate }}</span>
-                                        <span class="mx-0.5 text-sm text-surface-400 dark:text-gray-400">{{ intervalSeparator }}</span>
+                                        <span class="mx-0.5 text-sm text-surface-400 dark:text-gray-400">{{ optionStore.rangeSeparator }}</span>
                                         <span>{{ appStats.get(app.appId)?.endDate }}</span>
                                     </li>
                                     <li class="inline-flex items-baseline gap-1 text-muted">
@@ -448,6 +451,9 @@ const adConfig: Record<string, AdProps> = {
                 </div>
             </div>
         </div>
+        <div class="mt-auto pb-2 w-full min-h-max h-[90px]">
+            <CommonEmbedAd v-bind="adConfig.bottom" />
+        </div>
         <!-- アプリケーション設定モーダル -->
         <AppEditModal
             v-model:visible="modalEditVisible"
@@ -474,9 +480,5 @@ const adConfig: Record<string, AdProps> = {
             :app="editTarget"
             @upload="handleAppUpload"
         />
-
-        <div class="mt-auto w-full h-max">
-            <CommonEmbedAd v-bind="adConfig.bottom" />
-        </div>
     </div>
 </template>

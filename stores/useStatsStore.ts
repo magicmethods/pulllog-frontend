@@ -3,6 +3,7 @@ import { useLoaderStore } from '~/stores/useLoaderStore'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
 
+/*
 // Types
 export interface StatsData {
     appId: string
@@ -18,6 +19,7 @@ export interface StatsData {
 }
 // 統計キャッシュのMap型
 type StatsMap = Map<string, Map<string, StatsData>> // appId -> queryKey -> StatsData
+*/
 
 // ユーティリティ関数
 function generateStatsQueryKey(params: { start: string; end: string }): string {
@@ -92,7 +94,7 @@ export const useStatsStore = defineStore('stats', () => {
                 endpoint: endpoints.stats.list(appId, start, end), // `/api/stats/{appId}?start=yyyy-mm-dd&end=yyyy-mm-dd`
                 method: 'GET'
             })
-            console.log('fetchStats: APIレスポンスから取得', response)
+            //console.log('fetchStats: APIレスポンスから取得', response)
             if (!response) {
                 error.value = '統計データが見つかりません'
                 return null
@@ -115,6 +117,10 @@ export const useStatsStore = defineStore('stats', () => {
             statsMap.value = new Map(statsMap.value) // Vueのリアクティブ再代入
         }
     }
+    function clearStatsCacheAll(): void {
+        statsMap.value.clear()
+        statsMap.value = new Map() // Vueのリアクティブ再代入
+    }
 
     return {
         statsMap,
@@ -124,5 +130,6 @@ export const useStatsStore = defineStore('stats', () => {
         setStats,
         fetchStats,
         clearStatsCache,
+        clearStatsCacheAll,
     }
 })

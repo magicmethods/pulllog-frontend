@@ -1,4 +1,7 @@
+import { useAppStore } from './useAppStore'
 import { useCsrfStore } from './useCsrfStore'
+import { useLogStore } from './useLogStore'
+import { useStatsStore } from './useStatsStore'
 import { useGlobalStore } from './globalStore'
 import { endpoints } from '~/api/endpoints'
 import { toUser } from '~/utils/user'
@@ -85,7 +88,9 @@ export const useUserStore = defineStore('user', () => {
      * ログアウト処理
      * - ユーザーデータをクリア
      * - CSRFトークンをクリア
-     * - 必要に応じて他ストアのクリア処理も追加可能
+     * - アプリデータをクリア
+     * - ログデータのキャッシュをクリア
+     * - 統計データのキャッシュをクリア
      */
     async function logout() {
         const global = useGlobalStore()
@@ -93,6 +98,11 @@ export const useUserStore = defineStore('user', () => {
         try {
             clearUser()
             useCsrfStore().clearToken()
+            const appStore = useAppStore()
+            appStore.clearApp()
+            appStore.clearAppList()
+            useLogStore().clearLogs()
+            useStatsStore().clearStatsCacheAll()
         } finally {
             global.setLoading(false)
         }

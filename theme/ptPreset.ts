@@ -92,7 +92,7 @@ export const ptPreset = {
             class: 'min-w-min',
         },
         pcinputtext: {
-            root: 'w-full border rounded px-3 py-2 border-surface dark:border-gray-700 focus:ring-2 dark:bg-gray-950 focus:ring-primary-200/50 focus:dark:ring-primary-800/40 outline-none disabled:bg-surface-200/50 disabled:text-surface-600/50',
+            root: 'w-full border rounded px-3 py-2 border-surface dark:border-gray-700 focus:ring-2 dark:bg-gray-950 focus:ring-primary-200/50 focus:dark:ring-primary-800/40 outline-none disabled:bg-surface-200/50 disabled:text-surface-600/50 dark:disabled:bg-gray-800/50 dark:disabled:text-gray-400/50',
         },
         inputIconContainer: 'absolute right-2 top-1/2 -translate-y-1/2',
         panel: 'min-w-max border rounded-md border-surface-200 dark:border-gray-700 shadow-lg',
@@ -149,7 +149,7 @@ export const ptPreset = {
             class: 'input-base input-hoverable',
         },
         label: 'bg-white dark:bg-gray-950',
-        overlay: 'mt-0 border border-surface-300 rounded shadow-lg dark:border-gray-700',
+        overlay: 'max-w-[calc(100%_-_20px)] md:max-w-[calc(40%_-_2rem)] mt-0 border border-surface-300 rounded shadow-lg dark:border-gray-700',
         listContainer: 'rounded border-none overflow-y-auto',
         list: 'rounded bg-white dark:bg-gray-950',
         option: 'w-full p-2 flex justify-between items-center hover:text-primary-500 hover:bg-primary-200/50 dark:hover:bg-primary-700/40 dark:hover:text-primary-200',
@@ -157,6 +157,29 @@ export const ptPreset = {
         dropdown: 'max-w-max bg-white border-surface dark:bg-gray-950 dark:border-gray-700',
         dropdownIcon: 'text-surface-400 hover:text-primary-500',
         emptymessage: 'py-2 px-3 text-surface-400 dark:text-gray-400/50 select-none',
+    },
+
+    // --- MultiSelect系 --- (stats.vue)
+    MultiSelect: {
+        root: 'input-base input-hoverable w-full md:w-80 flex justify-between items-center',
+        labelContainer: 'w-full flex-grow gap-1',
+        chipItem: 'w-max max-w-[50%]',
+        pcChip: {
+            root: 'w-full rounded px-2 bg-surface-100 dark:bg-gray-900 hover:bg-surface-200 dark:hover:bg-gray-800 text-surface-500 dark:text-gray-400',
+            label: 'w-full truncate',
+            removeIcon: 'text-surface-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-500',
+        },
+        dropdown: '-mr-1 text-surface-400 hover:text-primary-500 dark:text-gray-400 dark:hover:text-primary-500',
+        overlay: 'w-[calc(100%_-_20px)] md:w-80 mt-0 border border-surface-300 dark:border-gray-700 rounded shadow-lg bg-white dark:bg-gray-950',
+        listContainer: 'p-2',
+        option: 'flex items-center p-0.5 hover:bg-primary-100 dark:hover:bg-primary-950',
+        optionLabel: 'mt-px mb-0 truncate',
+        pcOptionCheckbox: {
+            root: 'mt-px',
+            box: 'shadow-none',
+            icon: 'text-white dark:text-white bg-primary-600 dark:bg-primary-500',
+        },
+        emptyMessage: 'py-2 text-surface-400 dark:text-gray-600 select-none text-sm',
     },
 
     // --- Chips系 --- (InputTags.vue)
@@ -257,4 +280,14 @@ export const ptPreset = {
         itemContent: 'w-full p-2 rounded hover:bg-primary-50 dark:hover:bg-primary-950 hover:text-primary-700 dark:hover:text-primary-400',
         separator: 'my-1 h-px bg-surface-300 dark:bg-gray-700',
     },
+
+    // --- Card --- (stats.vue)
+    Card: {
+        root: 'min-h-max max-w-full h-full w-max p-4 border rounded-lg border-surface-300 dark:border-gray-700 bg-white dark:bg-gray-950/30 shadow-sm',
+        body: 'flex flex-col justify-between items-start gap-4',
+        caption: 'mb-auto shrink text-base font-semibold text-primary-600 dark:text-primary-500',
+        content: 'flex-grow self-stretch h-full',
+        footer: 'mt-auto shrink',
+    },
+
 }

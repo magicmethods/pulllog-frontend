@@ -1087,6 +1087,19 @@ export function getCurrencyData(text: string): CurrencyData | undefined {
 }
 
 /**
+ * 通貨フォーマット関数
+ * @param value - 数値
+ * @param currency - 通貨コード
+ * @param locale - ロケールコード（デフォルトは'en-US'）
+ * @return - フォーマットされた通貨文字列
+ */
+export function formatCurrency(value: number, currency: string, locale = 'en-US'): string {
+    const currencyData = getCurrencyData(currency)
+    if (!currencyData) return `${value.toLocaleString()} ${currency}`
+    return new Intl.NumberFormat(locale, { style: 'currency', currency: currencyData.code }).format(value)
+}
+
+/**
  * 通貨単位ごとのstep値（グラフのY軸の目盛幅）を算出（Chart.js用）
  * @param code - 通貨コード
  * @return - 通貨単位ごとのstep値

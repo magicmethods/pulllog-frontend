@@ -35,6 +35,11 @@ declare global {
         totalLogs?: number // 集計期間中の登録ログ数
         monthsInPeriod?: number // 集計期間中の月数
         averageMonthlyExpense?: number // 月毎の平均費用
+        // 追加項目: [今後拡張可能]
     }
+    /** 統計キャッシュのMap型 */
+    type StatsMap = Map<string, Map<string, StatsData>> // appId -> queryKey -> StatsData
+
+
 }
 export {}

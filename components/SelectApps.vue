@@ -87,7 +87,10 @@ async function handleAppSubmit(app: AppData | undefined) {
     }
 }
 
-// Watches
+// PassThrough
+const selectPT = {
+    root: 'w-full md:w-1/2 h-max',
+}
 
 </script>
 
@@ -102,7 +105,7 @@ async function handleAppSubmit(app: AppData | undefined) {
                 :placeholder="placeholderText"
                 :emptyMessage="emptyText"
                 @change="handleChangeApp($event.value)"
-                :pt="{ root: 'w-full md:w-1/2 h-max' }"
+                :pt="selectPT"
             >
                 <template #value="slotProps">
                     <div v-if="slotProps.value" class="w-full truncate px-1 flex justify-start items-center">
@@ -111,7 +114,7 @@ async function handleAppSubmit(app: AppData | undefined) {
                             :alt="slotProps.value.name"
                             class="h-6 w-6 mr-2 rounded"
                         />
-                        <span>{{ slotProps.value.name }}</span>
+                        <span class="truncate">{{ slotProps.value.name }}</span>
                     </div>
                     <div v-else class="text-gray-500 select-none">{{ slotProps.placeholder }}</div>
                 </template>
@@ -122,7 +125,7 @@ async function handleAppSubmit(app: AppData | undefined) {
                             :alt="slotProps.option.name"
                             class="h-6 w-6 mr-2 rounded"
                         />
-                        <span>{{ slotProps.option.name }}</span>
+                        <span class="truncate">{{ slotProps.option.name }}</span>
                     </div>
                 </template>
             </Select>

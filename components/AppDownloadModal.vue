@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useOptionStore } from '~/stores/useOptionStore'
 import { DateTime } from 'luxon'
 
 // Props/Emits
@@ -11,6 +12,9 @@ const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void
     (e: 'download', value: HistoryDownloadSettings): void
 }>()
+
+// Stores
+const optionStore = useOptionStore()
 
 // State
 const mode = ref<'all' | 'range'>('all')
@@ -110,7 +114,7 @@ watch(
                         :withFooter="true"
                         :commit="false"
                     />
-                    <span class="self-center">〜</span>
+                    <span class="self-center">{{ optionStore.rangeSeparator }}</span>
                     <CalendarUI
                         v-model="endDate"
                         placeholder="終了日"

@@ -36,6 +36,7 @@ declare module 'vue' {
     Listbox: typeof import('primevue/listbox')['default']
     Menu: typeof import('primevue/menu')['default']
     Message: typeof import('primevue/message')['default']
+    MultiSelect: typeof import('primevue/multiselect')['default']
     OrderList: typeof import('primevue/orderlist')['default']
     OverlayPanel: typeof import('primevue/overlaypanel')['default']
     Panel: typeof import('primevue/panel')['default']

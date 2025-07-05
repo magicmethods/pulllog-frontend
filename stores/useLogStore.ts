@@ -4,6 +4,9 @@ import { useLoaderStore } from '~/stores/useLoaderStore'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
 
+// Types
+type LastFetchedAtMap = Map<string, string | null> // appId -> ISO8601
+
 // ユーティリティ関数
 function createQueryKey(options: FetchLogsOptions): string {
     // 必ずソート済みで一意化
@@ -35,8 +38,11 @@ export const useLogStore = defineStore('log', () => {
     const logs = ref<LogsMap>(new Map())
     // appId -> queryKey -> DateLog[]
     const logsList = ref<LogsListMap>(new Map())
+    // 最終取得日時キャッシュ: appId -> ISO8601形式の文字列
+    const lastFetchedAt = ref<LastFetchedAtMap>(new Map())
     const isLoading = ref<boolean>(false)
     const error = ref<string | null>(null)
+    const CACHE_EXPIRATION_TIME = 60 * 60 * 1000 // キャッシュの有効期限（1時間）
 
     // Actions
     function getLog(appId: string, date: string): DateLog | undefined {
@@ -73,6 +79,15 @@ export const useLogStore = defineStore('log', () => {
             }
         }
     }
+    function setLastFetchedAt(appId: string, dateStr: string) {
+        lastFetchedAt.value.set(appId, dateStr)
+    }
+    function getLastFetchedAt(appId: string): string | null {
+        return lastFetchedAt.value.get(appId) ?? null
+    }
+    function resetLastFetchedAt(appId: string) {
+        lastFetchedAt.value.set(appId, null)
+    }    
 
     // Methods
     /**
@@ -125,22 +140,37 @@ export const useLogStore = defineStore('log', () => {
      * @param appId アプリケーションID
      * @param options 取得オプション（fromDate, toDate, limit, offset）
      * @param loaderContainerElement ローダー表示用のコンテナ要素（オプション）
+     * @param forceFetch 強制的にAPIから取得するか（キャッシュ無視）
      * @return 日次ログデータの配列（DateLog[]）または空配列（エラー時）
      * @throws エラー時はerrorにメッセージがセットされる
      */
     async function fetchLogs(
         appId: string,
         options: FetchLogsOptions = {},
-        loaderContainerElement?: HTMLElement
+        loaderContainerElement?: HTMLElement,
+        forceFetch = false
     ): Promise<DateLog[]> {
-        error.value = null
         const queryKey = createQueryKey(options)
-        const cached = getLogsList(appId, queryKey)
-        if (cached) {
-            console.log('fetchLogs: キャッシュから取得', cached)
-            return cached
+        const lastFetched = getLastFetchedAt(appId)
+        const now = Date.now()
+        let isCacheValid = false
+        // API再取得判定
+        if (!forceFetch && lastFetched) {
+            const fetchedAt = new Date(lastFetched).getTime()
+            if (now - fetchedAt < CACHE_EXPIRATION_TIME) {
+                // 前回取得からCACHE_EXPIRATION_TIME未満ならキャッシュ利用
+                isCacheValid = true
+            }
         }
-
+        if (isCacheValid) {
+            const cached = getLogsList(appId, queryKey)
+            if (cached) {
+                console.log('fetchLogs: キャッシュから取得', cached)
+                return cached // キャッシュがあれば即返す
+            }
+        }
+        // 有効期限切れ or forceFetch時は必ずAPI取得
+        error.value = null
         isLoading.value = true
         const loaderStore = useLoaderStore()
         const loaderId = loaderStore.show('履歴リストを取得中...', loaderContainerElement ?? null)
@@ -166,6 +196,7 @@ export const useLogStore = defineStore('log', () => {
                     if (log?.date) setLog(appId, log.date, log)
                 }
                 setLogsList(appId, queryKey, response)
+                setLastFetchedAt(appId, new Date().toISOString())
                 return response
             }
             error.value = '履歴リストが取得できません'
@@ -239,7 +270,7 @@ export const useLogStore = defineStore('log', () => {
             loaderStore.hide(loaderId)
         }
     }
-/**
+    /**
      * API経由で履歴ファイルをインポートする
      * @param appId アプリケーションID
      * @param file インポートするファイル（Fileオブジェクト）
@@ -285,6 +316,7 @@ export const useLogStore = defineStore('log', () => {
     function clearLogs() {
         logs.value.clear()
         logsList.value.clear()
+        lastFetchedAt.value.clear()
     }
     /** リストキャッシュのみクリア */
     function clearLogsListCache() {
@@ -296,6 +328,10 @@ export const useLogStore = defineStore('log', () => {
         logsList,
         isLoading,
         error,
+        lastFetchedAt,
+        setLastFetchedAt,
+        getLastFetchedAt,
+        resetLastFetchedAt,
         fetchLog,
         fetchLogs,
         saveLog,

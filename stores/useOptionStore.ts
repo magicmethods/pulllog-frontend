@@ -37,6 +37,7 @@ export const useOptionStore = defineStore('option', () => {
         { label: '履歴登録', value: '/history' },
         { label: '統計分析', value: '/stats' }
     ])
+    const rangeSeparator = ref<string>('～') // 日付範囲のセパレーター
 
     // Computed labels (UI表示用)
     const currencyLabels = computed(() =>
@@ -114,6 +115,7 @@ export const useOptionStore = defineStore('option', () => {
         languageOptions,
         themeOptions,
         homepageOptions,
+        rangeSeparator,
         currencyLabels,
         rarityLabels,
         markerLabels,

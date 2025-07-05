@@ -19,6 +19,8 @@ const props = defineProps<{
     pt?: PassThroughValue
     containerClass?: string
     containerStyle?: string
+    placeholder?: string
+    disabled?: boolean
 }>()
 
 // Emits
@@ -83,7 +85,8 @@ watch(() => internalDate.value, val => {
                 :timeOnly="props.timeOnly ?? false"
                 :manualInput="!props.timeOnly"
                 :dateFormat="props.timeOnly ? undefined : 'yy-mm-dd'"
-                :placeholder="props.timeOnly ? 'HH:MM' : 'YYYY-MM-DD'"
+                :placeholder="props.placeholder ?? (props.timeOnly ? 'HH:MM' : 'YYYY-MM-DD')"
+                :disabled="props.disabled ?? false"
                 :pt="passThroughOptions"
             >
                 <template #inputicon="slotProps">

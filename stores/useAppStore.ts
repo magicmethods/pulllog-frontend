@@ -29,6 +29,9 @@ export const useAppStore = defineStore('app', () => {
     function clearApp() {
         app.value = null
     }
+    function clearAppList() {
+        appList.value = []
+    }
     function getAppCurrencyCode(): string {
         // アプリケーションの通貨単位を取得
         const cd = getCurrencyData(app.value?.currency_unit ?? '')
@@ -151,6 +154,7 @@ export const useAppStore = defineStore('app', () => {
         setApp,
         setAppById,
         clearApp,
+        clearAppList,
         getAppCurrencyCode,
         loadApps,
         saveApp,

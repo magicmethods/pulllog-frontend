@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import annotationPlugin from 'chartjs-plugin-annotation'
 import {
     Chart as ChartJS, 
     BarController, BarElement, 
@@ -16,7 +17,8 @@ ChartJS.register(
     LineController, LineElement,
     ArcElement, PieController,
     CategoryScale, LinearScale, PointElement,
-    Tooltip, Legend
+    Tooltip, Legend,
+    annotationPlugin
 )
 
 // Props & Emits
