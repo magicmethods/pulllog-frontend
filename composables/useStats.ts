@@ -1,5 +1,6 @@
 import { useLogStore } from '~/stores/useLogStore'
 import { DateTime } from 'luxon'
+import { stripEmoji } from '~/utils/string'
 
 /*
 // Types
@@ -297,40 +298,163 @@ export function useStats() {
     }
 
     /**
-     * 単アプリのすり抜け率／ピックアップ引き当て率
+     * アプリごとのレアドロップの内訳
      * - 指定期間での「すり抜け」や「ピックアップ」獲得率を見える化
-     * @param logs 
+     * @param logs - 日付ごとのログデータ（アプリIDをキーにしたオブジェクト）
+     * @param apps - アプリデータの配列（アプリIDと名前を含む）
      * @returns 
      */
-    function getSingleAppRates(
-        logs: DateLog[]
-    ) {
-        const rare = logs.reduce((acc, log) => acc + log.discharge_items, 0)
-        const lost = logs.reduce((acc, log) => acc + getLostRere(log), 0)
-        const pickup = logs.reduce((acc, log) => acc + getPickup(log), 0)
+    function getAppRareDropRates(
+        logs: { [appId: string]: DateLog[] },
+        apps: AppData[]
+    ): RareDropBreakdown {
+        const result: RareDropBreakdown = []
+        for (const app of apps) {
+            const appLogs = logs[app.appId] || []
+            const rare = appLogs.reduce((acc, log) => acc + log.discharge_items, 0)
+            const loseEvenOdds = appLogs.reduce((acc, log) => acc + getMarkeredItem('lose', log), 0)
+            const getPickup = appLogs.reduce((acc, log) => acc + getMarkeredItem('pickup', log), 0)
+            const getTarget = appLogs.reduce((acc, log) => acc + getMarkeredItem('target', log), 0)
+            const guaranteedPull = appLogs.reduce((acc, log) => acc + getMarkeredItem('guaranteed', log), 0)
+            result.push({
+                appId: app.appId,
+                appName: app.name,
+                rates: {
+                    rare,
+                    loseEvenOdds,
+                    getPickup,
+                    getTarget,
+                    guaranteedPull
+                }
+            })
+        }
+        return result
+    }
+
+    /**
+     * ドロップ詳細から指定マーカーの数をカウントするヘルパー関数
+     * - ドロップ詳細のmarkerフィールドに基づいて、すり抜け・ピックアップ・狙い・確定枠の数をカウント
+     * - ユーザーが独自に定義したmarkerには非対応
+     * @param marker - 'lose' | 'pickup' | 'target' | 'guaranteed'
+     * @param log - 日付ログデータ
+     * @returns 指定マーカーの数
+     */
+    function getMarkeredItem(
+        marker: 'lose' | 'pickup' | 'target' | 'guaranteed',
+        log: DateLog
+    ): number {
+        if (!log.drop_details || log.drop_details.length === 0) return 0
+        // ドロップ詳細から指定マーカーの数をカウント
+        let pattern: RegExp
+        switch (marker) {
+            case 'lose': // すり抜け
+                pattern = /(すり(抜|ぬ)け|lose\s?(the\s?)?(50(\/|\-)50))/g
+                break
+            case 'pickup': // ピックアップ
+                pattern = /(ピックアップ|pickup)/g
+                break
+            case 'target': // 狙い
+                pattern = /((狙|ねら)い|target)/g
+                break
+            case 'guaranteed': // 確定枠
+                pattern = /((確定|かくてい)(枠|)|guaranteed)/g
+                break
+            default:
+                return 0
+        }
+        return log.drop_details.reduce((count, detail: DropDetail) => {
+            return count + (detail.marker?.match(pattern) ? 1 : 0)
+        }, 0)
+    }
+
+    /**
+     * アプリごとのレアドロップアイテム名を集計
+     * - 各アプリのドロップ詳細からアイテム名とレアリティ+アイテム名のカウントを取得
+     * - ドロップ詳細がない場合は空オブジェクトを返す
+     * - レアドロップアイテム名はカウント数の降順でソートする
+     * @param logs - 日付ごとのログデータ（アプリIDをキーにしたオブジェクト）
+     * @param apps - アプリデータの配列（アプリIDと名前を含む）
+     * @returns 
+     */
+    function getAppRareDrops(
+        logs: { [appId: string]: DateLog[] },
+        apps: AppData[]
+    ): RareDropRanking {
+        const result: RareDropRanking = []
+        for (const app of apps) {
+            const appLogs = logs[app.appId] || []
+            const dropItems = appLogs.reduce((acc: DropItems, log) => {
+                const items = getDropItems(log)
+                // acc と items に同一キー名があればカウント値を加算し、それ以外はそのまま追加
+                for (const [name, count] of Object.entries(items.name)) {
+                    acc.name[name] = (acc.name[name] ?? 0) + count
+                }
+                for (const [rarityName, count] of Object.entries(items.rarityName)) {
+                    acc.rarityName[rarityName] = (acc.rarityName[rarityName] ?? 0) + count
+                }
+                for (const [markerName, count] of Object.entries(items.markerName)) {
+                    acc.markerName[markerName] = (acc.markerName[markerName] ?? 0) + count
+                }
+                return acc
+            }, {
+                name: {} as Record<string, number>,
+                rarityName: {} as Record<string, number>,
+                markerName: {} as Record<string, number>
+            })
+            // アイテム名とレアリティ+アイテム名をカウント数の降順でソート
+            const sortedName = Object.entries<number>(dropItems.name).sort((a, b) => b[1] - a[1])
+            const sortedRarityName = Object.entries<number>(dropItems.rarityName).sort((a, b) => b[1] - a[1])
+            const sortedMarkerName = Object.entries<number>(dropItems.markerName).sort((a, b) => b[1] - a[1])
+            result.push({
+                appId: app.appId,
+                appName: app.name,
+                items: {
+                    name: Object.fromEntries(sortedName),
+                    rarityName: Object.fromEntries(sortedRarityName),
+                    markerName: Object.fromEntries(sortedMarkerName),
+                }
+            })
+        }
+        return result
+    }
+
+    /**
+     * ドロップ詳細からアイテム名をカウントするヘルパー関数
+     * - ドロップ詳細のnameフィールドの値をマップ化し、同一値の数をカウント
+     * - ドロップ詳細のrarity+nameの複合値をマップ化し、同一値の数をカウント
+     * - ドロップ詳細のname+markerの複合値をマップ化し、同一値の数をカウント
+     * @param log - 日付ログデータ
+     * @returns
+     */
+    function getDropItems(log: DateLog): DropItems {
+        if (!log.drop_details || log.drop_details.length === 0) return { name: {}, rarityName: {}, markerName: {} }
+        const nameMap: Record<string, number> = {}
+        const rarityNameMap: Record<string, number> = {}
+        const markerNameMap: Record<string, number> = {}
+        for (const detail of log.drop_details) {
+            if (!detail.rarity && !detail.name) continue // rarityもnameもない場合はスキップ
+            if (detail.name) {
+                // アイテム名が空でない場合、アイテム名をカウント
+                nameMap[detail.name] = (nameMap[detail.name] ?? 0) + 1
+            }
+            if (detail.rarity) {
+                // レアリティが空でない場合、レアリティ+アイテム名をカウント
+                const rarityNameKey = `${detail.rarity}|${detail.name ?? ''}`
+                rarityNameMap[rarityNameKey] = (rarityNameMap[rarityNameKey] ?? 0) + 1
+            }
+            if (detail.marker) {
+                // アイテム名とマーカーが空でない場合、name+markerをカウント
+                const markerNameKey = `${detail.name ?? ''}|${stripEmoji(detail.marker)}`
+                markerNameMap[markerNameKey] = (markerNameMap[markerNameKey] ?? 0) + 1
+            }
+        }
         return {
-            lostRate: rare > 0 ? (lost / rare) * 100 : 0,
-            pickupRate: rare > 0 ? (pickup / rare) * 100 : 0,
+            name: nameMap,
+            rarityName: rarityNameMap,
+            markerName: markerNameMap
         }
     }
 
-    function getLostRere(log: DateLog): number {
-        // すり抜け数を取得
-        return 0 // 仮
-    }
-
-    function getPickup(log: DateLog): number {
-        // ピックアップ数を取得
-        return 0 // 仮
-    }
-
-
-    function getRarityStats(appId: string, range?: [Date, Date]) {
-        //
-    }
-    function getDailyStats(appId: string, range?: [Date, Date]) {
-        //
-    }
     // ...他の集計メソッド
 
     return {
@@ -339,8 +463,7 @@ export function useStats() {
         getMultiCumulativeRareRate,
         calcMaxRareRate,
         getAppPullStats,
-        getSingleAppRates,
-        getRarityStats,
-        getDailyStats
+        getAppRareDropRates,
+        getAppRareDrops,
     }
 }

@@ -3,24 +3,6 @@ import { useLoaderStore } from '~/stores/useLoaderStore'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
 
-/*
-// Types
-export interface StatsData {
-    appId: string
-    startDate: string
-    endDate: string
-    totalPulls: number
-    rareDropCount: number
-    rareDropRate: number
-    totalExpense: number
-    averageExpense: number
-    averageRareDropRate: number
-    // 追加項目: [今後拡張可能]
-}
-// 統計キャッシュのMap型
-type StatsMap = Map<string, Map<string, StatsData>> // appId -> queryKey -> StatsData
-*/
-
 // ユーティリティ関数
 function generateStatsQueryKey(params: { start: string; end: string }): string {
     return JSON.stringify(params)

@@ -123,7 +123,7 @@ onBeforeUnmount(() => sortable?.destroy())
                 ? 'text-white dark:text-gray-50 bg-primary-500 hover:bg-primary-400 dark:bg-primary-800 dark:hover:bg-primary-700 select-none draggable-item cursor-move'
                 : 'text-surface-600 dark:text-gray-400 bg-transparent hover:bg-surface-100 dark:hover:bg-gray-800 cursor-pointer'
             ]"
-            @click="e => toggleSelect(item, e)"
+            @click="(e: MouseEvent) => toggleSelect(item, e)"
         >
             <span
                 v-if="selectedKeys.has(item[uniqueKey])"

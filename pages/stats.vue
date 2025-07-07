@@ -17,6 +17,8 @@ type StatsPageData = {
     cumulativeRareRate: CumulativeRareRate
     cumulativeRareRateMaxValue: number
     appPullStats: AppPullStats[]
+    appRareDropBreakdown: RareDropBreakdown
+    appRareDrops: RareDropRanking
 } | null
 
 // Stores
@@ -108,6 +110,10 @@ async function handleAggregation() {
         const cumulativeRareRateMaxValue = statsData.calcMaxRareRate(cumulativeRareRate, 2)
         // アプリごとの引き当て数・レアドロップ数・レア率を集計しランキング（横型棒グラフ）
         const appPullStats = statsData.getAppPullStats(filteredLogs, selectedApps.value)
+        // アプリごとのレアドロップ内訳を集計（Pieチャート用）
+        const appRareDropBreakdown = statsData.getAppRareDropRates(filteredLogs, selectedApps.value)
+        // アプリごとのレアドロップランキング
+        const appRareDrops = statsData.getAppRareDrops(filteredLogs, selectedApps.value)
 
         // stats.valueに集計結果をセットし、表示更新
         stats.value = null
@@ -119,6 +125,8 @@ async function handleAggregation() {
             cumulativeRareRate: JSON.parse(JSON.stringify(cumulativeRareRate)), // JSON.stringify/parseで参照をクリア
             cumulativeRareRateMaxValue,
             appPullStats: [...appPullStats],
+            appRareDropBreakdown: [...appRareDropBreakdown], //JSON.parse(JSON.stringify(appRareDropBreakdown)), // JSON.stringify/parseで参照をクリア
+            appRareDrops: [...appRareDrops],
         }
         console.log('集計結果:', stats.value)
     } catch (e: unknown) {
@@ -275,6 +283,10 @@ const adConfig: Record<string, AdProps> = {
             <div class="flex flex-wrap justify-between items-center gap-4">
                 <ChartCumulativeRareRate :data="stats.cumulativeRareRate ?? []" :maxRate="stats.cumulativeRareRateMaxValue" />
                 <ChartAppPullStats :data="stats.appPullStats ?? []" />
+            </div>
+            <div v-if="selectedApps.length === 1" class="flex flex-wrap justify-between items-center gap-4">
+                <ChartRareDropBreakdownRatio :data="stats.appRareDropBreakdown" :appId="selectedApps[0].appId ?? ''" />
+                <ChartRareDropRanking :data="stats.appRareDrops" :appId="selectedApps[0].appId ?? ''" />
             </div>
         </div>
     </div>

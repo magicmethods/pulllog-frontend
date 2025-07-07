@@ -88,7 +88,7 @@ function removeOption(option: string) {
             :emptyMessage="emptyMessage ?? 'No options found'"
             showClear
             highlightOnSelect
-            @update:modelValue="val => emit('update:modelValue', val)"
+            @update:modelValue="(val: string | null) => emit('update:modelValue', val)"
             @keydown.enter.prevent="addOption"
             @blur.prevent="addOption"
             :style="containerWidth"

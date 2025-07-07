@@ -63,6 +63,48 @@ const averageExpense = computed(() => {
         : 0
 })
 
+// 全月・全アプリの最大課金額
+const maxExpense = computed(() => {
+    const allValues = props.data.flatMap(row =>
+        appIds.value.map(appId => Number(row[appId] ?? 0))
+    )
+    return allValues.length ? Math.max(...allValues) : 0
+})
+
+// 最低課金額（0以外の最小値、なければ0）
+const minExpense = computed(() => {
+    const values = props.data.flatMap(row =>
+        appIds.value.map(appId => Number(row[appId] ?? 0))
+    ).filter(val => val > 0)
+    return values.length ? Math.min(...values) : 0
+})
+
+// 最適なY軸最大値・ステップ計算
+const yAxisConfig = computed(() => {
+    let max: number
+    let step: number
+
+    // すべて0なら
+    if (maxExpense.value === 0) {
+        // JPYなら1000円
+        const appCurrency = getCurrencyData(appStore.app?.currency_unit || 'JPY')?.code
+        if (appCurrency === 'JPY') {
+            max = 1000
+            step = 500
+        } else {
+            // 他通貨なら最小課金額*2（最低値100）
+            max = Math.max((minExpense.value || 50) * 2, 100)
+            step = Math.max(Math.floor(max / 2), 1)
+        }
+    } else {
+        // そうでなければ最大値*1.1を切り上げ
+        max = Math.ceil(maxExpense.value * 1.1)
+        // ステップはmaxの半分を切り上げ、1未満にはしない
+        step = Math.max(Math.ceil(max / 2), 1)
+    }
+    return { max, step }
+})
+
 // グラフデータ
 const chartData = computed(() => ({
     labels: props.data.map(row => row.month), // X軸（月）
@@ -138,8 +180,11 @@ const chartOptions = computed(() => ({
         y: {
             stacked: true,
             grid: { color: palette.value.grid },
+            min: 0,
+            max: maxExpense.value === 0 ? yAxisConfig.value.max : undefined,
             ticks: {
                 color: palette.value.text,
+                stepSize: maxExpense.value === 0 ? yAxisConfig.value.step: undefined,
                 callback: (val: number) => formatCurrency(Number(val), 'JPY', locale.value)
             },
             border: { color: palette.value.axis }

@@ -187,14 +187,14 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <Card class="min-h-[20rem] w-full md:w-auto flex-grow">
+    <Card class="min-h-[22rem] w-full md:w-auto flex-grow">
         <template #title>
             <h3 class="text-base">
                 <span class="text-primary-800 dark:text-primary-400 mx-0.5">レア排出率推移</span>（運気の推移）
             </h3>
         </template>
         <template #content>
-            <div id="monthlyExpenseStackChart" class="relative h-[16rem] w-full">
+            <div id="monthlyExpenseStackChart" class="relative h-[20rem] w-full">
                 <CommonChart
                     type="line"
                     :data="chartData"

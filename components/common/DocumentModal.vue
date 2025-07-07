@@ -81,7 +81,7 @@ watch(
 <template>
     <Dialog
         :visible="visible"
-        @update:visible="(v) => emit('update:visible', v)"
+        @update:visible="(v: boolean) => emit('update:visible', v)"
         modal
         :header="title"
         :maximizable="true"

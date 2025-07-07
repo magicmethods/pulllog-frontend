@@ -103,6 +103,22 @@ export function useChartPalette(customPalettes?: Partial<Record<Theme, Partial<C
         return PRESET_CHART_COLORS[theme.value]
     })
 
+    // チャート用ユーティリティ
+    /**
+     * 最大値を桁数に応じて切り上げる関数
+     * @param nums 数値の配列
+     * @return 切り上げた最大値
+     */
+    function ceilMaxDigit(nums: number[]): number {
+        const maxNum = Math.max(...nums)
+        let maxDigit = Math.floor(Math.log10(Math.abs(maxNum)))
+        maxDigit = maxDigit === 0 ? 1 : maxDigit // 0の場合は1にする
+        let max = Math.ceil(maxNum / (10 ** maxDigit)) * (10 ** maxDigit)
+        max = max === maxNum ? max + (10 ** maxDigit) : max // データ値と最大値が等しい場合は最大桁を+1
+        return max
+    }
+
+
     onMounted(() => {
         updateTheme()
         // ウィンドウのテーマ変更イベントを監視
@@ -126,5 +142,6 @@ export function useChartPalette(customPalettes?: Partial<Record<Theme, Partial<C
         palette,
         presetColors,
         updateTheme,
+        ceilMaxDigit,
     }
 }

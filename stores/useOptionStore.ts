@@ -13,11 +13,11 @@ export const useOptionStore = defineStore('option', () => {
         { symbol: '⭐', label: '⭐3', value: '3stars' },
     ]
     const defaultSymbolOptions: SymbolOption[] = [
-        { symbol: '🏆', label: '🏆ピックアップ', value: 'pickup' },
-        { symbol: '💔', label: '💔すり抜け', value: 'offrate' },
-        { symbol: '🎯', label: '🎯狙い', value: 'target' },
-        //{ symbol: '⏫', label: '⏫+1凸', value: 'stack+1' },
-        { symbol: '💖', label: '💖確定枠', value: 'guaranteed' },
+        { symbol: '🏆', label: '🏆ピックアップ', value: 'pickup' },// Pickup
+        { symbol: '💔', label: '💔すり抜け', value: 'lose' },// Lose 50/50
+        { symbol: '🎯', label: '🎯狙い', value: 'target' },// Target
+        //{ symbol: '⏫', label: '⏫+1凸', value: 'stack+1' },// Stack +1
+        { symbol: '💖', label: '💖確定枠', value: 'guaranteed' },// Guaranteed
     ]
 
     // Options

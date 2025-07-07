@@ -19,9 +19,9 @@ const props = defineProps<{
 }>()
 
 // カラーパレット
-const { theme, presetColors } = useChartPalette()
+const { theme, presetColors, palette, ceilMaxDigit } = useChartPalette()
 
-// 色マップ（ソート済み（レア率降順）で受け取る前提）
+// 色マップ
 const colorMap = computed<ColorMap>(() => {
     const map: ColorMap = {}
     const preset = presetColors.value
@@ -31,9 +31,8 @@ const colorMap = computed<ColorMap>(() => {
     return map
 })
 
-const maxPulls = computed(() => Math.max(1000, ...props.data.map(a => a.pulls)))
-const maxRare = computed(() => Math.max(10, ...props.data.map(a => a.rareDrops)))
-// Y軸ラベル（アプリ名、レア率降順）
+const maxPulls = computed(() => ceilMaxDigit(props.data.map(a => a.pulls)))
+const maxRare = computed(() => ceilMaxDigit(props.data.map(a => a.rareDrops)))
 const yLabels = computed(() => props.data.map(item => strBytesTruncate(item.appName, 7, 80)))
 
 // グラフデータ
@@ -50,7 +49,7 @@ const chartData = computed(() => ({
             datalabels: {
                 align: 'end',
                 anchor: 'end',
-                color: colorMap.value[props.data[0]?.appId]?.bg ?? '#444',
+                color: colorMap.value[props.data[0]?.appId]?.bg ?? palette.value.text,
                 font: { weight: 'bold' },
                 formatter: (value: number) => value.toLocaleString(),
             },
@@ -65,7 +64,7 @@ const chartData = computed(() => ({
             datalabels: {
                 align: 'end',
                 anchor: 'end',
-                color: colorMap.value[props.data[0]?.appId]?.hover ?? '#888',
+                color: colorMap.value[props.data[0]?.appId]?.hover ?? palette.value.text,
                 font: { weight: 'bold' },
                 formatter: (value: number, ctx: ContextModel) =>
                     `${value.toLocaleString()} (${props.data[ctx.dataIndex].rareRate.toFixed(2)}%)`
@@ -85,9 +84,16 @@ const chartOptions = computed(() => ({
             font: { weight: 'bold' }
         },
         tooltip: {
+            enabled: true,
+            backgroundColor: palette.value.tooltipBg, // ツールチップ背景
+            titleColor: palette.value.tooltipText, // タイトル文字色
+            bodyColor: palette.value.tooltipText, // 本文文字色
+            borderColor: palette.value.tooltipBorder, // ボーダー色
+            borderWidth: 1,
             callbacks: {
-                label: (ctx: ContextModel) =>
-                    `${ctx.dataset.label}: ${ctx.parsed.x}（レア率: ${props.data[ctx.dataIndex]?.rareRate.toFixed(2)}%）`
+                label: (ctx: ContextModel) => ctx.datasetIndex === 0
+                    ? `${ctx.dataset.label}: ${ctx.parsed.x}`
+                    : `${ctx.dataset.label}: ${ctx.parsed.x}（レア率: ${props.data[ctx.dataIndex]?.rareRate.toFixed(2)}%）`
             }
         }
     },
@@ -96,7 +102,7 @@ const chartOptions = computed(() => ({
             type: 'linear',
             position: 'top',
             min: 0,
-            max: Math.ceil(maxPulls.value / 1000) * 1000,
+            max: maxPulls.value,
             title: {
                 display: true,
                 padding: { top: 0 },
@@ -105,14 +111,15 @@ const chartOptions = computed(() => ({
             grid: { drawOnChartArea: false },
             ticks: {
                 stepSize: 1000,
-                color: '#555'
-            }
+                color: palette.value.text
+            },
+            border: { color: palette.value.axis }
         },
         rares: {
             type: 'linear',
             position: 'bottom',
             min: 0,
-            max: Math.ceil(maxRare.value / 100) * 100,
+            max: maxRare.value,
             title: {
                 display: true,
                 padding: { bottom: 0 },
@@ -121,12 +128,15 @@ const chartOptions = computed(() => ({
             grid: { drawOnChartArea: false },
             ticks: {
                 stepSize: 50,
-                color: '#555'
-            }
+                color: palette.value.text
+            },
+            border: { color: palette.value.axis }
         },
         y: {
             // アプリ名
-            ticks: { color: '#555' }
+            grid: { color: palette.value.grid },
+            ticks: { color: palette.value.text },
+            border: { color: palette.value.axis }
         }
     },
     responsive: true,
@@ -135,7 +145,7 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <Card class="relative min-h-[22rem] w-full md:w-max">
+    <Card class="relative min-h-[22rem] w-full md:w-max md:max-w-1/3">
         <template #title>
             <h3 class="text-base">
                 <span class="text-primary-800 dark:text-primary-400 mx-0.5">引き当て数・レア率</span>

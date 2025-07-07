@@ -27,3 +27,13 @@ export function strBytesTruncate(
     }
     return truncated
 }
+    
+/**
+ * 文字列から絵文字を削除する関数
+ * @param str - 対象の文字列
+ * @return 絵文字を削除した文字列
+ */
+export function stripEmoji(str: string): string {
+    const regex = /[\uD800-\uDBFF][\uDC00-\uDFFF]|\uD83D[\uDC00-\uDE4F]/g
+    return str.replace(regex, '')
+}

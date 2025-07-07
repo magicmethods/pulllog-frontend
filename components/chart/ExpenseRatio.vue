@@ -4,13 +4,6 @@ import { useChartPalette } from '~/composables/useChart'
 import { formatCurrency } from '~/utils/currency'
 import { strBytesTruncate } from '~/utils/string'
 
-/*
-type PieChartData = { appId: string; appName: string; currency: string; value: number }[]
-type ColorMap = Record<string, ChartColor>
-// biome-ignore lint:/suspicious/noExplicitAny
-type ContextModel = any
-*/
-
 // Props
 const props = defineProps<{
     data: PieChartData
@@ -46,22 +39,41 @@ const colorMap = computed<ColorMap>(() => {
     return map
 })
 
+const totalExpense = computed(() => props.data.reduce((sum, item) => sum + (item.value ?? 0), 0))
+const isNoData = computed(() => totalExpense.value === 0)
+
 // グラフデータ
-const chartData = computed(() => ({
-    labels: props.data.map(item => item.appName),
-    datasets: [{
-        label: '課金額',
-        currency: props.data.map(item => item.currency),
-        data: props.data.map(item => item.value),
-        backgroundColor: props.data.map(item => colorMap.value[item.appId].bg),
-        hoverBackgroundColor: props.data.map(item => colorMap.value[item.appId].hover),
-        borderColor: props.data.map(item => colorMap.value[item.appId].border),
-        borderWidth: 2,
-        borderAlign: 'center',
-        offset: 1,
-        hoverOffset: 2,
-    }]
-}))
+const chartData = computed(() => {
+    if (isNoData.value) {
+        return {
+            labels: ['データなし'],
+            datasets: [{
+                label: 'データなし',
+                currency: props.data.map(item => item.currency),
+                data: [1],
+                backgroundColor: [palette.value.grid],
+                hoverBackgroundColor: [palette.value.grid],
+                borderColor: [palette.value.grid],
+                borderWidth: 2,
+            }]
+        }
+    }
+    return {
+        labels: props.data.map(item => item.appName),
+        datasets: [{
+            label: '課金額',
+            currency: props.data.map(item => item.currency),
+            data: props.data.map(item => item.value),
+            backgroundColor: props.data.map(item => colorMap.value[item.appId].bg),
+            hoverBackgroundColor: props.data.map(item => colorMap.value[item.appId].hover),
+            borderColor: props.data.map(item => colorMap.value[item.appId].border),
+            borderWidth: 2,
+            borderAlign: 'center',
+            offset: 1,
+            hoverOffset: 2,
+        }]
+    }
+})
 // グラフオプション
 const chartOptions = computed(() => ({
     plugins: {
@@ -69,20 +81,20 @@ const chartOptions = computed(() => ({
             display: false,
         },
         tooltip: {
-            enabled: true,
+            enabled: !isNoData.value,
             backgroundColor: palette.value.tooltipBg, // ツールチップ背景
             titleColor: palette.value.tooltipText, // タイトル文字色
             bodyColor: palette.value.tooltipText, // 本文文字色
             borderColor: palette.value.tooltipBorder, // ボーダー色
             borderWidth: 1,
-            callbacks: {
+            callbacks: !isNoData.value ? {
                 title: (ctx: ContextModel) => {
                     const titleString = ctx[0].label || ctx.dataset.label
                     const maxWidth = (props.width ?? 160) * 0.5
                     return strBytesTruncate(titleString, 7, maxWidth)
                 },
                 label: (ctx: ContextModel) => formatCurrency(ctx.parsed, ctx.dataset.currency[ctx.dataIndex], locale.value),
-            }
+            } : {}
         }
     },
     responsive: true,
@@ -126,7 +138,7 @@ const chartOptions = computed(() => ({
         <template #footer>
             <div class="text-sm text-gray-500 dark:text-gray-400 mt-4">
                 <span class="font-semibold mr-2">合計:</span>
-                <span class="font-semibold text-primary-600 dark:text-primary-400">{{ formatCurrency(chartData.datasets[0].data.reduce((sum, value) => sum + value, 0), chartData.datasets[0].currency[0], locale) }}</span>
+                <span class="font-semibold text-primary-600 dark:text-primary-400">{{ isNoData ? formatCurrency(0, chartData.datasets[0].currency[0], locale) : formatCurrency(chartData.datasets[0].data.reduce((sum, value) => sum + value, 0), chartData.datasets[0].currency[0], locale) }}</span>
             </div>
             <span class="text-xs text-gray-500 dark:text-gray-400">
                 ※ 課金額の通貨単位は最初に選択されたアプリに統一されます。

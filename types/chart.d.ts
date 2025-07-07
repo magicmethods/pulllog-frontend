@@ -86,6 +86,30 @@ declare global {
         rareDrops: number
         rareRate: number // %
     }
+    /** アプリごとのレアドロップ内訳用データ */
+    type AppRareDropRates = {
+        rare: number // レアドロップ数
+        loseEvenOdds: number // すり抜け数（英記 "lose the 50/50" より）
+        getPickup: number // ピックアップ数
+        getTarget: number // 狙い引き当て数
+        guaranteedPull: number // 確定引き当て数
+    }
+    type RareDropBreakdown = {
+        appId: string // アプリID
+        appName: string // アプリ名
+        rates: AppRareDropRates // レアドロップの内訳
+    }[]
+    /** アプリごとのレアドロップランキング用データ */
+    type DropItems = {
+        name: Record<string, number> // アイテム名ごとのカウント
+        rarityName: Record<string, number> // レアリティ+アイテム名ごとのカウント
+        markerName: Record<string, number> // マーカー+アイテム名ごとのカウント
+    }
+    type RareDropRanking = {
+        appId: string // アプリID
+        appName: string // アプリ名
+        items: DropItems // アイテム名とレアリティ+アイテム名のカウント
+    }[]
 
 
 }

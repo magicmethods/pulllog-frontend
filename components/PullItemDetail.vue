@@ -77,7 +77,7 @@ watch(() => props.maxEntries, (newMax) => {
                     :inputId="`field-group-${index + 1}-rarity`"
                     :options="rarityOptions"
                     order="desc"
-                    @update:modelValue="(val) => updateEntry(index, 'rarity', val ?? null)"
+                    @update:modelValue="(val: string | null) => updateEntry(index, 'rarity', val ?? null)"
                     @update:options="(opts) => rarityOptions = opts"
                     width="8rem"
                     placeholder="選択/入力"
@@ -96,7 +96,7 @@ watch(() => props.maxEntries, (newMax) => {
                 <InputText
                     :modelValue="entry.name"
                     :id="`field-group-${index + 1}-name`"
-                    @update:modelValue="(val) => updateEntry(index, 'name', val ?? null)"
+                    @update:modelValue="(val: string | undefined) => updateEntry(index, 'name', val ?? null)"
                     placeholder="例: アルトリア・キャスター"
                     fluid
                 />

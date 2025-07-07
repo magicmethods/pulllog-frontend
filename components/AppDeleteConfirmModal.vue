@@ -23,7 +23,7 @@ function handleConfirm() {
 <template>
     <Dialog
         :visible="visible"
-        @update:visible="(v) => emit('update:visible', v)"
+        @update:visible="(v: boolean) => emit('update:visible', v)"
         modal
         header="アプリケーションの削除"
         :dismissableMask="true"
