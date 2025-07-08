@@ -48,6 +48,12 @@
     .text-muted {
         @apply opacity-60! select-none;
     }
+    .text-info {
+        @apply text-blue-600 dark:text-blue-500;
+    }
+    .text-success {
+        @apply text-green-600 dark:text-green-500;
+    }
     .text-danger {
         @apply text-rose-600 dark:text-rose-500;
     }

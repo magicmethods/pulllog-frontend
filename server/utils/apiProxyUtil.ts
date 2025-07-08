@@ -29,7 +29,7 @@ export function buildProxyHeaders(
     mustCsrfToken = true
 ): Record<string, string> | null {
     const clientHeaders = event.node.req.headers
-    let allowedHeaders = ['origin', 'x-csrf-token', 'authorization', 'content-type', 'content-length', 'accept', 'cookie', 'user-agent']
+    let allowedHeaders = ['origin', 'x-csrf-token', 'authorization', 'content-type', 'content-length', 'accept', 'cookie', 'credentials', 'user-agent']
     // 追加のヘッダが指定されていればマージ
     if (extendedHeaders.length > 0) {
         allowedHeaders = [...allowedHeaders, ...extendedHeaders]
@@ -43,9 +43,13 @@ export function buildProxyHeaders(
     proxyHeaders['x-api-key'] = apiKey // APIキーは必ず上書き
 
     // CSRFトークンが必須の場合はチェック
-    if (mustCsrfToken && (!proxyHeaders['x-csrf-token'] || proxyHeaders['x-csrf-token'] === '')) {
-        return null
+    if (mustCsrfToken) {
+        if (!proxyHeaders['x-csrf-token'] || proxyHeaders['x-csrf-token'] === '') {
+            return null
+        }
+        proxyHeaders.credentials = 'include' // CSRFトークンを送信するために必要
     }
+
 
     return proxyHeaders
 }

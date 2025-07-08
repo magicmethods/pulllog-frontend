@@ -68,7 +68,7 @@ export function useAuth() {
             globalStore.setInitialized(true)
         } catch (err: unknown) {
             console.error('Registration error:', err)
-            error.value = (err as Error).message
+            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
             throw err
         } finally {
             isLoading.value = false
@@ -90,10 +90,65 @@ export function useAuth() {
                 throw new Error(response?.message || 'パスワードリセットに失敗しました')
             }
 
-            // 通常はメール送信後の処理なので、特にユーザーストアの更新は不要
             return response.message || 'パスワードリセットのメールを送信しました'
-        } catch (err) {
-            error.value = (err as Error).message
+        } catch (err: unknown) {
+            console.error('Password reset error:', err)
+            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
+            throw err
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    async function verifyToken(token: string, type: 'signup' | 'reset'): Promise<boolean> {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response: VerifyResponse | null = await callApi({
+                endpoint: endpoints.auth.verify(),
+                method: 'POST',
+                data: { token, type },
+            })
+
+            if (!response || !response.success) {
+                throw new Error(response?.message || '認証に失敗しました')
+            }
+
+            return response.success
+        } catch (err: unknown) {
+            console.error('Token verification error:', err)
+            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
+            throw err
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    async function updatePassword(
+        token: string,
+        type: 'signup' | 'reset',
+        code: string,
+        password: string
+    ): Promise<boolean> {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response: VerifyResponse | null = await callApi({
+                endpoint: endpoints.auth.updatePassword(),
+                method: 'PUT',
+                data: { token, type, code, password },
+            })
+
+            if (!response || !response.success) {
+                throw new Error(response?.message || 'パスワードの更新に失敗しました')
+            }
+
+            return response.success
+        } catch (err: unknown) {
+            console.error('Update password error:', err)
+            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
             throw err
         } finally {
             isLoading.value = false
@@ -108,6 +163,8 @@ export function useAuth() {
         login,
         register,
         passwordReset,
+        verifyToken,
+        updatePassword,
         logout,
         isLoading,
         error,

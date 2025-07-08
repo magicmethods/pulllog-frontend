@@ -32,6 +32,7 @@ declare module 'vue' {
     InputGroup: typeof import('primevue/inputgroup')['default']
     InputGroupAddon: typeof import('primevue/inputgroupaddon')['default']
     InputNumber: typeof import('primevue/inputnumber')['default']
+    InputOtp: typeof import('primevue/inputotp')['default']
     InputText: typeof import('primevue/inputtext')['default']
     Listbox: typeof import('primevue/listbox')['default']
     Menu: typeof import('primevue/menu')['default']

@@ -25,7 +25,11 @@ declare global {
         state: 'success' | 'error'
         message?: string
     } | null
-
+    /** 認証レスポンス（汎用） */
+    type VerifyResponse = {
+        success: boolean
+        message?: string
+    }
 
 }
 export {}
