@@ -2,6 +2,7 @@
 import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useI18n } from 'vue-i18n'
 import { strFromDate } from '~/utils/date'
 import { StorageUtil } from '~/utils/storage'
 import { capitalize } from '~/utils/string'
@@ -19,12 +20,15 @@ const userStore = useUserStore()
 const optionStore = useOptionStore()
 const loaderStore = useLoaderStore()
 
+// i18n
+const { t, setLocale } = useI18n()
+
 // Refs & Computed
 const internalLang  = ref<string>(userStore.user?.language ?? 'ja')
 const internalTheme = ref<string>(userStore.user?.theme ?? 'light')
 const internalHomepage = ref<string>(userStore.user?.homePage ?? 'apps')
-const languageOptions = optionStore.languageOptions
-const themeOptions = optionStore.themeOptions
+const languageOptions = computed(() => optionStore.getLanguageOptions(t))
+const themeOptions = computed(() => optionStore.themeOptions)
 const homepageOptions = optionStore.homepageOptions
 const lastLoginDate = computed(() => {
     return userStore.user?.lastLogin ? strFromDate(userStore.user.lastLogin, '%Y-%m-%d %H:%M') : '&mdash;'
@@ -37,13 +41,13 @@ const showPPModal = ref<boolean>(false)
 
 // Methods
 async function handleEditProfile() {
-    const lid = loaderStore.show('読み込み中...')
+    const lid = loaderStore.show(t('settingsDrawer.loading'))
     emit('close')
     await navigateTo({ path: '/settings' })
     loaderStore.hide(lid)
 }
 async function handleLogout() {
-    const lid = loaderStore.show('ログアウト中...')
+    const lid = loaderStore.show(t('settingsDrawer.loggingOut'))
     emit('close')
     userStore.logout()
     await navigateTo({ path: '/auth/login' })
@@ -71,6 +75,7 @@ watch(
             userStore.user.language = newLang
         }
         storage.setItem('language', newLang)
+        setLocale(newLang as Language)
     }
 )
 watch(
@@ -106,86 +111,86 @@ watch(
     <div class="h-full w-full px-4 py-6 flex flex-col justify-between items-start">
         <div class="flex items-center gap-4 mb-2">
             <Avatar v-bind="avatarProps('large')" />
-            <h3 class="text-lg font-semibold">{{ userStore.user?.name ?? '未設定' }}</h3>
+            <h3 class="text-lg font-semibold">{{ userStore.user?.name ?? t('settingsDrawer.unset') }}</h3>
         </div>
         <div class="flex items-center gap-4 text-sm text-surface-600 dark:text-gray-400 mb-2">
             <span>{{ userStore.user?.email }}</span>
         </div>
         <div class="flex items-center gap-4 text-sm text-surface-600 dark:text-gray-400">
-            <span>最終ログイン:</span>
+            <span>{{ t('settingsDrawer.lastLogin') }}:</span>
             <span>{{ lastLoginDate }}</span>
         </div>
         <Divider />
         <div class="flex items-center gap-2 mb-4">
-            <label for="language-select" class="w-32 mb-0">言語設定</label>
+            <label for="language-select" class="w-32 mb-0">{{ t('settingsDrawer.language') }}</label>
             <Select
                 id="language-select"
                 v-model="internalLang"
                 :options="languageOptions"
                 optionLabel="label"
                 optionValue="value"
-                placeholder="Choose Language"
+                :placeholder="t('settingsDrawer.languagePlaceholder')"
                 class="w-40"
             />
         </div>
         <div class="flex items-center gap-2 mb-4">
-            <label for="theme-select" class="w-32 mb-0">テーマ設定</label>
+            <label for="theme-select" class="w-32 mb-0">{{ t('settingsDrawer.theme') }}</label>
             <Select
                 id="theme-select"
                 v-model="internalTheme"
                 :options="themeOptions"
                 optionLabel="label"
                 optionValue="value"
-                placeholder="Switch Theme"
+                :placeholder="t('settingsDrawer.themePlaceholder')"
                 class="w-40"
             />
         </div>
         <div class="flex items-center gap-2">
-            <label for="homepage-select" class="w-32 mb-0">ホームページ</label>
+            <label for="homepage-select" class="w-32 mb-0">{{ t('settingsDrawer.homepage') }}</label>
             <Select
                 id="homepage-select"
                 v-model="internalHomepage"
                 :options="homepageOptions"
                 optionLabel="label"
                 optionValue="value"
-                placeholder="Choose Homepage"
+                :placeholder="t('settingsDrawer.homepagePlaceholder')"
                 class="w-40"
             />
         </div>
         <div class="flex-grow h-full w-full flex flex-col justify-between">
             <template v-if="appConfig.isDebug">
                 <Divider />
-                <p class="text-antialiasing mb-2">その他の設定項目</p>
+                <p class="text-antialiasing mb-2">{{ t('settingsDrawer.others') }}</p>
                 <div class="flex items-center gap-2">
-                    <label for="plan-select" class="w-32 mb-0">プラン</label>
+                    <label for="plan-select" class="w-32 mb-0">{{ t('settingsDrawer.plan') }}</label>
                     <Select
                         id="plan-select"
                         v-model="currentPlan"
                         :options="[ 'Free', 'Standard', 'Premium' ]"
-                        placeholder="Choose Plan"
+                        :placeholder="t('settingsDrawer.planPlaceholder')"
                         :disabled="true"
                         class="w-40"
                     />
-                    <Button label="変更" class="btn btn-alt mb-0" :disabled="true" @click="" />
+                    <Button :label="t('settingsDrawer.change')" class="btn btn-alt mb-0" :disabled="true" @click="" />
                 </div>
                 <div class="flex justify-between items-center gap-2 mt-auto">
                     <CommonDocumentModal
                         v-model:visible="showModal"
                         src="/docs/template.md"
-                        title="Markdown スタイルテンプレート"
+                        :title="t('settingsDrawer.mdTemplateTitle')"
                         width="80vw"
                         maxWidth="800px"
                     />
                     <CommonDocumentModal
                         v-model:visible="showPPModal"
                         :src="`/docs/privacy_policy_${internalLang}.md`"
-                        :title="internalLang === 'en' ? 'PullLog Privacy Policy' : 'PullLog プライバシーポリシー'"
+                        :title="t('settingsDrawer.privacyPolicyTitle')"
                         width="80vw"
                         maxWidth="800px"
                     />
                     <div class="w-full flex justify-center items-center gap-4">
-                        <Button label="文書を表示" class="btn btn-alt" @click="showModal = true" />
-                        <Button label="プライバシーポリシー" class="btn btn-alt" @click="showPPModal = true" />
+                        <Button :label="t('settingsDrawer.showDocument')" class="btn btn-alt" @click="showModal = true" />
+                        <Button :label="t('settingsDrawer.privacyPolicy')" class="btn btn-alt" @click="showPPModal = true" />
                     </div>
                 </div>
             </template>
@@ -193,8 +198,8 @@ watch(
         <div class="w-full">
             <Divider />
             <div class="flex items-center gap-4 mb-4">
-                <Button label="登録情報変更" class="w-full btn btn-alt" @click="handleEditProfile" />
-                <Button label="ログアウト" class="w-full btn btn-secondary" @click="handleLogout" />
+                <Button :label="t('settingsDrawer.editProfile')" class="w-full btn btn-alt" @click="handleEditProfile" />
+                <Button :label="t('settingsDrawer.logout')" class="w-full btn btn-secondary" @click="handleLogout" />
             </div>
         </div>
     </div>

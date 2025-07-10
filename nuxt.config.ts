@@ -127,20 +127,22 @@ export default defineNuxtConfig({
     },
   },
   i18n: {
+    bundle: {
+      optimizeTranslationDirective: false,
+    },
+    strategy: 'no_prefix',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'pulllog-lang',
+      redirectOn: 'root',
+      alwaysRedirect: false,
+    },
     locales: [
-      { code: 'ja', iso: 'ja-JP', name: '日本語', file: 'ja-JP.json' },
-      { code: 'en', iso: 'en-US', name: 'English', file: 'en-US.json' },
+      { code: 'ja', language: 'ja-JP', name: 'Japanese', file: 'ja.ts' },
+      { code: 'en', language: 'en-US', name: 'English',  file: 'en.ts' },
     ],
     defaultLocale: 'ja',
     lazy: true,
-    langDir: 'locales/',
-    vueI18n: {
-      experimental: {
-        bundle: {
-          optimizeTranslationDirective: false,
-        },
-      },      
-      legacy: false,
-    },
+    langDir: './locales',
   },
 })

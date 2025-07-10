@@ -13,6 +13,8 @@ interface AppConfig {
 }
 /** パースされたクエリ情報 */
 type QueryObject = string | string[][] | Record<string, string> | URLSearchParams | undefined
+/** 言語 */
+type Language = 'ja' | 'en' // 追加言語はここに: 'zh' | 'ko' | 'fr' | 'es' | 'de' | 'it' | 'ru' | 'pt'
 /** テーマ名 */
 type Theme = 'light' | 'dark'
 /** カスタムコンポーネントから PrimeVue コンポーネントの PassThrough を取り扱うための型  */

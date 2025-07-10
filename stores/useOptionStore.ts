@@ -1,5 +1,31 @@
 export const useOptionStore = defineStore('option', () => {
-    // Local defaults
+    // i18n
+    //const { t, locale } = useI18n()
+    const t = (key: string | number) => useNuxtApp().$i18n.t(key)
+    // getter
+
+    //console.log('useOptionStore:', locale.value)
+
+    // Options
+    const currencyOptions = computed<SymbolOption[]>(() => [
+        { label: t('options.currency.jpy'), value: 'JPY', desc: t('options.currency.jpyDesc'), symbol: '￥' },
+        { label: t('options.currency.usd'), value: 'USD', desc: t('options.currency.usdDesc'), icon: 'pi-dollar' },
+        { label: t('options.currency.eur'), value: 'EUR', desc: t('options.currency.eurDesc'), icon: 'pi-euro' },
+        { label: t('options.currency.cny'), value: 'CNY', desc: t('options.currency.cnyDesc'), symbol: '￥' },
+    ])
+    const rarityOptions = computed<SymbolOption[]>(() => [
+        { symbol: '', label: t('options.rarity.ssr'), value: 'ssr' },
+        { symbol: '', label: t('options.rarity.sr'),  value: 'sr' },
+        { symbol: '⭐', label: t('options.rarity.fiveStars'), value: '5stars' },
+        { symbol: '⭐', label: t('options.rarity.threeStars'), value: '3stars' },
+    ])
+    const symbolOptions = computed<SymbolOption[]>(() => [
+        { symbol: '🏆', label: t('options.symbol.pickup'), value: 'pickup' },
+        { symbol: '💔', label: t('options.symbol.lose'), value: 'lose' },
+        { symbol: '🎯', label: t('options.symbol.target'), value: 'target' },
+        { symbol: '💖', label: t('options.symbol.guaranteed'), value: 'guaranteed' },
+    ])
+    /*
     const defaultCurrencyOptions: SymbolOption[] = [
         { label: 'JPY', value: 'JPY', desc: 'JPY - 円', symbol: '￥' },
         { label: 'USD', value: 'USD', desc: 'USD - ドル', icon: 'pi-dollar' },
@@ -19,15 +45,27 @@ export const useOptionStore = defineStore('option', () => {
         //{ symbol: '⏫', label: '⏫+1凸', value: 'stack+1' },// Stack +1
         { symbol: '💖', label: '💖確定枠', value: 'guaranteed' },// Guaranteed
     ]
-
-    // Options
-    const currencyOptions = ref<SymbolOption[]>([...defaultCurrencyOptions])
-    const rarityOptions = ref<SymbolOption[]>([...defaultRarityOptions])
-    const symbolOptions = ref<SymbolOption[]>([...defaultSymbolOptions])
+    */
     const languageOptions = ref<BasicOption[]>([
-        { label: '日本語', value: 'ja' },
-        { label: 'English', value: 'en' }
+        { label: t('options.language.ja'), value: 'ja' },
+        { label: t('options.language.en'), value: 'en' }
     ])
+    function getLanguageOptions(t: (key: string) => string): BasicOption[] {
+        return [
+            { label: t('options.language.ja'), value: 'ja' },
+            { label: t('options.language.en'), value: 'en' }
+        ]
+    }
+    const themeOptions = computed<BasicOption[]>(() => ([
+        { label: t('options.theme.light'), value: 'light' },
+        { label: t('options.theme.dark'), value: 'dark' }
+    ]))
+    const homepageOptions = computed<BasicOption[]>(() => ([
+        { label: t('options.homepage.apps'), value: '/apps' },
+        { label: t('options.homepage.history'), value: '/history' },
+        { label: t('options.homepage.stats'), value: '/stats' }
+    ]))
+    /*
     const themeOptions = ref<BasicOption[]>([
         { label: '🔆 ライト', value: 'light' },
         { label: '🌙 ダーク', value: 'dark' }
@@ -37,7 +75,8 @@ export const useOptionStore = defineStore('option', () => {
         { label: '履歴登録', value: '/history' },
         { label: '統計分析', value: '/stats' }
     ])
-    const rangeSeparator = ref<string>('～') // 日付範囲のセパレーター
+    */
+    const rangeSeparator = ref<string>(t('options.rangeSeparator')) // 日付範囲のセパレーター
     const otherPlaceholder = ref<string>('<:other:>') // 「その他」プレースホルダー
 
     // Computed labels (UI表示用)
@@ -61,12 +100,13 @@ export const useOptionStore = defineStore('option', () => {
     )
 
     // Actions
+    /*
     function resetOptions(): void {
         currencyOptions.value = [...defaultCurrencyOptions]
         rarityOptions.value = [...defaultRarityOptions]
         symbolOptions.value = [...defaultSymbolOptions]
     }
-
+    */
     function getOptionsAs(
         type: 'array' | 'object',
         target: 'currency' | 'rarity' | 'symbol' | 'language' | 'theme' | 'homepage'
@@ -90,7 +130,7 @@ export const useOptionStore = defineStore('option', () => {
             case 'homepage': return homepageOptions.value
         }
     }
-
+    /*
     function setOptionsFromAppConfig(appConfig: {
         currencyOptions?: SymbolOption[]
         rarityOptions?: SymbolOption[]
@@ -108,6 +148,7 @@ export const useOptionStore = defineStore('option', () => {
             ? [...appConfig.symbolOptions]
             : [...defaultSymbolOptions]
     }
+    */
 
     return {
         currencyOptions,
@@ -121,8 +162,9 @@ export const useOptionStore = defineStore('option', () => {
         currencyLabels,
         rarityLabels,
         markerLabels,
-        resetOptions,
-        setOptionsFromAppConfig,
+        //resetOptions,
+        //setOptionsFromAppConfig,
         getOptionsAs,
+        getLanguageOptions,
     }
 })
