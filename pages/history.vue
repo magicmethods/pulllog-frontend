@@ -2,22 +2,22 @@
 import { DateTime } from 'luxon'
 import { z } from 'zod'
 import { useToast } from 'primevue/usetoast'
+import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
 import { getCurrencyData } from '~/utils/currency'
 import { formatDate } from '~/utils/date'
 
-// Stores
+// Stores & Plugins
+const userStore = useUserStore()
 const appStore = useAppStore()
 const logStore = useLogStore()
 const loader = useLoaderStore()
-
-// Plugins
 const toast = useToast()
 
 // Validation Schema
-const logSchema = z.object({
+const logSchema = computed(() => z.object({
   appId: z.string().min(1, 'アプリケーションを選択してください'),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '無効な日付形式'),
   total_pulls: z.number().min(0),
@@ -29,8 +29,8 @@ const logSchema = z.object({
   })).optional(),
   expense: z.number().min(0),
   tags: z.array(z.string()).optional(),
-  free_text: z.string().max(200).optional(),
-})
+  free_text: z.string().max(userStore.planLimits?.maxLogTextLength ?? 250).optional(),
+}))
 const validationErrors = ref<Record<string, string[]>>({})
 
 // State & Local variables
@@ -46,7 +46,7 @@ const textLength = ref<number>(0) // メモの文字数
 const showCalculator = ref<boolean>(false) // 計算機モーダルの表示状態
 const today = computed(() => getTodayByApp(selectedApp.value))
 const todayString = computed(() => formatDate(today.value))
-const maxTextLength = 200 // メモの最大文字数
+const maxTextLength = computed(() => userStore.planLimits?.maxLogTextLength ?? 250) // メモの最大文字数
 const confirmModalVisible = ref<boolean>(false) // 確認モーダルの表示状態
 const pendingLogData = ref<DateLog | null>(null) // 確認モーダルに渡すログデータ
 const pendingValidationErrors = ref<Record<string, string[]> | null>(null) // 確認モーダルに渡すバリデーションエラー
@@ -147,7 +147,7 @@ function submitLog() {
   }
 
   // Zodによる検証
-  const result = logSchema.safeParse(log)
+  const result = logSchema.value.safeParse(log)
   if (!result.success) {
     // 検証エラーがある場合
     validationErrors.value = result.error.flatten().fieldErrors
@@ -168,6 +168,9 @@ async function handleConfirmSave() {
   try {
     // API送信処理
     const saved = await logStore.saveLog(pendingLogData.value)
+    if (!saved) {
+      throw new Error('履歴の保存に失敗しました。再度お試しください。')
+    }
     toast.add({
       severity: 'success',
       summary: '履歴保存完了',
@@ -184,7 +187,7 @@ async function handleConfirmSave() {
     confirmModalVisible.value = false
   } catch (e: unknown) {
     const errorMessage = e instanceof Error ? e.message : '不明なエラーが発生しました'
-    console.error('Failed to save history log:', e)
+    //console.error('Failed to save history log:', e)
     confirmModalVisible.value = false
     toast.add({
       severity: 'error',
@@ -443,8 +446,8 @@ const adConfig: Record<string, AdProps> = {
                         v-model="tags"
                         inputId="tags"
                         placeholder="タグの追加（最大%maxTags%つまで）"
-                        :maxTags="3"
-                        :maxLength="20"
+                        :maxTags="userStore.planLimits?.maxLogTags ?? 5"
+                        :maxLength="userStore.planLimits?.maxLogTagLength ?? 22"
                         class="w-full min-h-12 max-h-max"
                         :disabled="!targetDate"
                         tagPrefix="symbol"
@@ -498,7 +501,7 @@ const adConfig: Record<string, AdProps> = {
 
           <!-- 右カラム: 過去ログとグラフ -->
           <section class="w-full md:w-1/2 lg:w-3/5 mt-0 flex flex-col gap-4">
-              <!-- 推移グラフ -->
+              <!-- 履歴推移グラフ -->
               <HistoryChart
                 label="履歴の推移（直近）"
                 :key="historyChartReloadKey"

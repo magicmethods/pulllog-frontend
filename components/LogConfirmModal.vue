@@ -51,7 +51,6 @@ const isSuccessfullySaved = ref<boolean>(false)
                             <th class="w-32">アプリ名</th>
                             <td class="w-auto flex justify-center items-center gap-2">
                                 <span class="text-em">{{ appStore.app?.name }}</span>
-                                <span v-if="appConfig.isDebug" class="text-sm">（{{ logData?.appId }}）</span>
                             </td>
                         </tr>
                         <tr>

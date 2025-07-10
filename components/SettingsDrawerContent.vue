@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
+import { useLoaderStore } from '~/stores/useLoaderStore'
 import { strFromDate } from '~/utils/date'
 import { StorageUtil } from '~/utils/storage'
+import { capitalize } from '~/utils/string'
 
 // Emits
 const emit = defineEmits<
@@ -15,6 +17,7 @@ const appConfig = useConfig()
 // Stores
 const userStore = useUserStore()
 const optionStore = useOptionStore()
+const loaderStore = useLoaderStore()
 
 // Refs & Computed
 const internalLang  = ref<string>(userStore.user?.language ?? 'ja')
@@ -28,18 +31,23 @@ const lastLoginDate = computed(() => {
 })
 const storage = new StorageUtil()
 // デバッグ用
+const currentPlan = ref<string>(capitalize(userStore.user?.plan ?? 'free'))
 const showModal = ref<boolean>(false)
 const showPPModal = ref<boolean>(false)
 
 // Methods
-function handleEditProfile() {
+async function handleEditProfile() {
+    const lid = loaderStore.show('読み込み中...')
     emit('close')
-    navigateTo({ path: '/settings' })
+    await navigateTo({ path: '/settings' })
+    loaderStore.hide(lid)
 }
-function handleLogout() {
+async function handleLogout() {
+    const lid = loaderStore.show('ログアウト中...')
     emit('close')
     userStore.logout()
-    navigateTo({ path: '/auth/login' })
+    await navigateTo({ path: '/auth/login' })
+    loaderStore.hide(lid)
 }
 const avatarProps = (size?: 'xlarge' | 'large' | 'normal') => {
     const avatarProps = {
@@ -102,7 +110,6 @@ watch(
         </div>
         <div class="flex items-center gap-4 text-sm text-surface-600 dark:text-gray-400 mb-2">
             <span>{{ userStore.user?.email }}</span>
-            <span v-if="appConfig.isDebug" class="text-sm text-surface-600 dark:text-gray-400">(ID: {{ userStore.user?.id }})</span>
         </div>
         <div class="flex items-center gap-4 text-sm text-surface-600 dark:text-gray-400">
             <span>最終ログイン:</span>
@@ -110,7 +117,7 @@ watch(
         </div>
         <Divider />
         <div class="flex items-center gap-2 mb-4">
-            <label for="language-select" class="w-32">言語設定</label>
+            <label for="language-select" class="w-32 mb-0">言語設定</label>
             <Select
                 id="language-select"
                 v-model="internalLang"
@@ -122,7 +129,7 @@ watch(
             />
         </div>
         <div class="flex items-center gap-2 mb-4">
-            <label for="theme-select" class="w-32">テーマ設定</label>
+            <label for="theme-select" class="w-32 mb-0">テーマ設定</label>
             <Select
                 id="theme-select"
                 v-model="internalTheme"
@@ -134,7 +141,7 @@ watch(
             />
         </div>
         <div class="flex items-center gap-2">
-            <label for="homepage-select" class="w-32">ホームページ</label>
+            <label for="homepage-select" class="w-32 mb-0">ホームページ</label>
             <Select
                 id="homepage-select"
                 v-model="internalHomepage"
@@ -145,30 +152,41 @@ watch(
                 class="w-40"
             />
         </div>
-        <div class="flex-grow w-full">
+        <div class="flex-grow h-full w-full flex flex-col justify-between">
             <template v-if="appConfig.isDebug">
                 <Divider />
-                <p class="text-antialiasing mb-2">その他の設定項目があれば…</p>
-                <div class="border rounded-lg mb-4 p-2 bg-surface-100 dark:bg-gray-950 border-surface-300 dark:border-gray-700 h-80 overflow-y-auto">
-                    <pre class="font-mono text-sm text-surface-600 dark:text-gray-400 whitespace-pre-wrap">{{ JSON.stringify(userStore.user, null, 2) }}</pre>
+                <p class="text-antialiasing mb-2">その他の設定項目</p>
+                <div class="flex items-center gap-2">
+                    <label for="plan-select" class="w-32 mb-0">プラン</label>
+                    <Select
+                        id="plan-select"
+                        v-model="currentPlan"
+                        :options="[ 'Free', 'Standard', 'Premium' ]"
+                        placeholder="Choose Plan"
+                        :disabled="true"
+                        class="w-40"
+                    />
+                    <Button label="変更" class="btn btn-alt mb-0" :disabled="true" @click="" />
                 </div>
-                <CommonDocumentModal
-                    v-model:visible="showModal"
-                    src="/docs/template.md"
-                    title="Markdown スタイルテンプレート"
-                    width="80vw"
-                    maxWidth="800px"
-                />
-                <CommonDocumentModal
-                    v-model:visible="showPPModal"
-                    :src="`/docs/privacy_policy_${internalLang}.md`"
-                    :title="internalLang === 'en' ? 'PullLog Privacy Policy' : 'PullLog プライバシーポリシー'"
-                    width="80vw"
-                    maxWidth="800px"
-                />
-                <div class="flex items-center gap-4">
-                    <Button label="文書を表示" class="btn btn-alt" @click="showModal = true" />
-                    <Button label="プライバシーポリシー" class="btn btn-alt" @click="showPPModal = true" />
+                <div class="flex justify-between items-center gap-2 mt-auto">
+                    <CommonDocumentModal
+                        v-model:visible="showModal"
+                        src="/docs/template.md"
+                        title="Markdown スタイルテンプレート"
+                        width="80vw"
+                        maxWidth="800px"
+                    />
+                    <CommonDocumentModal
+                        v-model:visible="showPPModal"
+                        :src="`/docs/privacy_policy_${internalLang}.md`"
+                        :title="internalLang === 'en' ? 'PullLog Privacy Policy' : 'PullLog プライバシーポリシー'"
+                        width="80vw"
+                        maxWidth="800px"
+                    />
+                    <div class="w-full flex justify-center items-center gap-4">
+                        <Button label="文書を表示" class="btn btn-alt" @click="showModal = true" />
+                        <Button label="プライバシーポリシー" class="btn btn-alt" @click="showPPModal = true" />
+                    </div>
                 </div>
             </template>
         </div>

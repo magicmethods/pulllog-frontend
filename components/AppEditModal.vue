@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 
 // Props/Emits
@@ -13,43 +14,45 @@ const emit = defineEmits<{
 }>()
 
 // Stores
+const userStore = useUserStore()
 const optionStore = useOptionStore()
-
-// Validation schema
-const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-const schema = z.object({
-    name: z.string().min(1, 'アプリケーション名は必須です'),
-    url: z.string().url('URLの形式が不正です').optional().or(z.literal('')).nullable(),
-    description: z.string().max(400, '400文字以内で入力してください').optional().or(z.literal('')).nullable(),
-    currency_unit: z.string().optional().or(z.literal('')).nullable(),
-    date_update_time: z.string().regex(timeRegex, '無効な時間です').optional().or(z.literal('')).nullable(),
-    //raw_date_update_time: z.any().optional(), // 時刻の入力値は内部で処理されるため検証はスキップする
-    sync_update_time: z.boolean().optional(),
-    rarity_defs: z.any().optional(), // 入力検証スキップ
-    marker_defs: z.any().optional(), // 入力検証スキップ
-    task_defs: z.any().optional(), // 未実装
-})
-// biome-ignore lint:/suspicious/noExplicitAny
-const errors = ref<any>(null)
 
 // Refs & Local variables
 const rawDateUpdateTime = ref<Date | null>(null)
-//const formData = ref<AppData>({...createAppDataFromApp(props.app)})
 const formData = ref<AppData>({} as AppData) // 初期値は空のオブジェクト
-const maxDescLength = 400
+const maxAppNameLength = computed(() => userStore.planLimits?.maxAppNameLength ?? 30)
+const maxDescLength = computed(() => userStore.planLimits?.maxAppDescriptionLength ?? 400)
 const descLength = ref<number>(0)
 const activeEmojiPickerId = ref<string | null>(null)
 const tooltips = {
     appName:        'アプリ名はあなたが管理しやすい名称を自由に設定できます。<span class="tooltip-warning">※アプリ名は入力必須です</span>',
     appUrl:         '公式サイトや攻略サイトなどの関連するWEBサイトを設定できます。指定されたURLからアイコン画像が自動取得されます。',
-    appDesc:        `アプリケーションの説明等を自由に入力できます（${maxDescLength}文字以内）。`,
+    appDesc:        `アプリケーションの説明等を自由に入力できます（${maxDescLength.value}文字以内）。`,
     appImage:       'あなたの好きな画像をこのアプリケーション用の画像として設定できます。この画像は指定URLから自動取得するアイコン画像よりも優先されます。',
     currencyUnit:   '対象のアプリケーションに課金する際に取り扱われる通貨単位を指定します。',
     dateUpdateTime: '対象のアプリケーションにおける日付が切り替わる時刻です。一般的にこの時間を跨ぐことでログイン日付が再計算されます。<br>設定した時刻はPullLogでのログ登録時の対象日付の更新時間に同期させることが可能です。',
+    pitySystem:     '対象のアプリケーションのガチャにおけるレアリティの排出保証（天井）システムの設定です。システムの実装有無と天井となるガチャ回数を指定できます。<br>設定した内容は、ガチャ回数推移等の統計グラフに補助線として表示されます。',
     rarityDefs:     'アプリケーション内で使用されているレアリティの定義リストです。排出リストのレアリティオプションの初期リストとして使用されます。<br>排出リストの登録時に追加することもできますが、その場合はこの定義リストは更新されません。<br>永続的に使用する際はこの定義リストを設定することをお勧めします。',
     markerDefs:     'PullLogの排出リストのログ記録時に任意にマーキングを行うためのマーカーの定義リストです。排出リストのマーキングオプションの初期マーカーリストとして使用されます。<br>排出リストの登録時に追加することもできますが、その場合はこの定義リストは更新されません。<br>永続的に使用する際はこの定義リストを設定することをお勧めします。',
 }
-
+// Validation schema
+const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
+const schema = computed(() => z.object({
+    name: z.string().min(1, 'アプリケーション名は必須です').max(maxAppNameLength.value, `アプリケーション名は${maxAppNameLength.value}文字以内で入力してください`),
+    url: z.string().url('URLの形式が不正です').optional().or(z.literal('')).nullable(),
+    description: z.string().max(maxDescLength.value, `${maxDescLength.value}文字以内で入力してください`).optional().or(z.literal('')).nullable(),
+    currency_unit: z.string().optional().or(z.literal('')).nullable(),
+    date_update_time: z.string().regex(timeRegex, '無効な時間です').optional().or(z.literal('')).nullable(),
+    //raw_date_update_time: z.any().optional(), // 時刻の入力値は内部で処理されるため検証は不要
+    sync_update_time: z.boolean().optional(),
+    pity_system: z.boolean().optional(),
+    guarantee_count: z.number().int().min(0, '天井回数は0以上の整数で入力してください').optional(),
+    rarity_defs: z.any().optional(), // 入力検証スキップ
+    marker_defs: z.any().optional(), // 入力検証スキップ
+    task_defs: z.any().optional(), // 未実装
+}))
+// biome-ignore lint:/suspicious/noExplicitAny
+const errors = ref<any>(null)
 // Computed
 const isShown = computed(() => props.visible ?? false)
 const isEditMode = computed(() => props.app?.appId && props.app?.appId !== '')
@@ -86,6 +89,8 @@ function createAppDataFromApp(app?: AppData): AppData {
         currency_unit: currencyUnit,
         date_update_time: app?.date_update_time ?? '',
         sync_update_time: app?.sync_update_time ?? false,
+        pity_system: app?.pity_system ?? false,
+        guarantee_count: app?.guarantee_count ?? 0,
         rarity_defs: defaultRarityDefs,
         marker_defs: defaultMarkerDefs,
         task_defs: app?.task_defs ?? [],
@@ -114,7 +119,7 @@ function toTimeString(d: CalenderDate): string {
 }
 // フォームの値を検証
 function validateForm(): boolean {
-    const result = schema.safeParse(formData.value)
+    const result = schema.value.safeParse(formData.value)
     if (!result.success) {
         const { error } = result
         //console.warn('Validation Error:', error.issues, error.format(), error.flatten())
@@ -207,6 +212,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             v-model="formData.url"
                             placeholder="公式サイトのURL"
                             class="w-full"
+                            :maxlength="255"
                         />
                         <Message v-if="errors?.url" severity="error" size="small" variant="simple" class="mt-1">
                             {{ errors?.url.join(', ') }}
@@ -227,6 +233,9 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             :maxlength="maxDescLength"
                             @input="descLength = formData.description?.length ?? 0"
                         />
+                        <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">
+                            入力文字数: {{ descLength }}
+                        </Message>
                         <Message v-if="errors?.description" severity="error" size="small" variant="simple" class="mt-1">
                             {{ errors?.description.join(', ') }}
                         </Message>
@@ -267,7 +276,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         </Message>
                     </div>
 
-                    <div class="mb-4 md:mb-0">
+                    <div class="mb-4">
                         <label for="date_update_time" class="label-flex text-sm">
                             <span>アプリケーション内の日付更新時間</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('dateUpdateTime')"></i>
@@ -281,17 +290,77 @@ watch(() => rawDateUpdateTime.value, (val) => {
                                 customIcon="🕒"
                                 :pt="{ root: 'min-w-[8rem]! w-36' }"
                             />
-                            <div class="w-max">
+                            <div class="w-max flex items-center">
                                 <ToggleSwitch
                                     inputId="sync_update_time"
                                     v-model="formData.sync_update_time"
                                     :disabled="!rawDateUpdateTime"
                                 />
                             </div>
-                            <label for="sync_update_time" class="flex-grow ml-1 pt-1 font-medium text-sm">日付更新時間とログ登録対象日を同期する</label>
+                            <label for="sync_update_time" class="flex-grow ml-1 pt-1 font-medium text-sm mb-0">日付更新時間とログ登録対象日を同期する</label>
                         </div>
                         <Message v-if="errors?.date_update_time" severity="error" size="small" variant="simple" class="mt-1">
                             {{ errors?.date_update_time.join(', ') }}
+                        </Message>
+                    </div>
+
+                    <div class="mb-4 md:mb-0">
+                        <label for="date_update_time" class="label-flex text-sm">
+                            <span>レア排出保証（天井）システム</span>
+                            <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('pitySystem')"></i>
+                        </label>
+                        <div class="flex justify-between items-center gap-2">
+                            <div class="w-max flex items-center">
+                                <ToggleSwitch
+                                    inputId="pity_system"
+                                    v-model="formData.pity_system"
+                                    @change="() => formData.guarantee_count = 0"
+                                />
+                            </div>
+                            <label for="pity_system" class="w-max ml-1 pt-1 font-medium text-sm mb-0">
+                                レア排出保証<strong :class="['ml-0.5',
+                                    formData.pity_system ? 'text-amber-500 dark:text-yellow-400' : '']"
+                                >{{ formData.pity_system ? 'あり' : 'なし' }}</strong>
+                            </label>
+                            <div class="flex-grow w-max flex items-center pl-2 gap-3">
+
+                                <InputNumber
+                                    v-model="formData.guarantee_count"
+                                    inputId="guarantee_count"
+                                    placeholder="天井回数"
+                                    showButtons
+                                    :min="1"
+                                    :disabled="!formData.pity_system"
+                                    class="input-number-sm"
+                                />
+                                <Button
+                                    icon="pi pi-plus"
+                                    label="10"
+                                    class="btn btn-alternative p-2! text-base! m-0!"
+                                    @click="() => formData.guarantee_count ? (formData.guarantee_count += 10) : (formData.guarantee_count = 10)"
+                                    :disabled="!formData.pity_system"
+                                    v-blur-on-click
+                                />
+                                <Button
+                                    icon="pi pi-plus"
+                                    label="100"
+                                    class="btn btn-alternative p-2! text-base! m-0!"
+                                    @click="() => formData.guarantee_count ? (formData.guarantee_count += 100) : (formData.guarantee_count = 100)"
+                                    :disabled="!formData.pity_system"
+                                    v-blur-on-click
+                                />
+                                <Button
+                                    icon="pi pi-eraser"
+                                    label="0"
+                                    class="btn btn-alternative p-2! text-base! m-0!"
+                                    :disabled="!formData.pity_system || formData.guarantee_count === 0"
+                                    @click="formData.guarantee_count = 0"
+                                    v-blur-on-click
+                                />
+                            </div>
+                        </div>
+                        <Message v-if="errors?.guarantee_count" severity="error" size="small" variant="simple" class="mt-1">
+                            {{ errors?.guarantee_count.join(', ') }}
                         </Message>
                     </div>
 

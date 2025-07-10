@@ -10,8 +10,6 @@ const props = defineProps<{
     label?: string
     /** 変更可能なチャート範囲の定義 */
     ranges?: RangeOption[] // 未指定時はデフォルト範囲 DEFAULT_RANGES
-    /** チャートの種類を指定 */
-    //charts?: Record<string, ChartType> // { pulls: 'stack', expense: 'line' }
 }>()
 
 // Stores
@@ -34,6 +32,15 @@ const chartData = ref<ChartDataPoint[]>([])
 const appCurrencyCode = computed(() => appStore.getAppCurrencyCode())
 const isChangeable = computed(() => internalRanges.value.length > 1 && internalAppId.value)
 const chartReloadKey = ref<number>(0)
+const guaranteeCount = computed<number | undefined>(() => {
+    const appData = appStore.app
+        ? appStore.app
+        : internalAppId.value ? appStore.appList?.find(app => app.appId === internalAppId.value) : undefined
+    if (!appData) return undefined
+    return appData.pity_system && appData.guarantee_count && appData.guarantee_count > 0
+        ? appData.guarantee_count
+        : undefined
+})
 
 // Methods
 async function loadChartData() {
@@ -106,6 +113,7 @@ watch(
                 :chartData="chartData"
                 :range="currentRange.days"
                 :currencyCode="appCurrencyCode"
+                :guaranteeCount="guaranteeCount"
                 :key="chartReloadKey"
                 class="w-full h-64"
             />

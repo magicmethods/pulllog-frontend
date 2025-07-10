@@ -20,13 +20,14 @@ declare global {
     }
     /** バックエンドAPIからのレスポンス型（必要なら） */
     type UserResponse = {
-        id: number // ユーザーID: ユーザー登録時に発行される insertId (シーケンシャル番号)
+        id: number // ユーザーID: ユーザー登録時に発行されるプライマリキー
         name: string
         email: string
         avatar_url?: string | null // アバター画像URL
         roles?: string[] // ユーザーの役割（admin, userなど）
         plan?: string // ユーザープラン（free, proなど）
         plan_expiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
+        plan_limits?: Record<string, number> // ユーザープランの制限情報（プラン管理テーブルからJOIN）
         language: string // ユーザーの言語設定
         theme: string // ユーザーのテーマ設定
         home_page?: string // ログイン後に表示されるページ
@@ -39,6 +40,18 @@ declare global {
         is_verified: boolean // ユーザーがメールアドレスを確認したかどうかのフラグ（メール認証用）
         unread_notifications?: number[] // 未読通知数（通知IDの配列）
         [key: string]: unknown
+    }
+    /** ユーザープラン制限（UserResponseから抽出・再構築） */
+    type UserPlanLimits = {
+        maxApps: number // ユーザーが作成できるアプリの最大数
+        maxAppNameLength: number // アプリ名の最大文字数
+        maxAppDescriptionLength: number // アプリ説明の最大文字数
+        maxLogTags: number // ログに設定できるタグの最大数
+        maxLogTagLength: number // タグ名の最大文字数
+        maxLogTextLength: number // ログのテキスト内容の最大文字数
+        maxLogsPerApp?: number // アプリごとに保存できるログの最大数
+        maxLogSize?: number // ログ1件あたりの最大サイズ（バイト単位）
+        maxStorage?: number // 対象ユーザーが全体で使用できるストレージの最大サイズ（バイト単位）
     }
     /** ログインレスポンス */
     type LoginResponse = {

@@ -69,16 +69,16 @@ function handleBack() {
                 </Message>
                 <p class="text-left text-surface-500 dark:text-gray-400 block mb-2">
                 ご登録いただいたメールアドレスにパスワードリセット用のメールを送信しました。
-                メール内のリンクをクリックしてパスワードをリセットしてください。
+                メール内のリンクをクリックしてパスワードをリセットしてください
                 </p>
             </template>
             <template v-else>
                 <Message severity="info" size="normal" variant="simple" class="my-4">
                     パスワードを忘れた場合
                 </Message>
-                <p class="text-left text-surface-500 dark:text-gray-400 block mb-2">
-                    登録したメールアドレスを入力してください。<br>
-                    パスワードリセットの手順をお送りします。
+                <p class="text-center text-surface-500 dark:text-gray-400 block mb-2">
+                    登録したメールアドレスを入力してください<br>
+                    パスワードリセットの手順をお送りします
                 </p>
 
                 <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 w-full max-w-sm" autocomplete="on">

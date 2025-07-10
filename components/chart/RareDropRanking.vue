@@ -1,10 +1,16 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores/useUserStore'
+import { useOptionStore } from '~/stores/useOptionStore'
 import { useChartPalette } from '~/composables/useChart'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import type { ChartDataset } from 'chart.js'
 import { stripEmoji } from '~/utils/string'
 
+// Stores
+const userStore = useUserStore()
+const optionStore = useOptionStore()
+
+const SYSTEM_OTHER_KEY = computed(() => optionStore.otherPlaceholder)
 const PRESET_MARKER_LABELS = ['pickup', 'lose', 'target', 'guaranteed', 'other'] as const
 type MarkerKey = (typeof PRESET_MARKER_LABELS)[number]
 
@@ -16,9 +22,7 @@ const props = defineProps<{
     colors?: Record<MarkerKey, ChartColor> // アイテム名ごとの色（オプション）
 }>()
 
-// Stores
-const userStore = useUserStore()
-
+// Composables
 const { theme, presetColors, palette } = useChartPalette()
 
 // Refs & Local State
@@ -33,6 +37,7 @@ const labelMap = ref<Record<MarkerKey, string>>({
     guaranteed: '確定',
     other: 'その他'
 })
+const otherLabel = computed(() => locale.value === 'ja-JP' ? 'その他' : 'Other')
 // 色マップ
 const colorMap = computed<ColorMap>(() => {
     const map: ColorMap = {}
@@ -42,33 +47,51 @@ const colorMap = computed<ColorMap>(() => {
     })
     return map
 })
-
 // 対象アプリのデータを抽出
 const ranking = computed(() => props.data.find(d => d.appId === props.appId))
-
 // アイテム名一覧（カウント降順→アルファベット順→五十音順）
 const sortedNames = computed(() => {
     if (!ranking.value) return []
     // rarityName: { "rarity|name": count }
     // name: { "itemName": count }
     const itemArr = Object.entries(ranking.value.items.name)
-    // 降順→ABC順→五十音順
+
+    // システム「その他」を抽出
+    const etcIdx = itemArr.findIndex(([name]) => name === SYSTEM_OTHER_KEY.value)
+    let etcEntry: [string, number] | undefined
+    if (etcIdx >= 0) {
+        etcEntry = itemArr.splice(etcIdx, 1)[0]
+    }
+
+    // ソート（降順→ABC順→五十音順）
     itemArr.sort((a, b) => {
         // 降順→数が同じならアルファベット→五十音順
         if (b[1] !== a[1]) return b[1] - a[1]
         // localeCompareで多言語対応
         return a[0].localeCompare(b[0], locale.value)
     })
-    if (props.maxRank && props.maxRank > 0) {
-        return itemArr.slice(0, props.maxRank).map(([name, count]) => ({
-            name,
-            label: `${name} (${count})`
-        }))
-    }
-    return itemArr.map(([name, count]) => ({
+    const mapped = itemArr.map(([name, count]) => ({
         name,
         label: `${name} (${count})`
     }))
+
+    // システム「その他」をラベル変換して末尾に追加
+    if (etcEntry) {
+        mapped.push({
+            name: SYSTEM_OTHER_KEY.value,
+            label: `${otherLabel.value} (${etcEntry[1]})`
+        })
+    }
+    console.log('Sorted Names:', mapped, SYSTEM_OTHER_KEY.value)
+
+    // maxRank対応
+    if (props.maxRank && props.maxRank > 0) {
+        return mapped.slice(0, props.maxRank)/* .map(([name, count]) => ({
+            name,
+            label: `${name} (${count})`
+        }))*/
+    }
+    return mapped
 })
 
 // レアリティ・パース＋カウント
@@ -143,28 +166,6 @@ const chartData = computed(() => {
     const labels = sortedNames.value.map(item => item.label) // アイテム名のラベル
 
     // markerのスタックBar
-    /*
-    const datasets: ChartDataset[] = []
-    for (const [i, marker] of PRESET_MARKER_LABELS.entries()) {
-        datasets.push({
-            label: labelMap.value[marker], // pickup/lose/...
-            //data: labels.map(itemName => markerKeys.value[itemName]?.[marker] ?? 0),
-            data: sortedNames.value.map(item => markerKeys.value[item.name]?.[marker] ?? 0),
-            backgroundColor: props.colors?.[marker]?.bg ?? presetColors.value[i % presetColors.value.length].bg,
-            hoverBackgroundColor: props.colors?.[marker]?.hover ?? presetColors.value[i % presetColors.value.length].hover,
-            borderColor: props.colors?.[marker]?.border ?? presetColors.value[i % presetColors.value.length].border,
-            borderWidth: 1,
-            stack: 'marker',
-            datalabels: {
-                display: (ctx: ContextModel) => ctx.dataset.data[ctx.dataIndex] > 0,
-                align: 'center',
-                anchor: 'center',
-                color: 'oklch(100% 0 0)', // white
-                font: { weight: 'bold' }
-            }
-        })
-    }
-    */
     const datasets: ChartDataset[] = PRESET_MARKER_LABELS.map((marker, i) => ({
         label: labelMap.value[marker],
         data: sortedNames.value.map(item => markerKeys.value[item.name]?.[marker] ?? 0),
@@ -174,15 +175,9 @@ const chartData = computed(() => {
         borderWidth: 1,
         stack: 'marker',
     })).filter(ds => ds.data.some(v => v > 0)) // データが0のものは除外
-    // “その他”スタック：合計未満の差分
+    // "その他" スタック：合計未満の差分
     datasets.push({
         label: labelMap.value.other,
-        /*
-        data: labels.map(itemName => {
-            const stackedSum = PRESET_MARKER_LABELS.reduce((sum, marker) => sum + (markerKeys.value[itemName]?.[marker] ?? 0), 0)
-            return Math.max(0, (maxCounts.value[itemName] ?? 0) - stackedSum)
-        }),
-        */
         data: sortedNames.value.map(item => {
             const stackedSum = PRESET_MARKER_LABELS.reduce((sum, marker) => sum + (markerKeys.value[item.name]?.[marker] ?? 0), 0)
             return Math.max(0, (maxCounts.value[item.name] ?? 0) - stackedSum)

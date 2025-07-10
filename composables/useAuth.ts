@@ -3,7 +3,7 @@ import { useCsrfStore } from '~/stores/useCsrfStore'
 import { useGlobalStore } from '~/stores/globalStore'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
-import { toUser } from '~/utils/user'
+import { toUser, toUserPlanLimits } from '~/utils/user'
 
 export function useAuth() {
     const error = ref<string | null>(null)
@@ -33,7 +33,10 @@ export function useAuth() {
                 throw new Error(response?.message || 'このアカウントは使用できません')
             }
 
-            userStore.setUser(toUser(response.user))
+            userStore.setUser(
+                toUser(response.user),
+                toUserPlanLimits(response.user)
+            )
 
             if (response.csrfToken) {
                 csrfStore.setToken(response.csrfToken)

@@ -22,7 +22,26 @@ export function toUser(ur: UserResponse): User {
 }
 
 /**
- * ユーザーに応じた最大アプリ数を取得する
+ * UserResponseからplan_limitsオブジェクトをUserPlanLimits型へ変換
+ */
+export function toUserPlanLimits(ur: UserResponse): UserPlanLimits | null {
+    const pl = ur.plan_limits
+    if (!pl) return null
+    return {
+        maxApps: pl.max_apps ?? 5,
+        maxAppNameLength: pl.max_app_name_length ?? 30,
+        maxAppDescriptionLength: pl.max_app_description_length ?? 400,
+        maxLogTags: pl.max_log_tags ?? 5,
+        maxLogTagLength: pl.max_log_tag_length ?? 22,
+        maxLogTextLength: pl.max_log_text_length ?? 250,
+        maxLogsPerApp: pl.max_logs_per_app,
+        maxLogSize: pl.max_log_size,
+        maxStorage: pl.max_storage,
+    }
+}
+
+/**
+ * ユーザーに応じた最大アプリ数を取得する（廃止予定）
  * @param user ユーザーオブジェクト
  * @returns 最大アプリ数
  */
@@ -44,3 +63,4 @@ export function getMaxApps(user: User | null): number {
             return 0 // 不明なプランは0
     }
 }
+

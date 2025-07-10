@@ -69,6 +69,7 @@ export default defineNuxtConfig({
   modules: [
     '@pinia/nuxt',
     '@primevue/nuxt-module',
+    '@nuxtjs/i18n',
   ],
   devServer: {
     host: 'pulllog.net',
@@ -124,5 +125,22 @@ export default defineNuxtConfig({
         mergeProps: true,
       }
     },
-  }
+  },
+  i18n: {
+    locales: [
+      { code: 'ja', iso: 'ja-JP', name: '日本語', file: 'ja-JP.json' },
+      { code: 'en', iso: 'en-US', name: 'English', file: 'en-US.json' },
+    ],
+    defaultLocale: 'ja',
+    lazy: true,
+    langDir: 'locales/',
+    vueI18n: {
+      experimental: {
+        bundle: {
+          optimizeTranslationDirective: false,
+        },
+      },      
+      legacy: false,
+    },
+  },
 })

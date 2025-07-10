@@ -1,39 +1,11 @@
-import { useLogStore } from '~/stores/useLogStore'
+//import { useLogStore } from '~/stores/useLogStore'
+import { useOptionStore } from '~/stores/useOptionStore'
 import { DateTime } from 'luxon'
 import { stripEmoji } from '~/utils/string'
 
-/*
-// Types
-type PieChartData = {
-    appId: string
-    appName: string
-    currency: string // 通貨単位
-    value: number
-}[]
-interface StackedBarRow {
-    month: string // 'YYYY-MM'
-    [appId: string]: number | string // 各アプリの月ごとの課金額
-}
-type StackedBarData = StackedBarRow[]
-type LineChartData = {
-    date: string // 'YYYY-MM-DD'
-    pulls: number
-    rareDrops: number
-    cumulativePulls: number
-    cumulativeRareDrops: number
-    rate: number // %
-}[]
-type AppPullStats = {
-    appId: string
-    appName: string
-    pulls: number
-    rareDrops: number
-    rareRate: number // %
-}
-*/
-
 export function useStats() {
-    const logStore = useLogStore()
+    //const logStore = useLogStore()
+    const SYSTEM_OTHER_KEY = computed(() => useOptionStore().otherPlaceholder)
 
     /**
      * 複数アプリ合計課金額に占める各アプリの割合（Pieチャート用）
@@ -427,27 +399,40 @@ export function useStats() {
      * @returns
      */
     function getDropItems(log: DateLog): DropItems {
-        if (!log.drop_details || log.drop_details.length === 0) return { name: {}, rarityName: {}, markerName: {} }
         const nameMap: Record<string, number> = {}
         const rarityNameMap: Record<string, number> = {}
         const markerNameMap: Record<string, number> = {}
-        for (const detail of log.drop_details) {
-            if (!detail.rarity && !detail.name) continue // rarityもnameもない場合はスキップ
-            if (detail.name) {
-                // アイテム名が空でない場合、アイテム名をカウント
-                nameMap[detail.name] = (nameMap[detail.name] ?? 0) + 1
-            }
-            if (detail.rarity) {
-                // レアリティが空でない場合、レアリティ+アイテム名をカウント
-                const rarityNameKey = `${detail.rarity}|${detail.name ?? ''}`
-                rarityNameMap[rarityNameKey] = (rarityNameMap[rarityNameKey] ?? 0) + 1
-            }
-            if (detail.marker) {
-                // アイテム名とマーカーが空でない場合、name+markerをカウント
-                const markerNameKey = `${detail.name ?? ''}|${stripEmoji(detail.marker)}`
-                markerNameMap[markerNameKey] = (markerNameMap[markerNameKey] ?? 0) + 1
+
+        if (log.drop_details && log.drop_details.length > 0) {
+            for (const detail of log.drop_details) {
+                // ユーザー入力による「その他」「other」はそのまま
+                const name = detail.name?.trim()
+                const nameIsSystemOther = !name || name === ''
+                const isSystemOther = nameIsSystemOther || (!detail.name && (detail.rarity || detail.marker))
+
+                const key = isSystemOther ? SYSTEM_OTHER_KEY.value : name
+
+                nameMap[key] = (nameMap[key] ?? 0) + 1
+
+                if (detail.rarity) {
+                    const rarityNameKey = `${detail.rarity}|${key}`
+                    rarityNameMap[rarityNameKey] = (rarityNameMap[rarityNameKey] ?? 0) + 1
+                }
+                if (detail.marker) {
+                    const markerNameKey = `${key}|${stripEmoji(detail.marker)}`
+                    markerNameMap[markerNameKey] = (markerNameMap[markerNameKey] ?? 0) + 1
+                }
             }
         }
+
+        // discharge_items > drop_details.length 分の未記入レアをシステム「その他」として追加
+        const dischargeItems = log.discharge_items ?? 0
+        const dropCount = log.drop_details ? log.drop_details.length : 0
+        const unrecordedCount = dischargeItems - dropCount
+        if (unrecordedCount > 0) {
+            nameMap[SYSTEM_OTHER_KEY.value] = (nameMap[SYSTEM_OTHER_KEY.value] ?? 0) + unrecordedCount
+        }
+
         return {
             name: nameMap,
             rarityName: rarityNameMap,

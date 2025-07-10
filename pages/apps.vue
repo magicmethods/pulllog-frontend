@@ -9,8 +9,8 @@ import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
 import { useWebIcon } from '~/composables/useWebIcon'
 import type { MenuItem } from 'primevue/menuitem'
-import { getMaxApps } from '~/utils/user'
 import { downloadFile } from '~/utils/file'
+import { formatText } from '~/utils/string'
 
 type AppStats = Map<string, Partial<StatsData>> // キーはアプリID、値は統計データの一部
 
@@ -37,7 +37,7 @@ const modalDeleteVisible = ref<boolean>(false)
 const modalDownloadVisible = ref<boolean>(false)
 const modalUploadVisible = ref<boolean>(false)
 const editTarget = ref<AppData | undefined>(undefined)
-const maxApps = computed(() => getMaxApps(userStore.user)) // ユーザーが登録できる最大アプリ数
+const maxApps = computed(() => userStore.planLimits?.maxApps ?? 5) // ユーザーが登録できる最大アプリ数
 const menu = ref()
 const items = ref<MenuItem[]>([
     {
@@ -105,7 +105,6 @@ const items = ref<MenuItem[]>([
         ]
     },
 ])
-const intervalSeparator = '〜'
 
 // Methods
 const toggleMenu = (event: Event, appId: string) => {
@@ -129,7 +128,7 @@ async function loadAppStats() {
 
     const loaderId = loaderStore.show('統計データを読み込み中...')
     try {
-        // 各アプリIDで非同期取得（ローダーなしで呼ぶ！）
+        // 各アプリIDで非同期取得（ローダーなしで呼ぶ）
         const fetches = apps.value.map(app =>
             statsStore.fetchStats(app.appId, '', '', undefined, false)
                 .then(data => ({ appId: app.appId, data }))
@@ -300,7 +299,7 @@ function handleToHistory(app: AppData) {
 onMounted(async () => {
     // Initialize app store and load apps if not already loaded
     await initialize()
-    console.log('apps.vue::onMounted:', apps.value, appStats.value)
+    //console.log('apps.vue::onMounted:', apps.value, appStats.value)
 })
 
 // Watchers
@@ -311,7 +310,7 @@ watch(
         if (appStore.appList.length === 0) {
             appStats.value.clear() // アプリがない場合は統計データをクリア
         }
-        console.log('apps.vue::watch:appStore.appList:', apps.value, appStats.value)
+        //console.log('apps.vue::watch:appStore.appList:', apps.value, appStats.value)
     },
     { deep: true }
 )
@@ -369,7 +368,10 @@ const adConfig: Record<string, AdProps> = {
 
         <!-- Page Content -->
         <div class="w-full mb-4">
-            <p class="font-normal text-base text-surface-600 dark:text-gray-200">現在登録しているアプリの一覧です。最大{{ maxApps }}件まで登録できます。</p>
+            <p class="font-normal text-base text-surface-600 dark:text-gray-200">
+                現在登録しているアプリは<strong class="text-amber-500 dark:text-yellow-400 mx-0.5">{{ apps.length }}</strong>件です。
+                最大<strong class="text-amber-500 dark:text-yellow-400 mx-0.5">{{ maxApps }}</strong>件まで登録できます。
+            </p>
             <template v-if="false"><Button v-if="apps.length < maxApps" label="アプリを追加" icon="pi pi-plus" class="btn btn-primary" @click="addNewApp" /></template>
         </div>
         <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -397,7 +399,7 @@ const adConfig: Record<string, AdProps> = {
                                     aria-controls="overlay_menu"
                                 />
                             </template>
-                            <p v-if="app.description" class="py-3 text-sm">{{ app.description }}</p>
+                            <p v-if="app.description" class="py-3 text-sm" v-html="formatText(app.description)"></p>
                             <p v-else class="py-3 text-sm text-muted">アプリの説明がありません</p>
                         </Panel>
                         <div class="w-full flex flex-wrap items-center justify-between gap-3 md:gap-4 mt-4 md:mt-0 -mb-2">

@@ -1,15 +1,15 @@
 <script setup lang="ts">
+import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
 import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
 import { useWebIcon } from '~/composables/useWebIcon'
 
-// Stores
+// Stores & Plugins
+const userStore = useUserStore()
 const appStore = useAppStore()
 const loaderStore = useLoaderStore()
-
-// Plugins
 const toast = useToast()
 
 // Composables
@@ -27,6 +27,10 @@ const selectedApp = computed<AppData | null>({
 const registeredApps = computed<AppData[]>(() => 
     appStore.appList.filter(app => !!app && !!app.appId && !!app.name)
 )
+const isMaxApps = computed(() => {
+    const maxApps = userStore.planLimits?.maxApps ?? 5
+    return registeredApps.value.length >= maxApps
+})
 const placeholderText = computed(() => {
     return appStore.appList.length === 0 ? 'アプリを追加してください' : 'アプリを選択してください'
 })
@@ -58,6 +62,12 @@ function openModal(mode: 'edit' | 'add', e: Event) {
         }
         editTarget.value = { ...latest }
         //console.log('openModal::handleAppEdit:', registeredApps.value, selectedApp.value, editTarget.value)
+    } else if (mode === 'add') {
+        // 新規追加モード
+        if (isMaxApps.value) {
+            toast.add({ severity: 'warn', summary: '登録可能アプリの上限', detail: `アプリの追加は ${userStore.planLimits?.maxApps ?? 5} つまでです。`, group: 'notices', life: 3000 })
+            return
+        }
     }
     modalVisible.value = true
 }
@@ -143,6 +153,7 @@ const selectPT = {
                     label="追加"
                     class="btn btn-primary w-full mb-0"
                     @click="openModal('add', $event)"
+                    :disabled="isMaxApps"
                     v-blur-on-click
                 />
             </div>

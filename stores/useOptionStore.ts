@@ -38,6 +38,7 @@ export const useOptionStore = defineStore('option', () => {
         { label: '統計分析', value: '/stats' }
     ])
     const rangeSeparator = ref<string>('～') // 日付範囲のセパレーター
+    const otherPlaceholder = ref<string>('<:other:>') // 「その他」プレースホルダー
 
     // Computed labels (UI表示用)
     const currencyLabels = computed(() =>
@@ -116,6 +117,7 @@ export const useOptionStore = defineStore('option', () => {
         themeOptions,
         homepageOptions,
         rangeSeparator,
+        otherPlaceholder,
         currencyLabels,
         rarityLabels,
         markerLabels,

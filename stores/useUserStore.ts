@@ -9,19 +9,24 @@ import { toUser } from '~/utils/user'
 export const useUserStore = defineStore('user', () => {
     // state
     const user = ref<User | null>(null)
+    const planLimits = ref<UserPlanLimits | null>(null)
     const isLoggedIn = computed(() => user.value !== null)
 
     // Composables
     const { callApi } = useAPI()
 
     // actions
-    function setUser(u: User) {
+    function setUser(u: User, limits?: UserPlanLimits | null) {
         user.value = u
+        planLimits.value = limits ?? null
     }
     // デバッグ用
-    function setDummyUser(partialUserData?: Partial<User>) {
+    function setDummyUser(
+        partialUserData?: Partial<User>,
+        planLimitsData?: Partial<UserPlanLimits>
+    ): void {
         const nowDateStr = new Date().toISOString()
-        const baseDummyUser = {
+        const baseDummyUser: Partial<User> = {
             id: 1,
             name: 'Ling Xiaoyu',
             email: 'ling-xiaoyu@dev.pulllog.net',
@@ -37,8 +42,20 @@ export const useUserStore = defineStore('user', () => {
             updatedAt: nowDateStr,
             lastLogin: nowDateStr,
         }
+        const baseDummyLimits: Partial<UserPlanLimits> = {
+            maxApps: 5,
+            maxAppNameLength: 30,
+            maxAppDescriptionLength: 400,
+            maxLogTags: 5,
+            maxLogTagLength: 30,
+            maxLogTextLength: 250,
+            maxLogsPerApp: 100,
+            maxLogSize: 1024 * 1024,
+            maxStorage: 1024 * 1024 * 1024,
+        }
         const dummyUser = { ...baseDummyUser, ...partialUserData } as User
-        setUser(dummyUser)
+        const dummyLimits = { ...baseDummyLimits, ...planLimitsData } as UserPlanLimits
+        setUser(dummyUser, dummyLimits)
     }
     function clearUser() {
         user.value = null
@@ -86,6 +103,7 @@ export const useUserStore = defineStore('user', () => {
     }
     /**
      * ログアウト処理
+     * - バックエンドAPIを呼び出してサーバー側セッションを消去
      * - ユーザーデータをクリア
      * - CSRFトークンをクリア
      * - アプリデータをクリア
@@ -96,6 +114,17 @@ export const useUserStore = defineStore('user', () => {
         const global = useGlobalStore()
         global.setLoading(true)
         try {
+            // バックエンドAPIコールでサーバー側セッション消去
+            try {
+                await callApi({
+                    endpoint: endpoints.auth.logout(),
+                    method: 'POST',
+                })
+            } catch (apiErr: unknown) {
+                // サーバーセッション削除失敗時も、フロント側は続行
+                console.warn('バックエンドセッション削除に失敗:', apiErr)
+            }
+            // フロント側状態のクリア
             clearUser()
             useCsrfStore().clearToken()
             const appStore = useAppStore()
@@ -111,6 +140,7 @@ export const useUserStore = defineStore('user', () => {
 
     return {
         user,
+        planLimits,
         isLoggedIn,
         setUser,
         setDummyUser,

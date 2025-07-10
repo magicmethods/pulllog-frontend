@@ -8,6 +8,7 @@ const props = defineProps<{
     chartData: ChartDataPoint[]
     range: number // グラフ範囲の日数
     currencyCode: string // アプリごとの通貨コード
+    guaranteeCount?: number // 天井回数（オプション、指定があれば表示）
 }>()
 
 // Composables
@@ -48,6 +49,36 @@ const datasets = computed(() => [
     },
 ])
 
+// 天井補助線のannotations計算
+const pityAnnotations = computed(() => {
+    if (!props.guaranteeCount) return {}
+    // y軸最大値の計算
+    const yMax = calcYAxisMax(points, 'total_pulls', 20)
+    const interval = props.guaranteeCount
+    // biome-ignore lint:/suspicious/noExplicitAny chartjs-plugin-annotation用の型
+    const annotations: Record<string, any> = {}
+    for (let v = interval; v <= yMax; v += interval) {
+        annotations[`pityLine${v}`] = {
+            type: 'line',
+            yMin: v,
+            yMax: v,
+            borderColor: palette.value.annotationBorder,
+            borderWidth: 1.5,
+            borderDash: [4, 4],
+            label: {
+                enabled: true,
+                content: `${v}回 天井`,
+                position: 'start',
+                backgroundColor: palette.value.annotationBg,
+                color: palette.value.annotationText,
+                font: { size: 11, weight: 'bold' },
+                yAdjust: -6
+            }
+        }
+    }
+    return annotations
+})
+
 const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
@@ -83,6 +114,11 @@ const chartOptions = computed(() => ({
                 // biome-ignore lint:/suspicious/noExplicitAny
                 a: any, b: any
             ) => b.datasetIndex - a.datasetIndex, // 項目を逆順に
+        },
+        annotation: {
+            annotations: {
+                ...pityAnnotations.value, // 天井補助線
+            }
         },
     },
     scales: {

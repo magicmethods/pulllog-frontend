@@ -47,7 +47,7 @@ export function buildProxyHeaders(
         if (!proxyHeaders['x-csrf-token'] || proxyHeaders['x-csrf-token'] === '') {
             return null
         }
-        proxyHeaders.credentials = 'include' // CSRFトークンを送信するために必要
+        // proxyHeaders.credentials = 'include' // CSRFトークンをCookieで送信するために必要
     }
 
 

@@ -37,3 +37,35 @@ export function stripEmoji(str: string): string {
     const regex = /[\uD800-\uDBFF][\uDC00-\uDFFF]|\uD83D[\uDC00-\uDE4F]/g
     return str.replace(regex, '')
 }
+
+/**
+ * テキストをHTML形式にフォーマットする関数
+ * - 行頭の「・」をリストアイテムに変換
+ * @param text - 対象のテキスト
+ * @return HTML形式にフォーマットされたテキスト
+ */
+export function formatText(text: string): string {
+    if (!text) return '' // 空文字列の場合はそのまま返す
+    let formattedText = text.trim() // 前後の空白を削除
+    const lines = formattedText.split(/\r?\n/)
+    // 各行を処理してリスト形式に変換
+    formattedText = lines.map(line => {
+        if (line.startsWith('・')) {
+            return line.replace(/^・/gm, '<li class="ml-1 mb-0.5">').replace(/$/gm, '</li>')
+        }
+        return `${line}<br>`
+    }).join('')
+    return formattedText
+}
+
+/**
+ * 文字列の先頭を大文字に変換する関数
+ * @param str - 対象の文字列
+ * @return 先頭が大文字に変換された文字列
+ */
+export function capitalize(str: string): string {
+  if (typeof str !== 'string' || str.length === 0) {
+    return str
+  }
+  return `${str.charAt(0).toUpperCase()}${str.slice(1)}`
+}
