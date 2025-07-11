@@ -1,5 +1,6 @@
 import { useUserStore } from '~/stores/useUserStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
+//import { useI18n } from 'vue-i18n'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
 import { getCurrencyData } from '~/utils/currency'
@@ -7,6 +8,10 @@ import { getCurrencyData } from '~/utils/currency'
 export const useAppStore = defineStore('app', () => {
     // composables
     const { callApi } = useAPI()
+
+    // i18n
+    //const { t } = useI18n()
+    const t = (key: string | number) => useNuxtApp().$i18n.t(key)
 
     // state
     const app = ref<AppData | null>(null) // 現在選択中のアプリケーション
@@ -45,12 +50,12 @@ export const useAppStore = defineStore('app', () => {
     async function loadApps(): Promise<void> {
         isLoading.value = true
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show('アプリケーションを読み込み中...')
+        const loaderId = loaderStore.show(t('apps.loading.apps'))
         try {
             // CSRFトークンからユーザーIDは補完されるので、ユーザーIDを指定する必要はない
             const userStore = useUserStore()
             const userId = userStore.user?.id
-            if (!userId) throw new Error('未ログイン')
+            if (!userId) throw new Error(t('app.error.unknownUser'))
 
             // API呼び出し
             const response = await callApi<AppData[]>({
@@ -74,7 +79,7 @@ export const useAppStore = defineStore('app', () => {
         isLoading.value = true
         error.value = null
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show('アプリケーションを保存中...')
+        const loaderId = loaderStore.show(t('apps.loading.saving'))
         try {
             // 既存（編集）はPUT、新規はPOST
             const isEdit = !!appData.appId
@@ -100,11 +105,11 @@ export const useAppStore = defineStore('app', () => {
                 appList.value = [...appList.value] // 配列の再代入でリアクティブに強制更新
                 return saved
             }
-            error.value = '保存に失敗しました'
+            error.value = t('app.error.saveFailed')
             throw new Error(error.value)
         } catch (e: unknown) {
             console.error('Failed to save app:', e)
-            error.value = (e as Error)?.message || '保存に失敗しました'
+            error.value = (e as Error)?.message || t('app.error.saveFailed')
             throw e
         } finally {
             isLoading.value = false
@@ -119,14 +124,14 @@ export const useAppStore = defineStore('app', () => {
         isLoading.value = true
         error.value = null
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show('アプリケーションを削除中...')
+        const loaderId = loaderStore.show(t('apps.loading.deleting'))
         try {
             const deleted = await callApi<DeleteResponse>({
                 endpoint: endpoints.apps.delete(appId),
                 method: 'DELETE',
             })
             if (!deleted || deleted.state !== 'success') {
-                error.value = deleted?.message || '削除に失敗しました'
+                error.value = deleted?.message || t('app.error.deleteFailed')
                 throw new Error(error.value)
             }
             // ローカルappListからも削除
@@ -137,7 +142,7 @@ export const useAppStore = defineStore('app', () => {
             }
         } catch (e: unknown) {
             console.error('Failed to delete app:', e)
-            error.value = e instanceof Error ? e.message : '削除に失敗しました'
+            error.value = e instanceof Error ? e.message : t('app.error.deleteFailed')
             throw e
         } finally {
             isLoading.value = false

@@ -3,17 +3,23 @@ import { useCsrfStore } from './useCsrfStore'
 import { useLogStore } from './useLogStore'
 import { useStatsStore } from './useStatsStore'
 import { useGlobalStore } from './globalStore'
+//import { useI18n } from 'vue-i18n'
+import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
 import { toUser } from '~/utils/user'
 
 export const useUserStore = defineStore('user', () => {
+    // Composables
+    const { callApi } = useAPI()
+
+    // i18n
+    //const { t } = useI18n()
+    const t = (key: string | number) => useNuxtApp().$i18n.t(key)
+
     // state
     const user = ref<User | null>(null)
     const planLimits = ref<UserPlanLimits | null>(null)
     const isLoggedIn = computed(() => user.value !== null)
-
-    // Composables
-    const { callApi } = useAPI()
 
     // actions
     function setUser(u: User, limits?: UserPlanLimits | null) {
@@ -70,8 +76,8 @@ export const useUserStore = defineStore('user', () => {
      * @throws {Error} - ユーザー情報の更新に失敗した場合
      */
     async function updateUser(data: Partial<User> | FormData): Promise<void> {
-        if (!user.value) throw new Error('ログインユーザーが不明です')
-        
+        if (!user.value) throw new Error(t('app.error.unknownUser'))
+
         try {
             let contentType: string | undefined
             // FormDataの場合はContent-Typeを設定しない
@@ -91,14 +97,14 @@ export const useUserStore = defineStore('user', () => {
             })
 
             if (!res || res.state !== 'success' || !res.user) {
-                throw new Error(res?.message || 'ユーザー情報の更新に失敗しました')
+                throw new Error(res?.message || t('app.error.userUpdateFailed'))
             }
 
             // レスポンスをUser型に変換してストアに反映
             user.value = { ...user.value, ...toUser(res.user) }
         } catch (err: unknown) {
             console.error('Failed to update user:', err)
-            throw new Error(err instanceof Error ? err.message : 'ユーザー情報の更新中にエラーが発生しました')
+            throw new Error(err instanceof Error ? err.message : t('app.error.userUpdateFailed'))
         }
     }
     /**
@@ -122,7 +128,7 @@ export const useUserStore = defineStore('user', () => {
                 })
             } catch (apiErr: unknown) {
                 // サーバーセッション削除失敗時も、フロント側は続行
-                console.warn('バックエンドセッション削除に失敗:', apiErr)
+                console.warn('Failed to remove server session:', apiErr)
             }
             // フロント側状態のクリア
             clearUser()

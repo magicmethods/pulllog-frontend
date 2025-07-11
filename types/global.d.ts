@@ -37,6 +37,11 @@ type CurrencyData = {
     code: string; // ISO通貨コード
     name_plural: string; // 複数形の通貨名
 }
+// ローダー表示用の情報型
+type LoaderInfo = {
+    text: string
+    target: HTMLElement | null
+}
 // 広告埋め込みコンポーネントのProps
 type AdItem = {
     image: string

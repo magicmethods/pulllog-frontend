@@ -4,6 +4,7 @@ export default defineI18nLocale(async () => ({
         name: 'PullLog',
         description: 'PullLogは、ガチャの履歴を管理し、統計分析を行うためのツールです',
         keywords: 'ガチャ, 履歴管理, 統計分析, PullLog',
+        loading: '読み込み中...',
         back: '戻る',
         backToHome: 'ホームへ戻る',
         termsTitle: 'PullLog 利用規約',
@@ -12,6 +13,10 @@ export default defineI18nLocale(async () => ({
             errorOccurred: 'エラーが発生しました',
             notFound: 'ページが見つかりません',
             sorrySomethingWentWrong: '申し訳ありません。問題が発生しました',
+            unknownUser: 'ログインユーザーが不明です',
+            userUpdateFailed: 'ユーザー情報の更新に失敗しました',
+            saveFailed: '保存に失敗しました',
+            deleteFailed: '削除に失敗しました',
         },
     },
     // Common Options
@@ -198,6 +203,7 @@ export default defineI18nLocale(async () => ({
         },
         // ローディング
         loading: {
+            apps: 'アプリケーションを読み込み中...',
             stats: '統計データ読み込み中...',
             saving: 'データを保存中...',
             deleting: 'データを削除中...',

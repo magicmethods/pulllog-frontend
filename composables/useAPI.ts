@@ -133,7 +133,7 @@ export function useAPI() {
             }
         }
 
-        console.log('APIリクエスト:', { url, requestOptions, endpoint, overrideURI, currentCSRFToken })
+        console.log('API Request:', { url, requestOptions, endpoint, overrideURI, currentCSRFToken })
 
         // リトライロジック
         for (let attempt = 0; attempt <= retries; attempt++) {
@@ -168,7 +168,7 @@ export function useAPI() {
             } catch (error: unknown) {
                 if (error instanceof Error && error.name === 'AbortError') {
                     // タイムアウト
-                    throw new Error('APIリクエストがタイムアウトしました')
+                    throw new Error('API Request timed out')
                 }
                 // リトライ判定
                 if (attempt < retries && shouldRetry(error)) {
@@ -207,9 +207,9 @@ export function useAPI() {
             throw new Error(`403 Error: ${errorJson?.detail ?? 'Forbidden'}`)
         } else if (response.status === 422) {
             // 画面側でバリデーションエラー表示
-            throw new Error(errorJson?.detail ?? 'バリデーションエラーが発生しました')
+            throw new Error(errorJson?.detail ?? 'Validation error occurred')
         } else if (response.status >= 500) {
-            throw new Error('サーバー内部エラーが発生しました。時間を置いて再試行してください')
+            throw new Error('Internal server error occurred. Please try again later.')
         }
         throw new Error(errorJson?.detail ?? `API Error: ${response.status} - ${response.statusText}`)
     }

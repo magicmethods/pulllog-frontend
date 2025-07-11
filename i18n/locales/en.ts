@@ -4,6 +4,7 @@ export default defineI18nLocale(async () => ({
         name: 'PullLog',
         description: 'PullLog is a tool for managing gacha history and performing statistical analysis.',
         keywords: 'gacha, history management, statistical analysis, PullLog',
+        loading: 'Now Loading...',
         back: 'Back',
         backToHome: 'Back to Home',
         termsTitle: 'PullLog Terms of Service',
@@ -12,6 +13,10 @@ export default defineI18nLocale(async () => ({
             errorOccurred: 'An error occurred.',
             notFound: 'Page not found.',
             sorrySomethingWentWrong: 'Sorry, something went wrong.',
+            unknownUser: 'Logged-in user is unknown.',
+            userUpdateFailed: 'Failed to update user profile.',
+            saveFailed: 'Failed to save.',
+            deleteFailed: 'Failed to delete.',
         },
     },
     // Common Options
@@ -198,6 +203,7 @@ export default defineI18nLocale(async () => ({
         },
         // Loading
         loading: {
+            apps: 'Loading applications...',
             stats: 'Loading statistics...',
             saving: 'Loading data...',
             deleting: 'Loading data...',

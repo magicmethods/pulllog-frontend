@@ -1,15 +1,14 @@
 import { ulid } from 'ulid'
-
-// Types
-type LoaderInfo = {
-    text: string
-    target: HTMLElement | null
-}
+//import { useI18n } from 'vue-i18n'
 
 export const useLoaderStore = defineStore('loader', () => {
+    // i18n
+    //const { t } = useI18n()
+    const t = (key: string | number) => useNuxtApp().$i18n.t(key)
+
     // Map<LoaderId, LoaderInfo>
     const loaderMap = ref<Map<string, LoaderInfo>>(new Map())
-    const defaultLoadingText = 'Loading...'
+    const defaultLoadingText = t('app.loading')
 
     // State
     const isLoading = computed<boolean>(() => loaderMap.value.size > 0) // 現在1つでもローダーがあればtrue
