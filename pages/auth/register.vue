@@ -11,7 +11,7 @@ definePageMeta({
 // Stores etc.
 const userStore = useUserStore()
 const { register } = useAuth()
-const { t, locale } = useI18n()
+const { t, locale, getLocaleCookie } = useI18n()
 
 // Refs & Local variables
 const form = reactive({
@@ -22,6 +22,7 @@ const form = reactive({
 })
 const errors = reactive<{ name?: string; email?: string; password?: string; isAgreed?: string }>({})
 const globalError = ref<string | null>(null)
+const currentLocale = ref<string>(userStore.user?.language ?? getLocaleCookie() ?? locale.value ?? 'ja')
 const touched = reactive<{ name: boolean; email: boolean; password: boolean; isAgreed: boolean }>({
     name: false,
     email: false,
@@ -40,18 +41,10 @@ const registerSchema = computed(() => z.object({
     isAgreed: z.literal(true, { errorMap: () => ({ message: t('validation.termsRequired') }) }),
 }))
 
-
 // Computed
 const isFormValid = computed(() => registerSchema.value.safeParse(form).success)
-const termSrc = computed(() => {
-  const lang = locale.value || localStorage.getItem('language') || 'ja'
-  return `/docs/terms_${lang}.md`
-})
-const docTitle = computed(() => {
-  //const lang = locale.value || localStorage.getItem('language') || 'ja'
-  //return lang === 'en' ? 'PullLog Terms of Service' : 'PullLog 利用規約'
-  return t('app.termsTitle')
-})
+const termSrc = computed(() => `/docs/terms_${currentLocale.value}.md`)
+const docTitle = computed(() => t('app.termsTitle'))
 
 // Methods
 // 強度インジケータ開いた

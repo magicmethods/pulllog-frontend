@@ -14,7 +14,7 @@ export function useAuth() {
     const userStore = useUserStore()
     const csrfStore = useCsrfStore()
     const globalStore = useGlobalStore()
-    const { t } = useI18n()
+    const { t, locale } = useI18n()
     //const t = (key: string | number) => useNuxtApp().$i18n.t(key)
 
     // Methods
@@ -58,12 +58,13 @@ export function useAuth() {
     async function register(name: string, email: string, password: string) {
         isLoading.value = true
         error.value = null
+        const language = locale.value || 'ja' // デフォルト言語を設定
 
         try {
             const response: RegisterResponse = await callApi({
                 endpoint: endpoints.auth.register(),
                 method: 'POST',
-                data: { name, email, password },
+                data: { name, email, password, language },
             })
             //console.log('Registration response:', response)
 

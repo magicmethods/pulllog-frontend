@@ -1,8 +1,13 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 
+// i18n
+const { t } = useI18n()
+
+// Refs & Local variables
 const statusCode: number = 500
-const title: string = statusCode === 404 ? 'ページが見つかりません' : 'エラーが発生しました'
-const message: string = '申し訳ありません。問題が発生しました'
+const title: string = statusCode === 404 ? t('app.error.notFound') : t('app.error.errorOccurred')
+const message: string = t('app.error.sorrySomethingWentWrong')
 
 const goHome = () => {
     window.location.href = '/'
@@ -39,7 +44,7 @@ onMounted(() => {
                 class="mt-4 px-6 py-2 rounded-2xl bg-primary-600 text-white hover:bg-primary-700 transition"
                 @click="goHome"
             >
-                ホームへ戻る
+                {{ t('app.backToHome') }}
             </button>
         </div>
     </div>

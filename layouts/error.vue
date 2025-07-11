@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 
 // Props
 const props = defineProps<{
@@ -10,9 +11,13 @@ const props = defineProps<{
     }
 }>()
 
+// i18n
+const { t } = useI18n()
+
+// Refs & Local variables
 const statusCode = props.error.statusCode || 500
-const title = props.error.statusMessage || (statusCode === 404 ? 'ページが見つかりません' : 'エラーが発生しました')
-const message = props.error.message || '申し訳ありません。問題が発生しました。'
+const title = props.error.statusMessage || (statusCode === 404 ? t('app.error.notFound') : t('app.error.errorOccurred'))
+const message = props.error.message || t('app.error.sorrySomethingWentWrong')
 
 const goHome = () => {
     window.location.href = '/'
@@ -38,7 +43,7 @@ const goHome = () => {
                 class="mt-4 px-6 py-2 rounded-2xl bg-primary-600 text-white hover:bg-primary-700 transition"
                 @click="goHome"
             >
-                ホームへ戻る
+                {{ t('app.backToHome') }}
             </button>
         </div>
     </div>

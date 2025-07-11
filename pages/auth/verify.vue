@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { z } from 'zod'
-import { useUserStore } from '~/stores/useUserStore'
 import { useI18n } from 'vue-i18n'
 import { useAuth }  from '~/composables/useAuth'
 
@@ -9,7 +8,6 @@ definePageMeta({
 })
 
 // Stores & Composables etc.
-const userStore = useUserStore()
 const { verifyToken, updatePassword } = useAuth()
 const { t } = useI18n()
 
@@ -19,6 +17,7 @@ const token = ref<string>(route.query.token as string || '')
 const type = ref<VerifyType | ''>(route.query.type as VerifyType || '')
 const code = ref<string>('')
 const password = ref<string>('')
+const isInitialized = ref<boolean>(false)
 const verifying = ref<boolean>(false)
 const verified = ref<boolean>(false)
 const verifiedCode = ref<boolean>(false)
@@ -95,6 +94,7 @@ onMounted(async () => {
         error.value = `${t('auth.verify.invalidAccess')}<br>${e instanceof Error ? e.message : ''}`
     } finally {
         verifying.value = false
+        isInitialized.value = true
     }
 })
 
@@ -178,6 +178,9 @@ onMounted(async () => {
                             />
                         </template>
                     </template>
+                </div>
+                <div v-else-if="!isInitialized" class="flex flex-col justify-center items-center m-auto">
+                    <p class="text-muted">{{ t('auth.verify.loading') }}</p>
                 </div>
                 <div v-else-if="error" class="flex flex-col justify-center items-center gap-4 mb-4">
                     <p class="text-danger text-center my-2" v-html="error"></p>

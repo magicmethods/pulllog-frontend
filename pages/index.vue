@@ -1,8 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 
 definePageMeta({
     layout: 'landing'
 })
+
+const { locale } = useI18n()
 
 </script>
 
@@ -13,24 +16,30 @@ definePageMeta({
       <h2 class="text-primary dark:!text-white font-bold text-2xl text-center">PullLog - プルログ</h2>
     </div>
     <p class="text-center text-surface-600 dark:text-gray-500 font-medium text-base">
-      This is a test of Tailwind CSS with <strong class="text-primary-emphasis!">PrimeVue</strong>.<br>
-      <span class="text-sm">The button below is a PrimeVue button with <strong>Tailwind CSS</strong> classes applied.</span><br>
-      <span class="text-xs">The <strong>smallest font size</strong> button below is a PrimeVue button with Tailwind CSS classes applied.</span><br>
-      日本語の<strong class="text-primary-emphasis!">テキスト</strong>も含まれています。<br>
-      <span class="text-sm">小さい<strong>フォントサイズ</strong>での日本語テキストの見た目を確認します。</span><br>
-      <span class="text-xs">最小フォントサイズでの<strong>日本語テキスト</strong>はこのようになります。</span><br>
-      <!-- /*
-      1つ目のシリアルコード: BR16000019382C<br>
-      2つ目のシリアルコード: BR170000189BCB<br>
-      3つ目のシリアルコード: BR1800001C67C2<br>
-      */ -->
+      <template v-if="locale === 'ja'">
+        このページは、<strong class="text-primary-emphasis!">Tailwind CSS</strong>と<strong class="text-primary-emphasis!">PrimeVue</strong>のテスト用です。<br>
+        <span class="text-sm">以下のボタンは、PrimeVueのボタンに<strong>Tailwind CSS</strong>のクラスが適用されています。</span><br>
+        <span class="text-xs">以下の<strong>最小フォントサイズ</strong>のボタンは、PrimeVueのボタンにTailwind CSSのクラスが適用されています。</span><br>
+        日本語の<strong class="text-primary-emphasis!">テキスト</strong>も含まれています。<br>
+        <span class="text-sm">小さい<strong>フォントサイズ</strong>での日本語テキストの見た目を確認します。</span><br>
+        <span class="text-xs">最小フォントサイズでの<strong>日本語テキスト</strong>はこのようになります。</span><br>
+      </template>
+      <template v-else>
+        This is a test of Tailwind CSS with <strong class="text-primary-emphasis!">PrimeVue</strong>.<br>
+        <span class="text-sm">The button below is a PrimeVue button with <strong>Tailwind CSS</strong> classes applied.</span><br>
+        <span class="text-xs">The <strong>smallest font size</strong> button below is a PrimeVue button with Tailwind CSS classes applied.</span><br>
+        日本語の<strong class="text-primary-emphasis!">テキスト</strong>も含まれています。<br>
+        <span class="text-sm">小さい<strong>フォントサイズ</strong>での日本語テキストの見た目を確認します。</span><br>
+        <span class="text-xs">最小フォントサイズでの<strong>日本語テキスト</strong>はこのようになります。</span><br>
+      </template>
     </p>
     <div class="flex-grow flex flex-col justify-center items-center gap-2">
-      <NuxtLink to="/auth/verify?token=valid&type=signup" class="btn btn-alt">認証テスト（アカウント有効化：valid）</NuxtLink>
+      <NuxtLink to="/auth/verify?token=TokenExample005&type=signup" class="btn btn-alt">認証テスト（アカウント有効化：valid）</NuxtLink>
       <NuxtLink to="/auth/verify?token=f1ec638d9940185d1df61c5acc239780a19ce63d22b8fb9b868e18e3b54bde74&type=reset"  class="btn btn-alt">認証テスト（パスワード再設定：valid）</NuxtLink>
-      <NuxtLink to="/auth/verify?token=invalid&type=signup" class="btn btn-alt">認証テスト（アカウント有効化：invalid）</NuxtLink>
+      <NuxtLink to="/auth/verify?token=0d6b7d19a6e14d98a7aa2528cbc81a9b6f15a219e56e1cec122b0a7e77d3c192&type=reset" class="btn btn-alt">認証テスト（トークン有効期限切れ：invalid）</NuxtLink>
       <NuxtLink to="/auth/verify?token=invalid&type=reset" class="btn btn-alt">認証テスト（パスワード再設定：invalid）</NuxtLink>
       <NuxtLink to="/apps" class="btn btn-alt">認証ページに直接アクセス</NuxtLink>
+      <NuxtLink to="/test" class="btn btn-alt">エラーページを確認</NuxtLink>
     </div>
     <div class="flex gap-6 flex-wrap">
       <div class="rounded-border p-4 border border-transparent flex items-center justify-center bg-primary hover:bg-primary-emphasis text-white font-medium flex-auto transition-colors">
