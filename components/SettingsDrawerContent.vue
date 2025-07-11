@@ -21,15 +21,15 @@ const optionStore = useOptionStore()
 const loaderStore = useLoaderStore()
 
 // i18n
-const { t, setLocale } = useI18n()
+const { t, locale, setLocale } = useI18n()
 
 // Refs & Computed
-const internalLang  = ref<string>(userStore.user?.language ?? 'ja')
+const internalLang  = ref<string>(locale.value)
 const internalTheme = ref<string>(userStore.user?.theme ?? 'light')
 const internalHomepage = ref<string>(userStore.user?.homePage ?? 'apps')
-const languageOptions = computed(() => optionStore.getLanguageOptions(t))
+const languageOptions = computed(() => optionStore.languageOptions)
 const themeOptions = computed(() => optionStore.themeOptions)
-const homepageOptions = optionStore.homepageOptions
+const homepageOptions = computed(() => optionStore.homepageOptions)
 const lastLoginDate = computed(() => {
     return userStore.user?.lastLogin ? strFromDate(userStore.user.lastLogin, '%Y-%m-%d %H:%M') : '&mdash;'
 })
@@ -98,7 +98,10 @@ watch(
     // ストアのユーザーデータを監視
     () => userStore.user,
     (userData) => {
-        internalLang.value = userData?.language ?? 'ja'
+        if (userData?.language) {
+            internalLang.value = userData.language
+            setLocale(userData.language as Language)
+        }
         internalTheme.value = userData?.theme ?? 'light'
         internalHomepage.value = userData?.homePage ?? '/history'
     },

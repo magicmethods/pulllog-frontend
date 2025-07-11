@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores/useUserStore'
+import { useI18n } from 'vue-i18n'
 import { StorageUtil } from '~/utils/storage'
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
+const { t } = useI18n()
 
 // Refs & Local variables
 const isDarkMode = ref<boolean>(userStore.user?.theme === 'dark')
@@ -105,7 +107,7 @@ watch(
         <Drawer
             v-model:visible="isDrawerOpen"
             position="right"
-            header="個人設定"
+            :header="t('settingsDrawer.header')"
         >
             <SettingsDrawerContent @close="closeDrawer" />
         </Drawer>

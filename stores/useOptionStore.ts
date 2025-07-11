@@ -1,61 +1,31 @@
 export const useOptionStore = defineStore('option', () => {
     // i18n
-    //const { t, locale } = useI18n()
     const t = (key: string | number) => useNuxtApp().$i18n.t(key)
-    // getter
-
-    //console.log('useOptionStore:', locale.value)
 
     // Options
-    const currencyOptions = computed<SymbolOption[]>(() => [
+    // - 現状 ref で問題ないが、もし locale 変更時に切り替わらない場合は computed に変更する
+    const currencyOptions = ref<SymbolOption[]>([
         { label: t('options.currency.jpy'), value: 'JPY', desc: t('options.currency.jpyDesc'), symbol: '￥' },
         { label: t('options.currency.usd'), value: 'USD', desc: t('options.currency.usdDesc'), icon: 'pi-dollar' },
         { label: t('options.currency.eur'), value: 'EUR', desc: t('options.currency.eurDesc'), icon: 'pi-euro' },
         { label: t('options.currency.cny'), value: 'CNY', desc: t('options.currency.cnyDesc'), symbol: '￥' },
     ])
-    const rarityOptions = computed<SymbolOption[]>(() => [
+    const rarityOptions = ref<SymbolOption[]>([
         { symbol: '', label: t('options.rarity.ssr'), value: 'ssr' },
         { symbol: '', label: t('options.rarity.sr'),  value: 'sr' },
         { symbol: '⭐', label: t('options.rarity.fiveStars'), value: '5stars' },
         { symbol: '⭐', label: t('options.rarity.threeStars'), value: '3stars' },
     ])
-    const symbolOptions = computed<SymbolOption[]>(() => [
+    const symbolOptions = ref<SymbolOption[]>([
         { symbol: '🏆', label: t('options.symbol.pickup'), value: 'pickup' },
         { symbol: '💔', label: t('options.symbol.lose'), value: 'lose' },
         { symbol: '🎯', label: t('options.symbol.target'), value: 'target' },
         { symbol: '💖', label: t('options.symbol.guaranteed'), value: 'guaranteed' },
     ])
-    /*
-    const defaultCurrencyOptions: SymbolOption[] = [
-        { label: 'JPY', value: 'JPY', desc: 'JPY - 円', symbol: '￥' },
-        { label: 'USD', value: 'USD', desc: 'USD - ドル', icon: 'pi-dollar' },
-        { label: 'EUR', value: 'EUR', desc: 'EUR - ユーロ', icon: 'pi-euro' },
-        { label: 'CNY', value: 'CNY', desc: 'CNY - 人民元', symbol: '￥' },
-    ]
-    const defaultRarityOptions: SymbolOption[] = [
-        { symbol: '', label: 'SSR', value: 'ssr' },
-        { symbol: '', label: 'SR',  value: 'sr' },
-        { symbol: '⭐', label: '⭐5', value: '5stars' },
-        { symbol: '⭐', label: '⭐3', value: '3stars' },
-    ]
-    const defaultSymbolOptions: SymbolOption[] = [
-        { symbol: '🏆', label: '🏆ピックアップ', value: 'pickup' },// Pickup
-        { symbol: '💔', label: '💔すり抜け', value: 'lose' },// Lose 50/50
-        { symbol: '🎯', label: '🎯狙い', value: 'target' },// Target
-        //{ symbol: '⏫', label: '⏫+1凸', value: 'stack+1' },// Stack +1
-        { symbol: '💖', label: '💖確定枠', value: 'guaranteed' },// Guaranteed
-    ]
-    */
-    const languageOptions = ref<BasicOption[]>([
+    const languageOptions = computed<BasicOption[]>(() => ([
         { label: t('options.language.ja'), value: 'ja' },
         { label: t('options.language.en'), value: 'en' }
-    ])
-    function getLanguageOptions(t: (key: string) => string): BasicOption[] {
-        return [
-            { label: t('options.language.ja'), value: 'ja' },
-            { label: t('options.language.en'), value: 'en' }
-        ]
-    }
+    ]))
     const themeOptions = computed<BasicOption[]>(() => ([
         { label: t('options.theme.light'), value: 'light' },
         { label: t('options.theme.dark'), value: 'dark' }
@@ -65,18 +35,7 @@ export const useOptionStore = defineStore('option', () => {
         { label: t('options.homepage.history'), value: '/history' },
         { label: t('options.homepage.stats'), value: '/stats' }
     ]))
-    /*
-    const themeOptions = ref<BasicOption[]>([
-        { label: '🔆 ライト', value: 'light' },
-        { label: '🌙 ダーク', value: 'dark' }
-    ])
-    const homepageOptions = ref<BasicOption[]>([
-        { label: 'アプリ管理', value: '/apps' },
-        { label: '履歴登録', value: '/history' },
-        { label: '統計分析', value: '/stats' }
-    ])
-    */
-    const rangeSeparator = ref<string>(t('options.rangeSeparator')) // 日付範囲のセパレーター
+    const rangeSeparator = computed<string>(() => t('options.rangeSeparator')) // 日付範囲のセパレーター
     const otherPlaceholder = ref<string>('<:other:>') // 「その他」プレースホルダー
 
     // Computed labels (UI表示用)
@@ -100,13 +59,6 @@ export const useOptionStore = defineStore('option', () => {
     )
 
     // Actions
-    /*
-    function resetOptions(): void {
-        currencyOptions.value = [...defaultCurrencyOptions]
-        rarityOptions.value = [...defaultRarityOptions]
-        symbolOptions.value = [...defaultSymbolOptions]
-    }
-    */
     function getOptionsAs(
         type: 'array' | 'object',
         target: 'currency' | 'rarity' | 'symbol' | 'language' | 'theme' | 'homepage'
@@ -162,9 +114,7 @@ export const useOptionStore = defineStore('option', () => {
         currencyLabels,
         rarityLabels,
         markerLabels,
-        //resetOptions,
-        //setOptionsFromAppConfig,
         getOptionsAs,
-        getLanguageOptions,
+        //setOptionsFromAppConfig,
     }
 })

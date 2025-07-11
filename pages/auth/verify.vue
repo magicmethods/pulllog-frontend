@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { z } from 'zod'
+import { useUserStore } from '~/stores/useUserStore'
+import { useI18n } from 'vue-i18n'
 import { useAuth }  from '~/composables/useAuth'
-
-// Types
-type VerifyType = 'signup' | 'reset'
-type VerifyResponse = {
-    success: boolean
-    message?: string
-}
 
 definePageMeta({
     layout: 'auth'
 })
 
-// Composables
+// Stores & Composables etc.
+const userStore = useUserStore()
 const { verifyToken, updatePassword } = useAuth()
+const { t } = useI18n()
 
 // Refs & Local variables
 const route = useRoute()
@@ -28,14 +25,22 @@ const verifiedCode = ref<boolean>(false)
 const error = ref<string | null>(null)
 const codeError = ref<string | null>(null)
 const passwordError = ref<string | null>(null)
+// Schema for form validation
+const verifySchema = computed(() => z.object({
+    code: z.string().length(6, { message: t('validation.invalidCode') }),
+    password: z.string().min(8, { message: t('validation.shortPassword') }),
+}))
+
 
 // Methods
 async function handleUpdatePassword() {
     verifying.value = true
     try {
         // 認証コードの検証処理
-        z.string().length(6).parse(code.value)
-        z.string().min(8, '8文字以上で入力してください').parse(password.value)
+        verifySchema.value.parse({
+            code: code.value,
+            password: password.value
+        })
         codeError.value = null
         passwordError.value = null
 
@@ -46,7 +51,7 @@ async function handleUpdatePassword() {
             password.value
         )
         if (!res) {
-            throw new Error('パスワードの再設定に失敗しました')
+            throw new Error(t('auth.verify.passwordResetFailed'))
         }
         verifiedCode.value = true
     } catch (e: unknown) {
@@ -59,7 +64,7 @@ async function handleUpdatePassword() {
             }
         } else {
             console.error('Reset Password Error:', e)
-            codeError.value = e instanceof Error ? e.message : '不明なエラーが発生しました'
+            codeError.value = e instanceof Error ? e.message : t('auth.verify.unknownError')
         }
         return
     } finally {
@@ -74,7 +79,7 @@ function handleBack() {
 onMounted(async () => {
     // クエリパラメータの検証
     if (!token.value || (type.value !== 'signup' && type.value !== 'reset')) {
-        error.value = '無効なアクセスです'
+        error.value = t('auth.verify.invalidAccess')
         return
     }
     verifying.value = true
@@ -82,13 +87,12 @@ onMounted(async () => {
         // バックエンドAPIへtoken, typeで認証リクエスト
         const res: boolean = await verifyToken(token.value, type.value as 'signup' | 'reset')
         if (!res) {
-            throw new Error('認証に失敗しました')
+            throw new Error(t('auth.verify.failed'))
         }
         verified.value = true
     } catch (e: unknown) {
-        console.error('認証エラー:', e)
-        //error.value = e instanceof Error ? e.message : '不明なエラーが発生しました'
-        error.value = `無効なアクセスです<br>${e instanceof Error ? e.message : ''}`
+        console.error('Verification error:', e)
+        error.value = `${t('auth.verify.invalidAccess')}<br>${e instanceof Error ? e.message : ''}`
     } finally {
         verifying.value = false
     }
@@ -99,26 +103,34 @@ onMounted(async () => {
 <template>
     <div class="flex flex-col gap-12">
         <div class="relative flex flex-col gap-2 items-center mb-2">
-            <h1 class="text-2xl font-bold mb-2">PullLog</h1>
+            <h1 class="text-2xl font-bold mb-2">{{ t('app.name') }}</h1>
 
             <div class="auth-verify">
                 <div v-if="verified" class="flex flex-col justify-center items-center gap-4">
                     <template v-if="type === 'signup'">
-                        <p class="text-success">アカウントが有効になりました</p>
+                        <p class="text-success">{{ t('auth.verify.signupSuccess') }}</p>
                         <p class="text-surface-600 dark:text-surface-400 mb-4">
-                            こちらから<nuxt-link to="/auth/login" class="font-semibold text-link mx-1">ログイン</nuxt-link>してください
+                            {{ t('auth.verify.promptPrefix') }}
+                            <nuxt-link to="/auth/login" class="font-semibold text-link mx-0.5">{{ t('auth.login.submit') }}</nuxt-link>
+                            {{ t('auth.verify.promptSuffix') }}
                         </p>
                     </template>
                     <template v-else-if="type === 'reset'">
                         <template v-if="verifiedCode">
-                            <p class="text-success">パスワードの再設定が完了しました</p>
+                            <p class="text-success">{{ t('auth.verify.resetSuccess') }}</p>
                             <p class="text-surface-600 dark:text-surface-400 mb-4">
-                                こちらから<nuxt-link to="/auth/login" class="font-semibold text-link mx-1">ログイン</nuxt-link>してください
+                                {{ t('auth.verify.promptPrefix') }}
+                                <nuxt-link to="/auth/login" class="font-semibold text-link mx-0.5">{{ t('auth.login.submit') }}</nuxt-link>
+                                {{ t('auth.verify.promptSuffix') }}
                             </p>
                         </template>
                         <template v-else>
-                            <p class="text-info">パスワードの再設定を行います</p>
-                            <p>メール記載の<strong class="text-amber-500 dark:text-yellow-600 mx-0.5">認証コード</strong>を入力してください</p>
+                            <p class="text-info">{{ t('auth.verify.resetPrompt') }}</p>
+                            <p>
+                                {{ t('auth.verify.inputPromptPrefix') }}
+                                <strong class="text-amber-500 dark:text-yellow-600 mx-0.5">{{ t('auth.verify.code') }}</strong>
+                                {{ t('auth.verify.inputPromptSuffix') }}
+                            </p>
                             <div class="flex flex-col justify-center items-center gap-4 mb-4">
                                 <InputOtp v-model="code" :length="6">
                                     <template #default="{ attrs, events }">
@@ -136,15 +148,15 @@ onMounted(async () => {
                                     {{ codeError }}
                                 </Message>
                             </div>
-                            <p>新しいパスワードを入力してください</p>
+                            <p>{{ t('auth.verify.newPasswordPrompt') }}</p>
                             <div class="w-full flex flex-col justify-center items-center gap-4 mb-4">
                                 <Password
                                     v-model="password"
-                                    promptLabel="Choose a password"
-                                    weakLabel="Too simple"
-                                    mediumLabel="Average complexity"
-                                    strongLabel="Complex password"
-                                    placeholder="Enter new password"
+                                    :promptLabel="t('auth.register.passwordPrompt')"
+                                    :weakLabel="t('auth.register.weakLabel')"
+                                    :mediumLabel="t('auth.register.mediumLabel')"
+                                    :strongLabel="t('auth.register.strongLabel')"
+                                    :placeholder="t('auth.register.passwordPlaceholder')"
                                     toggleMask
                                     :minlength="8"
                                     :pt:root="'w-full'"
@@ -158,7 +170,7 @@ onMounted(async () => {
                             </div>
                             <!-- Divider / -->
                             <Button
-                                :label="verifying ? '設定中...' : '設定する'"
+                                :label="verifying ? t('auth.verify.verifying') : t('auth.verify.submit')"
                                 @click="handleUpdatePassword"
                                 :disabled="verifying || !code || code.length < 6 || !password || password.length < 8"
                                 :loading="verifying"
@@ -175,7 +187,7 @@ onMounted(async () => {
                 <div
                     class="btn-back"
                     @click="handleBack"
-                    aria-label="戻る"
+                    :aria-label="t('app.back')"
                 >
                     <i class="pi pi-times"></i>
                 </div>

@@ -26,6 +26,7 @@ declare global {
         message?: string
     } | null
     /** 認証レスポンス（汎用） */
+    type VerifyType = 'signup' | 'reset'
     type VerifyResponse = {
         success: boolean
         message?: string

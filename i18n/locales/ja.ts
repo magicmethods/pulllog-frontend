@@ -1,63 +1,223 @@
 export default defineI18nLocale(async () => ({
-    "options": {
-        "currency": {
-            "jpy": "日本円",
-            "jpyDesc": "JPY - 円",
-            "usd": "米ドル",
-            "usdDesc": "USD - ドル",
-            "eur": "ユーロ",
-            "eurDesc": "EUR - ユーロ",
-            "cny": "人民元",
-            "cnyDesc": "CNY - 人民元"
-        },
-        "rarity": {
-            "ssr": "SSR",
-            "sr": "SR",
-            "fiveStars": "⭐5",
-            "threeStars": "⭐3"
-        },
-        "symbol": {
-            "pickup": "🏆ピックアップ",
-            "lose": "💔すり抜け",
-            "target": "🎯狙い",
-            "guaranteed": "💖確定枠"
-        },
-        "language": {
-            "ja": "日本語",
-            "en": "English"
-        },
-        "theme": {
-            "light": "🔆 ライト",
-            "dark": "🌙 ダーク"
-        },
-        "homepage": {
-            "apps": "アプリ管理",
-            "history": "履歴登録",
-            "stats": "統計分析"
-        },
-        "rangeSeparator": "～"
+    // Globals
+    app: {
+        name: 'PullLog',
+        description: 'PullLogは、ガチャの履歴を管理し、統計分析を行うためのツールです',
+        keywords: 'ガチャ, 履歴管理, 統計分析, PullLog',
+        back: '戻る',
+        termsTitle: 'PullLog 利用規約',
+        termsLabel: '利用規約',
     },
-    "settingsDrawer": {
-        "title": "設定",
-        "loading": "読み込み中...",
-        "loggingOut": "ログアウト中...",
-        "unset": "未設定",
-        "lastLogin": "最終ログイン",
-        "language": "言語設定",
-        "languagePlaceholder": "言語を選択",
-        "theme": "テーマ設定",
-        "themePlaceholder": "テーマを選択",
-        "homepage": "ホームページ",
-        "homepagePlaceholder": "ホームページを選択",
-        "others": "その他の設定項目",
-        "plan": "プラン",
-        "planPlaceholder": "プランを選択",
-        "change": "変更",
-        "mdTemplateTitle": "Markdown スタイルテンプレート",
-        "privacyPolicyTitle": "PullLog プライバシーポリシー",
-        "showDocument": "文書を表示",
-        "privacyPolicy": "プライバシーポリシー",
-        "editProfile": "登録情報変更",
-        "logout": "ログアウト"
-    }
+    // Common Options
+    options: {
+        currency: {
+            jpy: '日本円',
+            jpyDesc: 'JPY - 円',
+            usd: '米ドル',
+            usdDesc: 'USD - ドル',
+            eur: 'ユーロ',
+            eurDesc: 'EUR - ユーロ',
+            cny: '人民元',
+            cnyDesc: 'CNY - 人民元',
+        },
+        rarity: {
+            ssr: 'SSR',
+            sr: 'SR',
+            fiveStars: '⭐5',
+            threeStars: '⭐3',
+        },
+        symbol: {
+            pickup: '🏆ピックアップ',
+            lose: '💔すり抜け',
+            target: '🎯狙い',
+            guaranteed: '💖確定枠',
+        },
+        language: {
+            ja: '日本語',
+            en: 'English',
+        },
+        theme: {
+            light: '🔆 ライト',
+            dark: '🌙 ダーク',
+        },
+        homepage: {
+            apps: 'アプリ管理',
+            history: '履歴登録',
+            stats: '統計分析',
+        },
+        rangeSeparator: '～',
+    },
+    // Auth
+    auth: {
+        login: {
+            pageName: 'ログイン',
+            google: 'Googleでログイン',
+            apple: 'Appleでログイン',
+            microsoft: 'Microsoftでログイン',
+            twitter: 'Xでログイン', // Xは非推奨
+            facebook: 'Facebookでログイン', // Facebookは非推奨
+            github: 'GitHubでログイン',
+            prompt: 'ログイン情報を入力してください',
+            emailPlaceholder: 'メールアドレスを入力',
+            passwordPlaceholder: 'パスワードを入力',
+            loading: 'ログイン中...',
+            submit: 'ログイン',
+            or: 'または',
+            hasAccount: 'すでにアカウントをお持ちの方は',
+            hasAccountSuffix: 'してください',
+            // Error messages
+            invalidResponse: 'ログインレスポンスが不正です',
+            accountNotAvailable: 'このアカウントは使用できません',
+            error: 'ログイン中にエラーが発生しました',
+            failed: 'ログインに失敗しました。メールアドレスとパスワードを確認してください',
+        },
+        register: {
+            pageName: '新規登録',
+            noAccount: 'アカウントをお持ちでない方は',
+            noAccountSuffix: 'してください',
+            success: 'アカウント登録が完了しました',
+            confirmationEmailSent: 'ご登録いただいたメールアドレスに確認メールを送信しました。メール内のリンクをクリックしてアカウントを有効化してください',
+            prompt: '新規アカウントの登録を行います',
+            instruction: '以下の情報を入力してください',
+            namePlaceholder: '名前（表示名）を入力',
+            emailPlaceholder: 'メールアドレスを入力',
+            passwordPlaceholder: 'パスワードを入力',
+            passwordPrompt: 'パスワードの強度をチェックします',
+            weakLabel: '簡単すぎます',
+            mediumLabel: '平均的な複雑さ',
+            strongLabel: '複雑なパスワード',
+            passwordFooter: '※ パスワードは8文字以上で入力してください',
+            agreeTextPrefix: '',
+            agreeTextSuffix: 'に同意します',
+            submit: '新規登録',
+            // Error messages
+            invalidResponse: '登録レスポンスが不正です',
+            error: '登録中にエラーが発生しました',
+            failed: '登録に失敗しました。入力内容をご確認ください',
+        },
+        passwordReset: {
+            pageName: 'パスワード再設定',
+            shortName: '再設定',
+            forgotPassword: 'パスワードをお忘れの方は',
+            forgotPasswordSuffix: 'してください',
+            success: 'パスワードリセットのメールを送信しました',
+            confirmationEmailSent: 'ご登録いただいたメールアドレスにパスワードリセット用のメールを送信しました。メール内のリンクをクリックしてパスワードをリセットしてください',
+            forgotPasswordTitle: 'パスワードを忘れた場合',
+            prompt: '登録したメールアドレスを入力してください',
+            instructions: 'パスワードリセットの手順をお送りします',
+            emailPlaceholder: 'メールアドレスを入力',
+            submit: '送信する',
+            // Error messages
+            error: 'パスワードリセットに失敗しました',
+            failed: 'パスワードリセットに失敗しました。メールアドレスをご確認ください',
+        },
+        verify: {
+            signupSuccess: 'アカウントが有効になりました',
+            resetSuccess: 'パスワードの再設定が完了しました',
+            promptPrefix: 'こちらから',
+            promptSuffix: 'してください',
+            resetPrompt: 'パスワードの再設定を行います',
+            inputPromptPrefix: 'メール記載の',
+            code: '認証コード',
+            inputPromptSuffix: 'を入力してください',
+            newPasswordPrompt: '新しいパスワードを入力してください',
+            verifying: '設定中...',
+            submit: '設定する',
+            // Error messages
+            error: '認証に失敗しました',
+            passwordResetFailed: 'パスワードの再設定に失敗しました',
+            unknownError: '不明なエラーが発生しました',
+            invalidAccess: '無効なアクセスです',
+            failed: '認証に失敗しました',
+        },
+        updatePassword: {
+            error: 'パスワードの更新に失敗しました',
+        },
+    },
+    // Validation Messages
+    validation: {
+        invalidEmail: '有効なメールアドレスを入力してください',
+        shortPassword: 'パスワードは8文字以上で入力してください',
+        nameRequired: '名前（表示名）を入力してください',
+        nameMaxLength: '名前は50文字以内で入力してください',
+        emailInvalid: '有効なメールアドレスを入力してください',
+        termsRequired: '利用規約への同意が必要です',
+        invalidCode: '無効な認証コードです',
+    },
+    // Settings Drawer
+    settingsDrawer: {
+        header: '個人設定',
+        title: '設定',
+        loading: '読み込み中...',
+        loggingOut: 'ログアウト中...',
+        unset: '未設定',
+        lastLogin: '最終ログイン',
+        language: '言語設定',
+        languagePlaceholder: '言語を選択',
+        theme: 'テーマ設定',
+        themePlaceholder: 'テーマを選択',
+        homepage: 'ホームページ',
+        homepagePlaceholder: 'ホームページを選択',
+        others: 'その他の設定項目',
+        plan: 'プラン',
+        planPlaceholder: 'プランを選択',
+        change: '変更',
+        mdTemplateTitle: 'Markdown スタイルテンプレート',
+        privacyPolicyTitle: 'PullLog プライバシーポリシー',
+        showDocument: '文書を表示',
+        privacyPolicy: 'プライバシーポリシー',
+        editProfile: '登録情報変更',
+        logout: 'ログアウト'
+    },
+    // Apps Page
+    apps: {
+        header: 'アプリ管理',
+        description1: '現在登録しているアプリは',
+        description2: '件です。最大',
+        description3: '件まで登録できます。',
+        addApp: 'アプリを追加',
+        addNew: '新規アプリを登録する',
+        noDescription: 'アプリの説明がありません',
+        noHistory: '履歴データがありません',
+        siteLink: '関連サイト',
+        registerHistory: '履歴を登録する',
+        // メニュー
+        menu: {
+            settings: 'アプリ設定',
+            edit: '編集',
+            export: 'エクスポート',
+            import: 'インポート',
+            delete: '削除',
+        },
+        // ローディング
+        loading: {
+            stats: '統計データ読み込み中...',
+            saving: 'データを保存中...',
+            deleting: 'データを削除中...',
+            downloading: '履歴をダウンロード中...',
+            uploading: '履歴をアップロード中...',
+        },
+        // トースト通知
+        notice: {
+            infoTitle: '情報',
+            infoDetail: '処理が完了しました。',
+            saveTitle: 'アプリケーションの保存',
+            saveDetail: '{name} を保存しました。',
+            saveErrorTitle: '保存エラー',
+            saveErrorDetail: 'アプリの保存に失敗しました。',
+            deleteTitle: 'アプリケーションの削除',
+            deleteDetail: '{name} を削除しました。',
+            deleteErrorTitle: '削除エラー',
+            deleteErrorDetail: 'アプリの削除に失敗しました。',
+            downloadTitle: '履歴のダウンロード',
+            downloadDetail: '{name} の履歴をダウンロードしました。',
+            downloadErrorTitle: 'ダウンロードエラー',
+            downloadErrorDetail: '履歴のダウンロードに失敗しました。',
+            importTitle: '履歴のインポート',
+            importDetail: '{name} の履歴を更新しました。',
+            importErrorTitle: 'インポートエラー',
+            importErrorDetail: '履歴のインポートに失敗しました。',
+        }
+    },
+
 }))

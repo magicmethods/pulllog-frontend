@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useUserStore } from '~/stores/useUserStore'
+import { useI18n } from 'vue-i18n'
 
 // Props & Emits
 const props = defineProps<{
@@ -13,14 +14,16 @@ const emit = defineEmits<{
 // Stores
 const userStore = useUserStore()
 
+// i18n
+const { t } = useI18n()
+
 // Refs & Local variables
-const naviLinks = [
-    { name: 'アプリ管理', icon: 'pi pi-crown', symbol: '🎮', prefix: 'symbol', path: '/apps' },
-    { name: '履歴登録', icon: 'pi pi-trophy', symbol: '📝', prefix: 'symbol', path: '/history' },
-    { name: '統計分析', icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/stats' },
-    //{ name: '登録情報変更', icon: 'pi pi-cog', symbol: '⚙️', prefix: 'symbol', path: '/settings' }
-]
-const homePage = computed(() => userStore.user?.homePage ?? naviLinks[0].path)
+const naviLinks = computed(() => ([
+    { name: t('options.homepage.apps'), icon: 'pi pi-crown', symbol: '🎮', prefix: 'symbol', path: '/apps' },
+    { name: t('options.homepage.history'), icon: 'pi pi-trophy', symbol: '📝', prefix: 'symbol', path: '/history' },
+    { name: t('options.homepage.stats'), icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/stats' },
+]))
+const homePage = computed(() => userStore.user?.homePage ?? naviLinks.value[0].path)
 
 // Methods
 const avatarProps = () => {
@@ -55,7 +58,7 @@ const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded tex
         <NuxtLink :to="homePage">
             <div class="flex items-center space-x-4">
                 <img src="/images/pulllog-icon.svg" alt="PullLog" class="w-6 h-6 inline-block mr-2 ld ld-swing" />
-                <h1 class="text-xl font-bold">PullLog</h1>
+                <h1 class="text-xl font-bold">{{ t('app.name') }}</h1>
             </div>
         </NuxtLink>
         <nav id="navi-links" class="flex-1 flex justify-end items-center px-4 gap-4">

@@ -1,6 +1,7 @@
 import { useUserStore } from '~/stores/useUserStore'
 import { useCsrfStore } from '~/stores/useCsrfStore'
 import { useGlobalStore } from '~/stores/globalStore'
+import { useI18n } from 'vue-i18n'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
 import { toUser, toUserPlanLimits } from '~/utils/user'
@@ -13,6 +14,8 @@ export function useAuth() {
     const userStore = useUserStore()
     const csrfStore = useCsrfStore()
     const globalStore = useGlobalStore()
+    const { t } = useI18n()
+    //const t = (key: string | number) => useNuxtApp().$i18n.t(key)
 
     // Methods
     async function login(userid: string, password: string) {
@@ -27,10 +30,10 @@ export function useAuth() {
             })
 
             if (!response || !response.state || response.state !== 'success') {
-                throw new Error(response?.message || 'ログインレスポンスが不正です')
+                throw new Error(response?.message || t('auth.login.invalidResponse'))
             }
             if (!response.user || response.user.is_deleted || !response.user.is_verified) {
-                throw new Error(response?.message || 'このアカウントは使用できません')
+                throw new Error(response?.message || t('auth.login.accountNotAvailable'))
             }
 
             userStore.setUser(
@@ -45,7 +48,7 @@ export function useAuth() {
             globalStore.setInitialized(true)
         } catch (err: unknown) {
             console.error('Login error:', err)
-            error.value = err instanceof Error ? err.message : 'ログイン中にエラーが発生しました'
+            error.value = err instanceof Error ? err.message : t('auth.login.error')
             throw err
         } finally {
             isLoading.value = false
@@ -65,13 +68,13 @@ export function useAuth() {
             //console.log('Registration response:', response)
 
             if (!response || response.state !== 'success') {
-                throw new Error(response?.message || '登録レスポンスが不正です')
+                throw new Error(response?.message || t('auth.register.invalidResponse'))
             }
 
             globalStore.setInitialized(true)
         } catch (err: unknown) {
             console.error('Registration error:', err)
-            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
+            error.value = err instanceof Error ? err.message : t('auth.register.error')
             throw err
         } finally {
             isLoading.value = false
@@ -90,13 +93,13 @@ export function useAuth() {
             })
 
             if (!response || !response.success) {
-                throw new Error(response?.message || 'パスワードリセットに失敗しました')
+                throw new Error(response?.message || t('auth.passwordReset.error'))
             }
 
-            return response.message || 'パスワードリセットのメールを送信しました'
+            return response.message || t('auth.passwordReset.success')
         } catch (err: unknown) {
             console.error('Password reset error:', err)
-            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
+            error.value = err instanceof Error ? err.message : t('auth.passwordReset.error')
             throw err
         } finally {
             isLoading.value = false
@@ -115,13 +118,13 @@ export function useAuth() {
             })
 
             if (!response || !response.success) {
-                throw new Error(response?.message || '認証に失敗しました')
+                throw new Error(response?.message || t('auth.verify.error'))
             }
 
             return response.success
         } catch (err: unknown) {
             console.error('Token verification error:', err)
-            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
+            error.value = err instanceof Error ? err.message : t('auth.verify.error')
             throw err
         } finally {
             isLoading.value = false
@@ -145,13 +148,13 @@ export function useAuth() {
             })
 
             if (!response || !response.success) {
-                throw new Error(response?.message || 'パスワードの更新に失敗しました')
+                throw new Error(response?.message || t('auth.updatePassword.error'))
             }
 
             return response.success
         } catch (err: unknown) {
             console.error('Update password error:', err)
-            error.value = err instanceof Error ? err.message : '不明なエラーが発生しました'
+            error.value = err instanceof Error ? err.message : t('auth.updatePassword.error')
             throw err
         } finally {
             isLoading.value = false

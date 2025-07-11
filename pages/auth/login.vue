@@ -1,21 +1,17 @@
 <script setup lang="ts">
 import { z } from 'zod'
 import { useUserStore } from '~/stores/useUserStore'
+import { useI18n } from 'vue-i18n'
 import { useAuth }  from '~/composables/useAuth'
 
 definePageMeta({
     layout: 'auth'
 })
 
-// Schema for form validation
-const loginSchema = z.object({
-  email: z.string().email({ message: '有効なメールアドレスを入力してください' }),
-  password: z.string().min(8, { message: 'パスワードは8文字以上で入力してください' }),
-})
-
 // Stores etc.
 const userStore = useUserStore()
 const { login } = useAuth()
+const { t } = useI18n()
 
 // Refs & Local variables
 const form = reactive({
@@ -30,9 +26,19 @@ const touched = reactive<{ email: boolean, password: boolean }>({
 })
 const isSubmitting = ref<boolean>(false)
 const externalLogin = [
-  { service: 'google', label: 'Googleでログイン', icon: 'pi pi-google' },
-  // { service: 'github', label: 'GitHubでログイン', icon: 'pi pi-github' },
+  { service: 'google', label: t('auth.login.google'), icon: 'pi pi-google', enabled: true },
+  { service: 'apple', label: t('auth.login.apple'), icon: 'pi pi-apple', enabled: false },
+  { service: 'microsoft', label: t('auth.login.microsoft'), icon: 'pi pi-windows', enabled: false },
+  { service: 'twitter', label: t('auth.login.twitter'), icon: 'pi pi-twitter', enabled: false }, // Xは非推奨
+  { service: 'facebook', label: t('auth.login.facebook'), icon: 'pi pi-facebook', enabled: false }, // Facebookは非推奨
+  { service: 'github', label: t('auth.login.github'), icon: 'pi pi-github', enabled: false },
 ]
+const enabledExternalLogin = externalLogin.filter(service => service.enabled)
+// Schema for form validation
+const loginSchema = computed(() => z.object({
+  email: z.string().email({ message: t('validation.invalidEmail') }),
+  password: z.string().min(8, { message: t('validation.shortPassword') }),
+}))
 
 // Methods
 function handleBlur(field: 'email' | 'password') {
@@ -40,7 +46,7 @@ function handleBlur(field: 'email' | 'password') {
   validate()
 }
 function validate(): boolean {
-  const result = loginSchema.safeParse(form)
+  const result = loginSchema.value.safeParse(form)
   errors.email = undefined
   errors.password = undefined
   if (!result.success) {
@@ -71,17 +77,8 @@ async function handleLogin() {
     throw new Error()
   } catch (e: unknown) {
     // Handle login error
-    /*
-    const appConfig = useConfig()
-    if (appConfig.isDebug) {
-      // 暫定処理: 強制ログイン
-      userStore.setDummyUser({ id: 999, email: form.email })
-      navigateTo({ path: userStore.user?.homePage ?? '/apps' })
-      return
-    }
-    */
-    globalError.value = e instanceof Error ? e.message : 'ログインに失敗しました。メールアドレスとパスワードを確認してください'
     console.error('Login failed:', e)
+    globalError.value = e instanceof Error ? e.message : t('auth.login.failed')
     isSubmitting.value = false
   } finally {
     // 次ページへの遷移完了までローディング状態を維持するため
@@ -109,15 +106,15 @@ watch(form, () => validate(), { deep: true })
 <template>
   <div class="flex flex-col gap-12">
     <div class="relative flex flex-col gap-2 items-center mb-2">
-      <h1 class="text-2xl font-bold mb-2">PullLog</h1>
+      <h1 class="text-2xl font-bold mb-2">{{ t('app.name') }}</h1>
 
-      <p class="text-surface-500 dark:text-surface-400 block mb-2">ログイン情報を入力してください</p>
+      <p class="text-surface-500 dark:text-surface-400 block mb-2">{{ t('auth.login.prompt') }}</p>
 
       <form @submit.prevent="handleLogin" class="flex flex-col gap-4 w-full max-w-sm" autocomplete="on">
         <InputText
           v-model="form.email"
           inputmode="email"
-          placeholder="メールアドレス"
+          :placeholder="t('auth.login.emailPlaceholder')"
           class="flex-auto w-full"
           autocomplete="username"
           :class="{ 'p-invalid': touched.email && errors.email }"
@@ -129,7 +126,7 @@ watch(form, () => validate(), { deep: true })
 
         <Password
           v-model="form.password"
-          placeholder="パスワード"
+          :placeholder="t('auth.login.passwordPlaceholder')"
           class="flex-auto w-full"
           :feedback="false"
           toggleMask
@@ -150,7 +147,7 @@ watch(form, () => validate(), { deep: true })
         <div class="flex justify-end gap-2">
           <Button
             type="submit"
-            :label="isSubmitting ? 'ログイン中...' : 'ログイン'"
+            :label="isSubmitting ? t('auth.login.loading') : t('auth.login.submit')"
             class="btn btn-primary w-40"
             :disabled="!validate() || isSubmitting"
             :loading="isSubmitting"
@@ -158,12 +155,12 @@ watch(form, () => validate(), { deep: true })
         </div>      
       </form>
 
-      <div v-if="externalLogin.length" class="flex flex-col gap-4 w-full">
+      <div v-if="enabledExternalLogin.length" class="flex flex-col gap-4 w-full">
         <Divider align="center" class="mt-2! mb-0!" :pt="{ content: 'dark:bg-gray-800' }">
-          <span class="px-2! text-surface-500 dark:text-surface-400 dark:bg-gray-800">または</span>
+          <span class="px-2! text-surface-500 dark:text-surface-400 dark:bg-gray-800">{{ t('auth.login.or') }}</span>
         </Divider>
         <Button
-          v-for="service in externalLogin"
+          v-for="service in enabledExternalLogin"
           :key="service.service"
           :label="service.label"
           :icon="service.icon"
@@ -174,16 +171,20 @@ watch(form, () => validate(), { deep: true })
 
       <Divider />
       <Message severity="info" size="small" variant="simple">
-        アカウントをお持ちでない方は<nuxt-link to="/auth/register" class="font-semibold">新規登録</nuxt-link>してください
+        {{ t('auth.register.noAccount') }}
+        <nuxt-link to="/auth/register" class="font-semibold mx-0.5">{{ t('auth.register.submit') }}</nuxt-link>
+        {{ t('auth.register.noAccountSuffix') }}
       </Message>
       <Message severity="info" size="small" variant="simple">
-        パスワードをお忘れの方は<nuxt-link to="/auth/forget" class="font-semibold">再設定</nuxt-link>してください
+        {{ t('auth.passwordReset.forgotPassword') }}
+        <nuxt-link to="/auth/forget" class="font-semibold mx-0.5">{{ t('auth.passwordReset.shortName') }}</nuxt-link>
+        {{ t('auth.passwordReset.forgotPasswordSuffix') }}
       </Message>
       <div class="absolute top-0 right-0">
         <div
           class="btn-back"
           @click="handleBack"
-          aria-label="戻る"
+          :aria-label="t('app.back')"
         >
           <i class="pi pi-times"></i>
         </div>

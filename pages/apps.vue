@@ -5,6 +5,7 @@ import { useLogStore } from '~/stores/useLogStore'
 import { useStatsStore } from '~/stores/useStatsStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
 import { useOptionStore } from '~/stores/useOptionStore'
+import { useI18n } from 'vue-i18n'
 import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
 import { useWebIcon } from '~/composables/useWebIcon'
@@ -23,6 +24,9 @@ const loaderStore = useLoaderStore()
 const optionStore = useOptionStore()
 const toast = useToast()
 
+// i18n
+const { t } = useI18n()
+
 // Composables
 const { fetchWebIcon } = useWebIcon()
 
@@ -39,12 +43,12 @@ const modalUploadVisible = ref<boolean>(false)
 const editTarget = ref<AppData | undefined>(undefined)
 const maxApps = computed(() => userStore.planLimits?.maxApps ?? 5) // ユーザーが登録できる最大アプリ数
 const menu = ref()
-const items = ref<MenuItem[]>([
+const items = computed<MenuItem[]>(() => ([
     {
-        label: 'アプリ設定',
+        label: t('apps.menu.settings'),
         items: [
             {
-                label: '編集',
+                label: t('apps.menu.edit'),
                 icon: 'pi pi-pencil',
                 command: () => {
                     if (configAppId.value) {
@@ -59,7 +63,7 @@ const items = ref<MenuItem[]>([
                 },
             },
             {
-                label: 'エクスポート',
+                label: t('apps.menu.export'),
                 icon: 'pi pi-download',
                 command: () => {
                     if (configAppId.value) {
@@ -73,7 +77,7 @@ const items = ref<MenuItem[]>([
                 },
             },
             {
-                label: 'インポート',
+                label: t('apps.menu.import'),
                 icon: 'pi pi-cloud-upload',
                 command: () => {
                     if (configAppId.value) {
@@ -88,7 +92,7 @@ const items = ref<MenuItem[]>([
             },
             { separator: true },
             {
-                label: '削除',
+                label: t('apps.menu.delete'),
                 icon: 'pi pi-trash',
                 class: 'p-menu-item-danger',
                 command: () => {
@@ -104,7 +108,7 @@ const items = ref<MenuItem[]>([
             },
         ]
     },
-])
+]))
 
 // Methods
 const toggleMenu = (event: Event, appId: string) => {
@@ -116,8 +120,8 @@ const toggleMenu = (event: Event, appId: string) => {
 function showToast(notice: Partial<ToastMessageOptions>) {
     const defaultNotice: ToastMessageOptions = {
         severity: 'info',
-        summary: 'Information',
-        detail: 'The handling completed.',
+        summary: t('apps.notice.infoTitle'),
+        detail: t('apps.notice.infoDetail'),
         group: 'notices',
         life: 3000,
     }
@@ -126,7 +130,7 @@ function showToast(notice: Partial<ToastMessageOptions>) {
 async function loadAppStats() {
     if (apps.value.length === 0) return
 
-    const loaderId = loaderStore.show('統計データを読み込み中...')
+    const loaderId = loaderStore.show(t('apps.loading.stats'))
     try {
         // 各アプリIDで非同期取得（ローダーなしで呼ぶ）
         const fetches = apps.value.map(app =>
@@ -171,13 +175,13 @@ async function handleAppSubmit(app: AppData | undefined) {
     try {
         // API通信
         const result = await appStore.saveApp(app)
-        loaderId = loaderStore.show('変更を適用中...')
+        loaderId = loaderStore.show(t('apps.loading.saving'))
         await nextTick()
         appStore.setAppById(result.appId)
-        notice = { severity: 'success', summary: 'アプリケーションの保存', detail: `${result.name} を保存しました。` }
+        notice = { severity: 'success', summary: t('apps.notice.saveTitle'), detail: t('apps.notice.saveDetail', { name: result.name }) }
         //console.log('apps.vue::handleAppSubmit:result:', result, configAppId.value, editTarget.value)
     } catch (e) {
-        notice = { severity: 'error', summary: '保存エラー', detail: 'アプリの保存に失敗しました。' }
+        notice = { severity: 'error', summary: t('apps.notice.saveErrorTitle'), detail: t('apps.notice.saveErrorDetail') }
     } finally {
         editTarget.value = undefined
         // ローダーを非表示
@@ -198,11 +202,11 @@ async function handleAppDelete(app: AppData | undefined) {
     try {
         // API通信
         await appStore.deleteApp(app.appId)
-        loaderId = loaderStore.show('削除中...')
+        loaderId = loaderStore.show(t('apps.loading.deleting'))
 
-        notice = { severity: 'success', summary: 'アプリケーションの削除', detail: `${app.name} を削除しました。` }
+        notice = { severity: 'success', summary: t('apps.notice.deleteTitle'), detail: t('apps.notice.deleteDetail', { name: app.name }) }
     } catch (e) {
-        notice = { severity: 'error', summary: '削除エラー', detail: 'アプリの削除に失敗しました。' }
+        notice = { severity: 'error', summary: t('apps.notice.deleteErrorTitle'), detail: t('apps.notice.deleteErrorDetail') }
     } finally {
         editTarget.value = undefined
         // ローダーを非表示
@@ -220,7 +224,7 @@ async function handleAppDownload(settings: HistoryDownloadSettings) {
 
     let loaderId: string | undefined = undefined
     let notice: Partial<ToastMessageOptions> = {}
-    loaderId = loaderStore.show('履歴をダウンロード中...')
+    loaderId = loaderStore.show(t('apps.loading.downloading'))
 
     const options = {
         fromDate: settings.dateRange.start,
@@ -234,12 +238,12 @@ async function handleAppDownload(settings: HistoryDownloadSettings) {
         await nextTick()
         //console.log('apps.vue::handleAppDownload:result:', result)
         if (!result) {
-            throw new Error('ダウンロードファイルの作成に失敗しました。')
+            throw new Error(t('apps.notice.downloadErrorDetail'))
         }
-        notice = { severity: 'success', summary: '履歴のダウンロード', detail: `${editTarget.value.name} の履歴をダウンロードしました。` }
+        notice = { severity: 'success', summary: t('apps.notice.downloadTitle'), detail: t('apps.notice.downloadDetail', { name: editTarget.value.name }) }
     } catch (e: unknown) {
         console.error('Download Error:', e)
-        notice = { severity: 'error', summary: 'ダウンロードエラー', detail: '履歴のダウンロードに失敗しました。' }
+        notice = { severity: 'error', summary: t('apps.notice.downloadErrorTitle'), detail: t('apps.notice.downloadErrorDetail') }
     } finally {
         // ローダーを非表示
         if (loaderId) loaderStore.hide(loaderId)
@@ -257,14 +261,14 @@ async function handleAppUpload(uploadData: UploadData) {
 
     let loaderId: string | undefined = undefined
     let notice: Partial<ToastMessageOptions> = {}
-    loaderId = loaderStore.show('履歴をアップロード中...')
+    loaderId = loaderStore.show(t('apps.loading.uploading'))
 
     //console.log('apps.vue::handleAppUpload:', uploadData)
     try {
         // API通信して履歴をアップロード
         const result: boolean = await logStore.importLogsFile(editTarget.value.appId, uploadData)
         if (!result) {
-            throw new Error('履歴のインポートに失敗しました。')
+            throw new Error(t('apps.notice.importErrorDetail'))
         }
         // 履歴統計データのキャッシュクリア後、再読み込み
         statsStore.clearStatsCache(editTarget.value.appId)
@@ -276,10 +280,10 @@ async function handleAppUpload(uploadData: UploadData) {
             appStats.value.delete(editTarget.value.appId) // データが取得できなかった場合は削除
         }
         await nextTick()
-        notice = { severity: 'success', summary: '履歴のインポート', detail: `${editTarget.value.name} の履歴を更新しました。` }
+        notice = { severity: 'success', summary: t('apps.notice.importTitle'), detail: t('apps.notice.importDetail', { name: editTarget.value.name }) }
     } catch (e: unknown) {
         console.error('Upload Error:', e)
-        notice = { severity: 'error', summary: 'インポートエラー', detail: '履歴のインポートに失敗しました。' }
+        notice = { severity: 'error', summary: t('apps.notice.importErrorTitle'), detail: t('apps.notice.importErrorDetail') }
     } finally {
         // ローダーを非表示
         if (loaderId) loaderStore.hide(loaderId)
@@ -362,17 +366,18 @@ const adConfig: Record<string, AdProps> = {
 <template>
     <div class="w-full h-max p-4 flex flex-col justify-between">
         <CommonPageHeader
-            title="アプリ管理"
+            :title="t('apps.header')"
             :adProps="adConfig.default"
         />
 
         <!-- Page Content -->
         <div class="w-full mb-4">
             <p class="font-normal text-base text-surface-600 dark:text-gray-200">
-                現在登録しているアプリは<strong class="text-amber-500 dark:text-yellow-400 mx-0.5">{{ apps.length }}</strong>件です。
-                最大<strong class="text-amber-500 dark:text-yellow-400 mx-0.5">{{ maxApps }}</strong>件まで登録できます。
+                {{ t('apps.description1') }}<strong class="text-amber-500 dark:text-yellow-400 mx-0.5">{{ apps.length }}</strong>
+                {{ t('apps.description2') }}<strong class="text-amber-500 dark:text-yellow-400 mx-0.5">{{ maxApps }}</strong>
+                {{ t('apps.description3') }}
             </p>
-            <template v-if="false"><Button v-if="apps.length < maxApps" label="アプリを追加" icon="pi pi-plus" class="btn btn-primary" @click="addNewApp" /></template>
+            <template v-if="false"><Button v-if="apps.length < maxApps" :label="t('apps.addApp')" icon="pi pi-plus" class="btn btn-primary" @click="addNewApp" /></template>
         </div>
         <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <template v-if="apps.length">
@@ -400,7 +405,7 @@ const adConfig: Record<string, AdProps> = {
                                 />
                             </template>
                             <p v-if="app.description" class="py-3 text-sm" v-html="formatText(app.description)"></p>
-                            <p v-else class="py-3 text-sm text-muted">アプリの説明がありません</p>
+                            <p v-else class="py-3 text-sm text-muted">{{ t('apps.noDescription') }}</p>
                         </Panel>
                         <div class="w-full flex flex-wrap items-center justify-between gap-3 md:gap-4 mt-4 md:mt-0 -mb-2">
                             <ul class="w-full md:w-auto md:flex-grow flex flex-wrap items-center gap-4">
@@ -408,7 +413,7 @@ const adConfig: Record<string, AdProps> = {
                                     <li class="inline-flex items-baseline gap-1 text-muted">
                                         <i class="pi pi-calendar text-surface-400 dark:text-gray-400"></i>
                                         <span>{{ appStats.get(app.appId)?.startDate }}</span>
-                                        <span class="mx-0.5 text-sm text-surface-400 dark:text-gray-400">{{ optionStore.rangeSeparator }}</span>
+                                        <span class="mx-0.5 text-sm text-surface-400 dark:text-gray-400">{{ t('options.rangeSeparator') }}</span>
                                         <span>{{ appStats.get(app.appId)?.endDate }}</span>
                                     </li>
                                     <li class="inline-flex items-baseline gap-1 text-muted">
@@ -418,17 +423,17 @@ const adConfig: Record<string, AdProps> = {
                                 </template>
                                 <li v-else class="inline-flex items-baseline gap-1 text-muted">
                                     <i class="pi pi-exclamation-circle text-surface-400 dark:text-gray-400"></i>
-                                    <span>履歴データがありません</span>
+                                    <span>{{ t('apps.noHistory') }}</span>
                                 </li>
                                 <li v-if="app.url && app.url !== ''" class="hidden md:inline-flex items-baseline gap-1">
                                     <i class="pi pi-link text-surface-400 dark:text-gray-400 text-muted"></i>
                                     <a :href="app.url" target="_blank" rel="noopener noreferrer"
                                         class="text-link" v-tooltip.top="{ value: app.url, pt: tooltipPT }"
-                                    >関連サイト</a>
+                                    >{{ t('apps.siteLink') }}</a>
                                 </li>
                             </ul>
                             <div class="ml-auto w-max">
-                                <Button label="履歴を登録する" class="btn btn-alt btn-sm" @click="handleToHistory(app)" />
+                                <Button :label="t('apps.registerHistory')" class="btn btn-alt btn-sm" @click="handleToHistory(app)" />
                             </div>
                         </div>
                     </div>
@@ -446,7 +451,7 @@ const adConfig: Record<string, AdProps> = {
                         <template #header>
                             <div class="flex items-center gap-4">
                                 <Avatar icon="pi pi-plus" size="large" shape="square" :pt="{ root: 'text-surface-400 dark:text-gray-500!' }" />
-                                <span class="font-semibold text-surface-500 dark:text-gray-400">新規アプリを登録する</span>
+                                <span class="font-semibold text-surface-500 dark:text-gray-400">{{ t('apps.addNew') }}</span>
                             </div>
                         </template>
                     </Panel>

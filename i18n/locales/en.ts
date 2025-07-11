@@ -1,63 +1,222 @@
 export default defineI18nLocale(async () => ({
-    "options": {
-        "currency": {
-            "jpy": "Japanese Yen",
-            "jpyDesc": "JPY - Yen",
-            "usd": "US Dollar",
-            "usdDesc": "USD - Dollar",
-            "eur": "Euro",
-            "eurDesc": "EUR - Euro",
-            "cny": "Chinese Yuan",
-            "cnyDesc": "CNY - Yuan"
-        },
-        "rarity": {
-            "ssr": "SSR",
-            "sr": "SR",
-            "fiveStars": "⭐5",
-            "threeStars": "⭐3"
-        },
-        "symbol": {
-            "pickup": "🏆Pickup",
-            "lose": "💔Lose 50/50",
-            "target": "🎯Target",
-            "guaranteed": "💖Guaranteed"
-        },
-        "language": {
-            "ja": "Japanese",
-            "en": "English"
-        },
-        "theme": {
-            "light": "🔆 Light",
-            "dark": "🌙 Dark"
-        },
-        "homepage": {
-            "apps": "Apps",
-            "history": "History",
-            "stats": "Statistics"
-        },
-        "rangeSeparator": "-"
+    // Globals
+    app: {
+        name: 'PullLog',
+        description: 'PullLog is a tool for managing gacha history and performing statistical analysis.',
+        keywords: 'gacha, history management, statistical analysis, PullLog',
+        back: 'Back',
+        termsTitle: 'PullLog Terms of Service',
+        termsLabel: 'Terms of Service',
     },
-    "settingsDrawer": {
-        "title": "Settings",
-        "loading": "Loading...",
-        "loggingOut": "Logging out...",
-        "unset": "Unset",
-        "lastLogin": "Last Login",
-        "language": "Language",
-        "languagePlaceholder": "Select Language",
-        "theme": "Theme",
-        "themePlaceholder": "Select Theme",
-        "homepage": "Homepage",
-        "homepagePlaceholder": "Select Homepage",
-        "others": "Other Settings",
-        "plan": "Plan",
-        "planPlaceholder": "Choose Plan",
-        "change": "Change",
-        "mdTemplateTitle": "Markdown Style Template",
-        "privacyPolicyTitle": "PullLog Privacy Policy",
-        "showDocument": "Show Document",
-        "privacyPolicy": "Privacy Policy",
-        "editProfile": "Edit Profile",
-        "logout": "Logout"
+    // Common Options
+    options: {
+        currency: {
+            jpy: 'Japanese Yen',
+            jpyDesc: 'JPY - Yen',
+            usd: 'US Dollar',
+            usdDesc: 'USD - Dollar',
+            eur: 'Euro',
+            eurDesc: 'EUR - Euro',
+            cny: 'Chinese Yuan',
+            cnyDesc: 'CNY - Yuan',
+        },
+        rarity: {
+            ssr: 'SSR',
+            sr: 'SR',
+            fiveStars: '⭐5',
+            threeStars: '⭐3',
+        },
+        symbol: {
+            pickup: '🏆Pickup',
+            lose: '💔Lose 50/50',
+            target: '🎯Target',
+            guaranteed: '💖Guaranteed',
+        },
+        language: {
+            ja: 'Japanese',
+            en: 'English',
+        },
+        theme: {
+            light: '🔆 Light',
+            dark: '🌙 Dark',
+        },
+        homepage: {
+            apps: 'Apps',
+            history: 'History',
+            stats: 'Statistics',
+        },
+        rangeSeparator: '-',
+    },
+    // Auth
+    auth: {
+        login: {
+            pageName: 'Login',
+            google: 'Login with Google',
+            apple: 'Login with Apple',
+            microsoft: 'Login with Microsoft',
+            twitter: 'Login with X', // X is deprecated
+            facebook: 'Login with Facebook', // Facebook is deprecated
+            github: 'Login with GitHub',
+            prompt: 'Please enter your login information',
+            emailPlaceholder: 'Enter your email',
+            passwordPlaceholder: 'Enter your password',
+            loading: 'Logging in...',
+            submit: 'Login',
+            or: 'or',
+            hasAccount: 'Already have an account?',
+            hasAccountSuffix: 'now.',
+            // Error Messages
+            invalidResponse: 'Invalid login response',
+            accountNotAvailable: 'This account is not available',
+            error: 'An error occurred during login',
+            failed: 'Login failed. Please check your email and password.',
+        },
+        register: {
+            pageName: 'Register',
+            noAccount: 'Don\'t have an account?',
+            noAccountSuffix: 'now.',
+            success: 'Account registration completed successfully.',
+            confirmationEmailSent: 'A confirmation email has been sent to the registered email address. Please click the link in the email to activate your account.',
+            prompt: 'Register a new account.',
+            instruction: 'Please enter the following information.',
+            namePlaceholder: 'Enter your name (display name)',
+            emailPlaceholder: 'Enter your email',
+            passwordPlaceholder: 'Enter your password',
+            passwordPrompt: 'Checking password strength',
+            weakLabel: 'Too easy',
+            mediumLabel: 'Average complexity',
+            strongLabel: 'Complex password',
+            passwordFooter: 'Password must be at least 8 characters long',
+            agreeTextPrefix: 'I agree to the',
+            agreeTextSuffix: '.',
+            submit: 'Register',
+            // Error Messages
+            invalidResponse: 'Invalid registration response',
+            error: 'An error occurred during registration',
+            failed: 'Registration failed. Please check your input.',
+        },
+        passwordReset: {
+            pageName: 'Password Reset',
+            shortName: 'Reset here',
+            forgotPassword: 'Forgot your password?',
+            forgotPasswordSuffix: 'now.',
+            success: 'Password reset email sent successfully.',
+            confirmationEmailSent: 'A password reset email has been sent to the registered email address. Please click the link in the email to reset your password.',
+            forgotPasswordTitle: 'Forgot Password',
+            prompt: 'Please enter your registered email address.',
+            instructions: 'We will send you instructions to reset your password.',
+            emailPlaceholder: 'Enter your email address',
+            submit: 'Send',
+            // Error Messages
+            error: 'An error occurred during password reset.',
+            failed: 'Password reset failed. Please check your email address.',
+        },
+        verify: {
+            signupSuccess: 'Your account has been activated successfully.',
+            resetSuccess: 'Your password has been reset successfully.',
+            promptPrefix: 'Please',
+            promptSuffix: 'now.',
+            resetPrompt: 'You are about to reset your password.',
+            inputPromptPrefix: 'Please enter the',
+            code: 'Verification Code',
+            inputPromptSuffix: 'provided in the email sent to you.',
+            newPasswordPrompt: 'Please enter your new password.',
+            verifying: 'Verifying...',
+            submit: 'Submit',
+            // Error messages
+            error: 'An error occurred during verification.',
+            passwordResetFailed: 'Password reset failed.',
+            unknownError: 'An unknown error occurred.',
+            invalidAccess: 'Invalid access.',
+            failed: 'Verification failed.',
+        },
+        updatePassword: {
+            error: 'An error occurred during password update.',
+        },
+    },
+    // Validation Messages
+    validation: {
+        invalidEmail: 'Please enter a valid email address',
+        shortPassword: 'Password must be at least 8 characters long',
+        nameRequired: 'Please enter your name (display name)',
+        nameMaxLength: 'Name must be within 50 characters',
+        emailInvalid: 'Please enter a valid email address',
+        termsRequired: 'You must agree to the terms of service',
+        invalidCode: 'Invalid verification code',
+    },
+    // Settings Drawer
+    settingsDrawer: {
+        header: 'Settings',
+        title: 'Settings',
+        loading: 'Loading...',
+        loggingOut: 'Logging out...',
+        unset: 'Unset',
+        lastLogin: 'Last Login',
+        language: 'Language',
+        languagePlaceholder: 'Select Language',
+        theme: 'Theme',
+        themePlaceholder: 'Select Theme',
+        homepage: 'Homepage',
+        homepagePlaceholder: 'Select Homepage',
+        others: 'Other Settings',
+        plan: 'Plan',
+        planPlaceholder: 'Choose Plan',
+        change: 'Change',
+        mdTemplateTitle: 'Markdown Style Template',
+        privacyPolicyTitle: 'PullLog Privacy Policy',
+        showDocument: 'Show Document',
+        privacyPolicy: 'Privacy Policy',
+        editProfile: 'Edit Profile',
+        logout: 'Logout'
+    },
+    // Apps Page
+    apps: {
+        header: 'Apps Management',
+        description1: 'Currently registered apps are',
+        description2: 'items. You can register up to',
+        description3: 'items.',
+        addApp: 'Add App',
+        addNew: 'Register New App',
+        noDescription: 'No app description available',
+        noHistory: 'No history data available',
+        siteLink: 'Related Site',
+        registerHistory: 'Register History',
+        // Menu
+        menu: {
+            settings: 'App Settings',
+            edit: 'Edit',
+            export: 'Export',
+            import: 'Import',
+            delete: 'Delete',
+        },
+        // Loading
+        loading: {
+            stats: 'Loading statistics...',
+            saving: 'Loading data...',
+            deleting: 'Loading data...',
+            downloading: 'Loading history...',
+            uploading: 'Loading history...',
+        },
+        // Toast Notifications
+        notice: {
+            infoTitle: 'Information',
+            infoDetail: 'Process completed successfully.',
+            saveTitle: 'Save Application',
+            saveDetail: 'Saved {name}.',
+            saveErrorTitle: 'Save Error',
+            saveErrorDetail: 'Failed to save application.',
+            deleteTitle: 'Delete Application',
+            deleteDetail: 'Deleted {name}.',
+            deleteErrorTitle: 'Delete Error',
+            deleteErrorDetail: 'Failed to delete application.',
+            downloadTitle: 'Download History',
+            downloadDetail: 'Downloaded history for {name}.',
+            downloadErrorTitle: 'Download Error',
+            downloadErrorDetail: 'Failed to download history.',
+            importTitle: 'Import History',
+            importDetail: 'Updated history for {name}.',
+            importErrorTitle: 'Import Error',
+            importErrorDetail: 'Failed to import history.',
+        }
     }
 }))
