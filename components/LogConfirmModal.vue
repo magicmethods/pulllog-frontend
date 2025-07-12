@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { useAppStore } from '~/stores/useAppStore'
-
-// Config
-const appConfig = useConfig()
+import { useI18n } from 'vue-i18n'
 
 // Props & Emits
 const props = defineProps<{
@@ -16,8 +14,9 @@ const emit = defineEmits<{
     (e: 'confirm'): void
 }>()
 
-// Stores
+// Stores etc.
 const appStore = useAppStore()
+const { t } = useI18n()
 
 // Refs
 const prevData = ref<DateLog | null>(null)
@@ -30,13 +29,13 @@ const isSuccessfullySaved = ref<boolean>(false)
         :visible="visible"
         @update:visible="emit('update:visible', $event)"
         modal
-        header="登録データの確認"
+        :header="t('modal.logConfirm.header')"
         :dismissableMask="true"
         :style="{ width: '60vw' }"
     >
         <div class="text-sm space-y-4">
             <div v-if="validationErrors && Object.keys(validationErrors).length > 0">
-                <Message severity="error" variant="simple" size="small" class="py-1 px-2">入力内容に不備があります。修正してください</Message>
+                <Message severity="error" variant="simple" size="small" class="py-1 px-2">{{ t('modal.logConfirm.validationErrorMessage') }}</Message>
                 <ul class="list-disc list-inside text-red-500">
                     <li v-for="(msgs, field) in validationErrors" :key="field">
                         <strong>{{ field }}:</strong> {{ msgs.join(', ') }}
@@ -44,21 +43,21 @@ const isSuccessfullySaved = ref<boolean>(false)
                 </ul>
             </div>
             <div v-else-if="logData">
-                <Message severity="info" variant="simple" size="small" class="py-1 px-2">以下の内容で登録します</Message>
+                <Message severity="info" variant="simple" size="small" class="py-1 px-2">{{ t('modal.logConfirm.confirmText') }}</Message>
                 <table class="w-full table-bordered">
                     <tbody>
                         <tr>
-                            <th class="w-32">アプリ名</th>
+                            <th class="w-44">{{ t('modal.logConfirm.appName') }}</th>
                             <td class="w-auto flex justify-center items-center gap-2">
                                 <span class="text-em">{{ appStore.app?.name }}</span>
                             </td>
                         </tr>
                         <tr>
-                            <th>登録対象日</th>
+                            <th>{{ t('modal.logConfirm.targetDate') }}</th>
                             <td class="text-em">{{ logData?.date }}</td>
                         </tr>
                         <tr>
-                            <th>ガチャ回数</th>
+                            <th>{{ t('modal.logConfirm.totalPullCount') }}</th>
                             <td><div class="diff-table">
                                 <div>{{ prevData?.total_pulls ?? 0 }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
@@ -66,7 +65,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             </div></td>
                         </tr>
                         <tr>
-                            <th>最高レア排出数</th>
+                            <th>{{ t('modal.logConfirm.highestRarityCount') }}</th>
                             <td><div class="diff-table">
                                 <div class="prev-cell">{{ prevData?.discharge_items ?? 0 }}</div>
                                 <div class="transition-cell"><i class="pi pi-arrow-right"></i></div>
@@ -74,7 +73,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             </div></td>
                         </tr>
                         <tr>
-                            <th>排出内容</th>
+                            <th>{{ t('modal.logConfirm.droppedItemsRecord') }}</th>
                             <td><div class="diff-table">
                                 <div class="text-em text-muted">{{ prevData?.drop_details ?? '&mdash;' }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
@@ -100,7 +99,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             </div></td>
                         </tr>
                         <tr>
-                            <th>課金額</th>
+                            <th>{{ t('modal.logConfirm.expense') }}</th>
                             <td><div class="diff-table">
                                 <div class="text-em text-muted">{{ prevData?.expense ?? 0 }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
@@ -108,7 +107,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             </div></td>
                         </tr>
                         <tr>
-                            <th>タグ</th>
+                            <th>{{ t('modal.logConfirm.tags') }}</th>
                             <td><div class="diff-table">
                                 <div class="text-em text-muted">{{ prevData?.tags ?? '&mdash;' }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
@@ -127,7 +126,7 @@ const isSuccessfullySaved = ref<boolean>(false)
                             </div></td>
                         </tr>
                         <tr>
-                            <th>メモ</th>
+                            <th>{{ t('modal.logConfirm.activity') }}</th>
                             <td><div class="diff-table">
                                 <div class="text-em text-muted">{{ prevData?.free_text ?? '&mdash;' }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
@@ -141,10 +140,10 @@ const isSuccessfullySaved = ref<boolean>(false)
                 </table>
             </div>
             <div v-else-if="isSuccessfullySaved">
-                <Message severity="success" variant="simple" size="small" class="py-1 px-2">正常に保存されました。</Message>
+                <Message severity="success" variant="simple" size="small" class="py-1 px-2">{{ t('modal.logConfirm.saveSuccessMessage') }}</Message>
             </div>
             <div v-else>
-                <Message severity="warn" variant="simple" size="small" class="py-1 px-2">登録するデータがありません。</Message>
+                <Message severity="warn" variant="simple" size="small" class="py-1 px-2">{{ t('modal.logConfirm.noDataMessage') }}</Message>
             </div>
         </div>
         <template #closebutton>
@@ -152,15 +151,16 @@ const isSuccessfullySaved = ref<boolean>(false)
                 icon="pi pi-times"
                 class="dismiss-button"
                 @click.prevent="emit('close')"
+                :aria-label="t('modal.logConfirm.dismiss')"
                 v-blur-on-click
             />
         </template>
         <template #footer>
             <div class="flex justify-end gap-3">
-                <Button label="キャンセル" class="btn btn-alternative" @click="emit('close')" />
+                <Button :label="t('modal.logConfirm.cancel')" class="btn btn-alternative" @click="emit('close')" />
                 <Button
                     v-if="logData && !isSuccessfullySaved"
-                    label="保存する"
+                    :label="t('modal.logConfirm.save')"
                     class="btn btn-primary"
                     :disabled="!!(validationErrors && Object.keys(validationErrors).length)"
                     @click="emit('confirm')"

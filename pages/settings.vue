@@ -4,26 +4,26 @@ import { z } from 'zod'
 import { useToast } from 'primevue/usetoast'
 import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
+import { useI18n } from 'vue-i18n'
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const optionStore = useOptionStore()
-
-// Plugins
 const toast = useToast()
+const { t } = useI18n()
 
 // Zod schema
-const settingsSchema = z.object({
-    name: z.string().min(1, { message: '表示名を入力してください' }).max(50, { message: '50文字以内で入力してください' }),
+const settingsSchema = computed(() => z.object({
+    name: z.string().min(1, { message: t('validation.nameRequired') }).max(50, { message: t('validation.nameMaxLength') }),
     password: z.string().optional().or(z.literal('')).refine(
         val => !val || val.length >= 8,
-        { message: 'パスワードは8文字以上で入力してください' }
+        { message: t('validation.shortPassword') }
     ),
-    language: z.string().min(1, { message: '言語を選択してください' }),
-    theme: z.string().min(1, { message: 'テーマを選択してください' }),
-    homePage: z.string().min(1, { message: 'ホームページを選択してください' }),
+    language: z.string().min(1, { message: t('validation.languageRequired') }),
+    theme: z.string().min(1, { message: t('validation.themeRequired') }),
+    homePage: z.string().min(1, { message: t('validation.homePageRequired') }),
     // email, avatarUrlはバリデーションしない（編集不可＆外部アップロードなので）
-})
+}))
 
 // Refs & Local variables
 const internalUser = reactive<Partial<User> & { avatarFile?: File }>({
@@ -45,7 +45,7 @@ const themeOptions = optionStore.themeOptions
 const homepageOptions = optionStore.homepageOptions
 const fileUploadRef = ref(null)
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-const uploadHelperMessage = 'ファイルをここへドラッグ＆ドロップすることもできます' // Drag and drop files to here to upload.
+const uploadHelperMessage = computed(() => t('settings.fileUpload.dragAndDrop')) // Drag and drop files to here to upload.
 
 // Methods
 function showToast(
@@ -65,7 +65,7 @@ function showToast(
 // 単項目バリデーション
 function validateField(field: keyof typeof internalUser) {
     // biome-ignore lint:/suspicious/noExplicitAny
-    const singleSchema = settingsSchema.pick({ [field]: true } as any)
+    const singleSchema = settingsSchema.value.pick({ [field]: true } as any)
     const result = singleSchema.safeParse({ [field]: internalUser[field] })
     if (!result.success) {
         errors[field] = result.error.issues[0].message
@@ -76,7 +76,7 @@ function validateField(field: keyof typeof internalUser) {
 
 // 全体バリデーション
 function validateAll(): boolean {
-    const result = settingsSchema.safeParse(internalUser)
+    const result = settingsSchema.value.safeParse(internalUser)
     // エラー初期化
     for (const key in errors) {
         errors[key as keyof typeof errors] = undefined
@@ -106,8 +106,8 @@ async function handleSave() {
     touched.homePage = true
     if (!validateAll()) {
         showToast(
-            '入力内容にエラーがあります。各項目を確認してください。',
-            '入力エラー',
+            t('settings.notice.inputErrorDetail'),
+            t('settings.notice.inputErrorTitle'),
             'warn'
         )
         return
@@ -130,14 +130,14 @@ async function handleSave() {
         await userStore.updateUser(formData)
 
         // エラーがキャッチされなければ成功
-        showToast('登録情報を正常に保存しました。', '保存成功')
+        showToast(t('settings.notice.saveSuccessDetail'), t('settings.notice.saveSuccessTitle'))
         // パスワードフォームは空にする
         internalUser.password = ''
         clearUploadFile()
     } catch (e: unknown) {
-        const errorMessage = e instanceof Error ? e.message : '不明なエラーが発生しました'
+        const errorMessage = e instanceof Error ? e.message : t('settings.notice.saveErrorDetail')
         console.error('Error saving user settings:', e)
-        showToast(errorMessage, '保存エラー', 'error', 3500)
+        showToast(errorMessage, t('settings.notice.saveErrorTitle'), 'error', 3500)
     } finally {
         isSubmitting.value = false
     }
@@ -155,8 +155,8 @@ function handleFileSelect(event: FileUploadSelectEvent) {
     internalUser.avatarFile = undefined
     if (file && file.size > MAX_UPLOAD_SIZE) {
         showToast(
-            `アバター画像は${MAX_UPLOAD_SIZE / 1024 / 1024}MB以下のファイルをアップロードしてください。`,
-            'ファイルサイズエラー',
+            t('settings.notice.fileSizeError', { size: MAX_UPLOAD_SIZE / 1024 / 1024 }),
+            t('settings.notice.fileSizeErrorTitle'),
             'error',
             3000
         )
@@ -254,18 +254,18 @@ const adConfig: Record<string, AdProps> = {
 <template>
     <div class="w-full p-4 flex flex-col justify-between items-start">
         <CommonPageHeader
-            title="登録情報変更"
+            :title="t('settings.header')"
             :adProps="adConfig.default"
         />
         <!-- Page Content -->
         <form class="h-max w-full m-0 p-0 flex flex-col gap-4">
             <div class="input-group-row">
-                <label for="input-name" class="input-group-label md:self-start md:mt-2">表示名</label>
+                <label for="input-name" class="input-group-label md:self-start md:mt-2">{{ t('settings.displayName') }}</label>
                 <div class="input-group-control flex-col md:items-start">
                     <InputText
                         id="input-name"
                         v-model="internalUser.name"
-                        placeholder="Enter your display name"
+                        :placeholder="t('settings.displayNamePlaceholder')"
                         required
                         class="w-full md:w-80"
                         :class="{ 'p-invalid': touched.name && errors.name }"
@@ -275,7 +275,7 @@ const adConfig: Record<string, AdProps> = {
                 </div>
             </div>
             <div class="input-group-row">
-                <label for="input-email" class="input-group-label md:self-start md:mt-2">メールアドレス</label>
+                <label for="input-email" class="input-group-label md:self-start md:mt-2">{{ t('settings.email') }}</label>
                 <div class="input-group-control flex-col md:items-start">
                     <InputText
                         id="input-email"
@@ -284,22 +284,20 @@ const adConfig: Record<string, AdProps> = {
                         class="w-full md:w-80"
                         autocomplete="username"
                     />
-                    <Message severity="warn" variant="simple" size="small" class="w-full md:w-80">
-                        メールアドレスは変更できません
-                    </Message>
+                    <Message severity="warn" variant="simple" size="small" class="w-full md:w-80">{{ t('settings.emailCannotBeChanged') }}</Message>
                 </div>
             </div>
         <div class="input-group-row">
-            <label for="input-password" class="input-group-label md:self-start md:mt-2">新規パスワード</label>
+            <label for="input-password" class="input-group-label md:self-start md:mt-2">{{ t('settings.newPassword') }}</label>
             <div class="input-group-control flex-col md:items-start">
                 <Password
                     id="input-password"
                     v-model="internalUser.password"
-                    promptLabel="Choose a password"
-                    weakLabel="Too simple"
-                    mediumLabel="Average complexity"
-                    strongLabel="Complex password"
-                    placeholder="Enter new password"
+                    :promptLabel="t('auth.register.passwordPrompt')"
+                    :weakLabel="t('auth.register.weakLabel')"
+                    :mediumLabel="t('auth.register.mediumLabel')"
+                    :strongLabel="t('auth.register.strongLabel')"
+                    :placeholder="t('settings.newPasswordPlaceholder')"
                     toggleMask
                     :minlength="8"
                     class="w-full md:w-80"
@@ -310,17 +308,19 @@ const adConfig: Record<string, AdProps> = {
                 >
                     <template #footer>
                         <Divider :pt="{ root: 'opacity-50' }" />
-                        <span class="text-sm text-surface-500 dark:text-gray-400">※ 8文字以上で入力してください</span>
+                        <span class="text-sm text-surface-500 dark:text-gray-400">{{ t('auth.register.passwordFooter') }}</span>
                     </template>
                 </Password>
                 <Message v-if="touched.password && errors.password" v-bind="errorMessageProps()">{{ errors.password }}</Message>
                 <Message severity="info" variant="simple" size="small" class="w-full md:w-max">
-                    パスワードを<b>変更する場合のみ</b>、新しいパスワードを入力してください
+                    {{ t('settings.passwordChangeInfoPrefix') }}
+                    <b>{{ t('settings.passwordChangeInfoEmphasis') }}</b>
+                    {{ t('settings.passwordChangeInfoSuffix') }}
                 </Message>
             </div>
         </div>
         <div class="input-group-row">
-            <label for="input-avatar" class="input-group-label md:self-center md:-mt-6">アバター画像</label>
+            <label for="input-avatar" class="input-group-label md:self-center md:-mt-6">{{ t('settings.avatar') }}</label>
             <div class="input-group-control flex-col md:items-start">
                 <div class="flex items-center justify-start gap-4">
                     <div class="hidden md:block md:flex md:items-center md:justify-center md:gap-2 md:h-max md:w-max">
@@ -333,9 +333,12 @@ const adConfig: Record<string, AdProps> = {
                         accept="image/*"
                         :maxFileSize="MAX_UPLOAD_SIZE"
                         :multiple="false"
-                        chooseLabel="ファイル選択"
-                        uploadLabel="アップロード"
-                        cancelLabel="キャンセル　"
+                        :invalidFileSizeMessage="t('settings.fileUpload.invalidFileSize', { file: '{0}', size: '{1}' })"
+                        :invalidFileLimitMessage="t('settings.fileUpload.invalidFileLimit', { limit: '{0}' })"
+                        :invalidFileTypeMessage="t('settings.fileUpload.invalidFileType', { file: '{0}' })"
+                        :chooseLabel="t('settings.fileUpload.chooseLabel')"
+                        :uploadLabel="t('settings.fileUpload.uploadLabel')"
+                        :cancelLabel="t('settings.fileUpload.cancelLabel')"
                         chooseIcon="pi pi-image"
                         uploadIcon="pi pi-cloud-upload"
                         :showUploadButton="false"
@@ -350,13 +353,13 @@ const adConfig: Record<string, AdProps> = {
                     </FileUpload>
                 </div>
                 <Message severity="info" variant="simple" size="small" class="w-full md:w-max">
-                    <b>1MB以下</b>の画像ファイルをアップロードできます
-                </Message>
+                    <b>{{ t('settings.fileUpload.fileSizeLimit', { size: MAX_UPLOAD_SIZE / 1024 / 1024 }) }}</b>
+                    {{ t('settings.fileUpload.fileSizeLimitSuffix') }}</Message>
             </div>
         </div>
         <Divider />
         <div class="input-group-row">
-            <label for="language-select" class="input-group-label md:self-start md:mt-2">言語設定</label>
+            <label for="language-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.language') }}</label>
             <div class="input-group-control flex-col md:items-start">
                 <Select
                     id="language-select"
@@ -364,7 +367,7 @@ const adConfig: Record<string, AdProps> = {
                     :options="languageOptions"
                     optionLabel="label"
                     optionValue="value"
-                    placeholder="Choose Language"
+                    :placeholder="t('settings.languagePlaceholder')"
                     class="w-full md:w-40"
                     :class="{ 'p-invalid': touched.language && errors.language }"
                     @blur="handleBlur('language')"
@@ -373,7 +376,7 @@ const adConfig: Record<string, AdProps> = {
             </div>
         </div>
         <div class="input-group-row">
-            <label for="theme-select" class="input-group-label md:self-start md:mt-2">テーマ設定</label>
+            <label for="theme-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.theme') }}</label>
             <div class="input-group-control flex-col md:items-start">
                 <Select
                     id="theme-select"
@@ -381,7 +384,7 @@ const adConfig: Record<string, AdProps> = {
                     :options="themeOptions"
                     optionLabel="label"
                     optionValue="value"
-                    placeholder="Switch Theme"
+                    :placeholder="t('settings.themePlaceholder')"
                     class="w-full md:w-40"
                     :class="{ 'p-invalid': touched.theme && errors.theme }"
                     @blur="handleBlur('theme')"
@@ -390,7 +393,7 @@ const adConfig: Record<string, AdProps> = {
             </div>
         </div>
         <div class="input-group-row">
-            <label for="homepage-select" class="input-group-label md:self-start md:mt-2">ホームページ</label>
+            <label for="homepage-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.homepage') }}</label>
             <div class="input-group-control flex-col md:items-start">
                 <Select
                     id="homepage-select"
@@ -398,7 +401,7 @@ const adConfig: Record<string, AdProps> = {
                     :options="homepageOptions"
                     optionLabel="label"
                     optionValue="value"
-                    placeholder="Choose Homepage"
+                    :placeholder="t('settings.homepagePlaceholder')"
                     class="w-full md:w-40"
                     :class="{ 'p-invalid': touched.homePage && errors.homePage }"
                     @blur="handleBlur('homePage')"
@@ -408,16 +411,16 @@ const adConfig: Record<string, AdProps> = {
         </div>
         <div class="flex-grow w-full">
             <Divider />
-            <p class="text-antialiasing mb-2">その他の設定項目</p>
+            <p class="text-antialiasing mb-2">{{ t('settings.others') }}</p>
         </div>
         </form>
         <div class="w-full">
             <Divider />
             <div class="w-full flex justify-between items-center gap-4">
                 <div class="hidden md:block md:flex-grow"></div>
-                <Button label="キャンセル" class="btn btn-alt w-1/2 md:w-36" @click="handleCancel" />
+                <Button :label="t('settings.cancel')" class="btn btn-alt w-1/2 md:w-36" @click="handleCancel" />
                 <Button
-                    :label="isSubmitting ? '保存中...' : '変更を保存'"
+                    :label="isSubmitting ? t('settings.saving') : t('settings.saveChanges')"
                     class="btn btn-primary w-1/2 md:w-36"
                     :disabled="isSubmitting"
                     :loading="isSubmitting"

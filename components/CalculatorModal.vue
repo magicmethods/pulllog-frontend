@@ -1,20 +1,22 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 
-// Props
+// Props & Emits
 const props = defineProps<{
     modelValue: number
 }>()
-
-// Emits
 const emit = defineEmits<{
     (e: 'commit-add', value: number): void
     (e: 'commit-overwrite', value: number): void
     (e: 'close'): void
 }>()
 
-// Local state
-const visible = ref(true)
-const inputExpression = ref('')
+// i18n
+const { t } = useI18n()
+
+// Ref & Local variables
+const visible = ref<boolean>(true)
+const inputExpression = ref<string>('')
 const result = ref<number | null>(null)
 
 // 小数点付きフォーマット（将来的に通貨対応も可能）
@@ -112,14 +114,14 @@ const modalCloseButton = 'h-8 w-8 m-0 p-0 rounded-full hover:bg-surface-200/50 h
             <!-- コミットボタン群 -->
             <div class="w-full grid grid-cols-2 gap-2 px-0 py-2">
                 <Button
-                    label="加算して登録"
+                    :label="t('modal.calculator.commitAdd')"
                     @click="commitAdd"
                     severity="success"
                     class="w-full btn btn-primary mb-0 text-base"
                     :disabled="result === null"
                 />
                 <Button
-                    label="上書き登録"
+                    :label="t('modal.calculator.commitOverwrite')"
                     @click="commitOverwrite"
                     severity="info"
                     class="w-full btn btn-primary mb-0 text-base"
@@ -129,19 +131,19 @@ const modalCloseButton = 'h-8 w-8 m-0 p-0 rounded-full hover:bg-surface-200/50 h
 
             <!-- キャンセル -->
             <Button
-                label="キャンセル"
+                :label="t('modal.calculator.cancel')"
                 @click="close"
                 class="w-full btn btn-alternative mb-0 text-base"
             />
         </div>
         <template #header>
             <div class="w-full flex items-center justify-between p-2 pb-0">
-                <h3 class="text-primary-800 dark:text-primary-400 text-lg font-medium">課金額計算機</h3>
+                <h3 class="text-primary-800 dark:text-primary-400 text-lg font-medium">{{ t('modal.calculator.title') }}</h3>
                 <Button
                     icon="pi pi-times"
                     :class="modalCloseButton"
                     @click="close"
-                    aria-label="Close"
+                    :aria-label="t('modal.calculator.dismiss')"
                 />
             </div>
         </template>

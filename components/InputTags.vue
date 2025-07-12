@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { ChipsAddEvent } from 'primevue/chips'
+import { useI18n } from 'vue-i18n'
 
-// Props
+// Props & Emits
 const props = defineProps<{
     modelValue: string[]
     inputId?: string
@@ -12,11 +13,12 @@ const props = defineProps<{
     disabled?: boolean
     tagPrefix?: string // 'icon' or 'symbol'
 }>()
-
-// Emits
 const emit = defineEmits<
     (e: 'update:modelValue', value: string[]) => void
 >()
+
+// i18n
+const { t } = useI18n()
 
 // Refs & Local variables
 const internalValue = ref<string[]>([...props.modelValue])
@@ -28,7 +30,7 @@ const placeholderText = computed(() => {
         const maxLength = (props.maxLength ?? '').toString()
         return props.placeholder.replace(/%maxTags%/g, maxTags).replace(/%maxLength%/g, maxLength)
     }
-    return props.maxTags !== undefined ? `最大${props.maxTags}件まで` : 'タグを追加'
+    return props.maxTags !== undefined ? t('component.inputTags.maxTags', { count: props.maxTags }) : t('component.inputTags.addTag')
 })
 
 // Methods

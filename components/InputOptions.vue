@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ulid } from 'ulid'
+import { useI18n } from 'vue-i18n'
 
 // Props
 const props = defineProps<{
@@ -13,6 +14,9 @@ const props = defineProps<{
     class?: string
     activeEmojiPickerId: string | null
 }>()
+
+// i18n
+const { t } = useI18n()
 
 // Emits
 const emit = defineEmits<{
@@ -35,9 +39,9 @@ const showEmojiPicker = computed({
     set: (val: boolean) => emit('update:activeEmojiPickerId', val ? props.inputId : null)
 })
 const helpText = computed(() => {
-    let txt = '新しい定義値はリスト最後尾に追加されます。'
-    if (props.maxItems) txt += `定義値は${props.maxItems}個まで設定できます。`
-    if (props.maxLength) txt += `一つの定義値は最大${props.maxLength}文字までです。`
+    let txt = t('component.inputOptions.helpText')
+    if (props.maxItems) txt += ` ${t('component.inputOptions.maxItems', { count: props.maxItems })}`
+    if (props.maxLength) txt += ` ${t('component.inputOptions.maxLength', { count: props.maxLength })}`
     return typeof props.helpText === 'string' ? props.helpText : txt
 })
 const isInsertable = computed(() => {
@@ -144,7 +148,7 @@ function toggleEmojiPicker() {
                 uniqueKey="value"
                 labelKey="label"
                 scrollHeight="160px"
-                emptyMessage="定義された値がありません"
+                :emptyMessage="t('component.inputOptions.emptyMessage')"
                 :removeItem="true"
                 :multiSelect="true"
             />

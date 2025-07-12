@@ -2,6 +2,7 @@
 import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useI18n } from 'vue-i18n'
 import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
 import { useWebIcon } from '~/composables/useWebIcon'
@@ -11,6 +12,7 @@ const userStore = useUserStore()
 const appStore = useAppStore()
 const loaderStore = useLoaderStore()
 const toast = useToast()
+const { t } = useI18n()
 
 // Composables
 const { fetchWebIcon } = useWebIcon()
@@ -32,10 +34,10 @@ const isMaxApps = computed(() => {
     return registeredApps.value.length >= maxApps
 })
 const placeholderText = computed(() => {
-    return appStore.appList.length === 0 ? 'アプリを追加してください' : 'アプリを選択してください'
+    return appStore.appList.length === 0 ? t('component.selectApps.addPlaceholder') : t('component.selectApps.selectPlaceholder')
 })
 const emptyText = computed(() => {
-    return appStore.appList.length === 0 ? 'アプリが登録されていません' : ''
+    return appStore.appList.length === 0 ? t('component.selectApps.emptyMessage') : ''
 })
 
 // Methods
@@ -57,7 +59,13 @@ function openModal(mode: 'edit' | 'add', e: Event) {
         // 最新内容で上書き
         const latest = registeredApps.value.find(app => app.appId === selectedApp.value?.appId)
         if (!latest) {
-            toast.add({ severity: 'warn', summary: 'データ不整合', detail: '選択中のアプリがリストに見つかりません', group: 'notices', life: 3000 })
+            toast.add({
+                severity: 'warn',
+                summary: t('component.selectApps.dataMismatch'),
+                detail: t('component.selectApps.appNotFound'),
+                group: 'notices',
+                life: 3000
+            })
             return
         }
         editTarget.value = { ...latest }
@@ -65,7 +73,13 @@ function openModal(mode: 'edit' | 'add', e: Event) {
     } else if (mode === 'add') {
         // 新規追加モード
         if (isMaxApps.value) {
-            toast.add({ severity: 'warn', summary: '登録可能アプリの上限', detail: `アプリの追加は ${userStore.planLimits?.maxApps ?? 5} つまでです。`, group: 'notices', life: 3000 })
+            toast.add({
+                severity: 'warn',
+                summary: t('component.selectApps.maxAppsReached'),
+                detail: t('component.selectApps.maxAppsReachedDetail', { max: userStore.planLimits?.maxApps ?? 5 }),
+                group: 'notices',
+                life: 3000
+            })
             return
         }
     }
@@ -80,13 +94,25 @@ async function handleAppSubmit(app: AppData | undefined) {
     try {
         // API通信
         const result = await appStore.saveApp(app)
-        loaderId = loaderStore.show('変更を適用中...')
+        loaderId = loaderStore.show(t('component.selectApps.savingChanges'))
         await nextTick()
         appStore.setAppById(result.appId)
-        notices = { severity: 'success', summary: 'アプリケーションの保存', detail: `${result.name} を保存しました。`, group: 'notices', life: 3000 }
+        notices = {
+            severity: 'success',
+            summary: t('component.selectApps.saveApp'),
+            detail: t('component.selectApps.saveAppDetail', { name: result.name }),
+            group: 'notices',
+            life: 3000
+        }
         //console.log('SelectApps.vue::handleAppSubmit:result:', result, registeredApps.value, selectedApp.value)
     } catch (e) {
-        notices = { severity: 'error', summary: '保存エラー', detail: 'アプリの保存に失敗しました。', group: 'notices', life: 3000 }
+        notices = {
+            severity: 'error',
+            summary: t('component.selectApps.saveError'),
+            detail: t('component.selectApps.saveErrorDetail'),
+            group: 'notices',
+            life: 3000
+        }
     } finally {
         // ローダーを非表示
         if (loaderId) loaderStore.hide(loaderId)
@@ -106,7 +132,7 @@ const selectPT = {
 
 <template>
     <div>
-        <h3>対象アプリケ―ション</h3>
+        <h3>{{ t('component.selectApps.targetApps') }}</h3>
         <div class="w-full flex flex-wrap md:flex-nowrap justify-between gap-2">
             <Select
                 v-model="selectedApp"
@@ -142,7 +168,7 @@ const selectPT = {
             <div class="w-full md:w-1/2 h-max flex justify-end items-center gap-2">
                 <Button
                     icon="pi pi-pen-to-square"
-                    label="編集"
+                    :label="t('component.selectApps.edit')"
                     class="btn btn-alternative w-full mb-0"
                     :disabled="!selectedApp"
                     @click="openModal('edit', $event)"
@@ -150,7 +176,7 @@ const selectPT = {
                 />
                 <Button
                     icon="pi pi-plus"
-                    label="追加"
+                    :label="t('component.selectApps.add')"
                     class="btn btn-primary w-full mb-0"
                     @click="openModal('add', $event)"
                     :disabled="isMaxApps"

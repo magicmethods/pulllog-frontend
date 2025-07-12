@@ -2,6 +2,7 @@
 import { z } from 'zod'
 import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
+import { useI18n } from 'vue-i18n'
 
 // Props/Emits
 const props = defineProps<{
@@ -13,9 +14,10 @@ const emit = defineEmits<{
     (e: 'submit', value: AppData): void
 }>()
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const optionStore = useOptionStore()
+const { t } = useI18n()
 
 // Refs & Local variables
 const rawDateUpdateTime = ref<Date | null>(null)
@@ -24,29 +26,29 @@ const maxAppNameLength = computed(() => userStore.planLimits?.maxAppNameLength ?
 const maxDescLength = computed(() => userStore.planLimits?.maxAppDescriptionLength ?? 400)
 const descLength = ref<number>(0)
 const activeEmojiPickerId = ref<string | null>(null)
-const tooltips = {
-    appName:        'アプリ名はあなたが管理しやすい名称を自由に設定できます。<span class="tooltip-warning">※アプリ名は入力必須です</span>',
-    appUrl:         '公式サイトや攻略サイトなどの関連するWEBサイトを設定できます。指定されたURLからアイコン画像が自動取得されます。',
-    appDesc:        `アプリケーションの説明等を自由に入力できます（${maxDescLength.value}文字以内）。`,
-    appImage:       'あなたの好きな画像をこのアプリケーション用の画像として設定できます。この画像は指定URLから自動取得するアイコン画像よりも優先されます。',
-    currencyUnit:   '対象のアプリケーションに課金する際に取り扱われる通貨単位を指定します。',
-    dateUpdateTime: '対象のアプリケーションにおける日付が切り替わる時刻です。一般的にこの時間を跨ぐことでログイン日付が再計算されます。<br>設定した時刻はPullLogでのログ登録時の対象日付の更新時間に同期させることが可能です。',
-    pitySystem:     '対象のアプリケーションのガチャにおけるレアリティの排出保証（天井）システムの設定です。システムの実装有無と天井となるガチャ回数を指定できます。<br>設定した内容は、ガチャ回数推移等の統計グラフに補助線として表示されます。',
-    rarityDefs:     'アプリケーション内で使用されているレアリティの定義リストです。排出リストのレアリティオプションの初期リストとして使用されます。<br>排出リストの登録時に追加することもできますが、その場合はこの定義リストは更新されません。<br>永続的に使用する際はこの定義リストを設定することをお勧めします。',
-    markerDefs:     'PullLogの排出リストのログ記録時に任意にマーキングを行うためのマーカーの定義リストです。排出リストのマーキングオプションの初期マーカーリストとして使用されます。<br>排出リストの登録時に追加することもできますが、その場合はこの定義リストは更新されません。<br>永続的に使用する際はこの定義リストを設定することをお勧めします。',
-}
+const tooltips = computed(() => ({
+    appName: t('component.tooltip.appName'),
+    appUrl: t('component.tooltip.appUrl'),
+    appDesc: t('component.tooltip.appDesc', { maxLength: maxDescLength.value }),
+    appImage: t('component.tooltip.appImage'),
+    currencyUnit: t('component.tooltip.currencyUnit'),
+    dateUpdateTime: t('component.tooltip.dateUpdateTime'),
+    pitySystem: t('component.tooltip.pitySystem'),
+    rarityDefs: t('component.tooltip.rarityDefs'),
+    markerDefs: t('component.tooltip.markerDefs'),
+}))
 // Validation schema
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
 const schema = computed(() => z.object({
-    name: z.string().min(1, 'アプリケーション名は必須です').max(maxAppNameLength.value, `アプリケーション名は${maxAppNameLength.value}文字以内で入力してください`),
-    url: z.string().url('URLの形式が不正です').optional().or(z.literal('')).nullable(),
-    description: z.string().max(maxDescLength.value, `${maxDescLength.value}文字以内で入力してください`).optional().or(z.literal('')).nullable(),
+    name: z.string().min(1, t('validation.appNameRequired')).max(maxAppNameLength.value, t('validation.appNameLengthExceeded', { maxLength: maxAppNameLength.value })),
+    url: z.string().url(t('validation.invalidURL')).optional().or(z.literal('')).nullable(),
+    description: z.string().max(maxDescLength.value, t('validation.textLengthExceeded', { maxLength: maxDescLength.value })).optional().or(z.literal('')).nullable(),
     currency_unit: z.string().optional().or(z.literal('')).nullable(),
-    date_update_time: z.string().regex(timeRegex, '無効な時間です').optional().or(z.literal('')).nullable(),
+    date_update_time: z.string().regex(timeRegex, t('invalidTime')).optional().or(z.literal('')).nullable(),
     //raw_date_update_time: z.any().optional(), // 時刻の入力値は内部で処理されるため検証は不要
     sync_update_time: z.boolean().optional(),
     pity_system: z.boolean().optional(),
-    guarantee_count: z.number().int().min(0, '天井回数は0以上の整数で入力してください').optional(),
+    guarantee_count: z.number().int().min(0, t('validation.guaranteeCountMin')).optional(),
     rarity_defs: z.any().optional(), // 入力検証スキップ
     marker_defs: z.any().optional(), // 入力検証スキップ
     task_defs: z.any().optional(), // 未実装
@@ -56,6 +58,7 @@ const errors = ref<any>(null)
 // Computed
 const isShown = computed(() => props.visible ?? false)
 const isEditMode = computed(() => props.app?.appId && props.app?.appId !== '')
+const displayMode = computed(() => isEditMode.value ? t('modal.appEdit.edit') : t('modal.appEdit.register'))
 const isValidAll = computed(() => {
     // アプリ名が空でなく、全フィールドのバリデーションが正常かどうかをチェック
     return errors.value === null && formData.value?.name !== ''
@@ -101,7 +104,7 @@ function createAppDataFromApp(app?: AppData): AppData {
 // ツールチップを表示する
 function showTooltip(key: string) {
     return {
-        value: tooltips[key as keyof typeof tooltips] ?? '',
+        value: tooltips.value[key as keyof typeof tooltips.value] ?? '',
         escape: false,
         pt: {
             root: 'pb-1',
@@ -174,7 +177,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
         :maximizable="true"
         modal
         id="appEditModal"
-        :header="`アプリケーションの${isEditMode ? '設定編集' : '新規追加'}`"
+        :header="t('modal.appEdit.header', { mode: displayMode })"
         :dismissableMask="true"
         :blockScroll="true"
         :breakpoints="{ '960px': '80vw', '575px': '90vw' }"
@@ -184,11 +187,11 @@ watch(() => rawDateUpdateTime.value, (val) => {
         <div class="flex flex-wrap md:flex-nowrap justify-between items-start gap-4">
 
             <div class="w-full md:w-1/2">
-                <Fieldset legend="アプリケーションの基本情報">
-                    <p v-if="false" class="lead">PullLogで取り扱うアプリケーションの登録内容を設定します。</p>
+                <Fieldset :legend="t('modal.appEdit.basicInfo')">
+                    <p v-if="false" class="lead">{{ t('modal.appEdit.basicInfoDescription') }}</p>
                     <div class="mb-4">
                         <label for="app_name" class="label-flex text-sm">
-                            <span class="required">アプリケ―ション名</span>
+                            <span class="required">{{ t('modal.appEdit.appName') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appName')"></i>
                         </label>
                         <InputText
@@ -203,14 +206,14 @@ watch(() => rawDateUpdateTime.value, (val) => {
                     </div>
 
                     <div class="mb-4">
-                        <label for="piblic_url" class="label-flex text-sm">
-                            <span>WEBサイトのURL（任意）</span>
+                        <label for="public_url" class="label-flex text-sm">
+                            <span>{{ t('modal.appEdit.appUrl') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appUrl')"></i>
                         </label>
                         <InputText
                             id="public_url"
                             v-model="formData.url"
-                            placeholder="公式サイトのURL"
+                            :placeholder="t('modal.appEdit.appUrlPlaceholder')"
                             class="w-full"
                             :maxlength="255"
                         />
@@ -221,21 +224,20 @@ watch(() => rawDateUpdateTime.value, (val) => {
 
                     <div class="mb-4">
                         <label for="description" class="label-flex text-sm">
-                            <span>アプリケーションの説明（任意）</span>
+                            <span>{{ t('modal.appEdit.appDescription') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appDesc')"></i>
                         </label>
                         <Textarea
                             inputId="description"
                             v-model="formData.description"
                             autoResize
-                            :placeholder="`アプリケーションの説明等（${maxDescLength}文字以内）`"
+                            :placeholder="t('modal.appEdit.appDescriptionPlaceholder', { maxLength: maxDescLength })"
                             rows="3"
                             :maxlength="maxDescLength"
                             @input="descLength = formData.description?.length ?? 0"
                         />
                         <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">
-                            入力文字数: {{ descLength }}
-                        </Message>
+                            {{ t('modal.appEdit.inputCharacterCount') }}: {{ descLength }}</Message>
                         <Message v-if="errors?.description" severity="error" size="small" variant="simple" class="mt-1">
                             {{ errors?.description.join(', ') }}
                         </Message>
@@ -243,7 +245,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
 
                     <div class="mb-4">
                         <label for="currency_unit" class="label-flex text-sm">
-                            <span>通貨単位</span>
+                            <span>{{ t('modal.appEdit.currencyUnit') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('currencyUnit')"></i>
                         </label>
                         <ComboBox
@@ -251,8 +253,8 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             :modelValue="formData.currency_unit"
                             @update:modelValue="val => formData.currency_unit = val ?? null"
                             :options="optionStore.currencyLabels"
-                            placeholder="通貨単位"
-                            emptyMessage="追加できます"
+                            :placeholder="t('modal.appEdit.currencyUnitPlaceholder')"
+                            :emptyMessage="t('modal.appEdit.currencyUnitEmptyMessage')"
                             class="max-w-max"
                         />
                         <Message v-if="errors?.currency_unit" severity="error" size="small" variant="simple" class="mt-1">
@@ -262,13 +264,13 @@ watch(() => rawDateUpdateTime.value, (val) => {
 
                     <div v-if="false" class="mb-4">
                         <label for="app_image" class="label-flex text-sm">
-                            <span>アプリケーション画像（任意）</span>
+                            <span>{{ t('modal.appEdit.appImage') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('appImage')" title=""></i>
                         </label>
                         <InputText
                             id="app_image"
                             __v-model="formData.image"
-                            placeholder="アプリケーション画像"
+                            :placeholder="t('modal.appEdit.appImagePlaceholder')"
                             class="w-full"
                         />
                         <Message v-if="errors?.image" severity="error" size="small" variant="simple" class="mt-1">
@@ -278,7 +280,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
 
                     <div class="mb-4">
                         <label for="date_update_time" class="label-flex text-sm">
-                            <span>アプリケーション内の日付更新時間</span>
+                            <span>{{ t('modal.appEdit.dateUpdateTime') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('dateUpdateTime')"></i>
                         </label>
                         <div class="flex justify-between items-center gap-2">
@@ -297,7 +299,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                                     :disabled="!rawDateUpdateTime"
                                 />
                             </div>
-                            <label for="sync_update_time" class="flex-grow ml-1 pt-1 font-medium text-sm mb-0">日付更新時間とログ登録対象日を同期する</label>
+                            <label for="sync_update_time" class="flex-grow ml-1 pt-1 font-medium text-sm mb-0">{{ t('modal.appEdit.dateUpdateTimeSync') }}</label>
                         </div>
                         <Message v-if="errors?.date_update_time" severity="error" size="small" variant="simple" class="mt-1">
                             {{ errors?.date_update_time.join(', ') }}
@@ -306,7 +308,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
 
                     <div class="mb-4 md:mb-0">
                         <label for="date_update_time" class="label-flex text-sm">
-                            <span>レア排出保証（天井）システム</span>
+                            <span>{{ t('modal.appEdit.pitySystem') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('pitySystem')"></i>
                         </label>
                         <div class="flex justify-between items-center gap-2">
@@ -318,16 +320,16 @@ watch(() => rawDateUpdateTime.value, (val) => {
                                 />
                             </div>
                             <label for="pity_system" class="w-max ml-1 pt-1 font-medium text-sm mb-0">
-                                レア排出保証<strong :class="['ml-0.5',
+                                {{ t('modal.appEdit.pitySystemLabel') }}<strong :class="['ml-0.5',
                                     formData.pity_system ? 'text-amber-500 dark:text-yellow-400' : '']"
-                                >{{ formData.pity_system ? 'あり' : 'なし' }}</strong>
+                                >{{ formData.pity_system ? t('modal.appEdit.pitySystemEnabled') : t('modal.appEdit.pitySystemDisabled') }}</strong>
                             </label>
                             <div class="flex-grow w-max flex items-center pl-2 gap-3">
 
                                 <InputNumber
                                     v-model="formData.guarantee_count"
                                     inputId="guarantee_count"
-                                    placeholder="天井回数"
+                                    :placeholder="t('modal.appEdit.guaranteeCountPlaceholder')"
                                     showButtons
                                     :min="1"
                                     :disabled="!formData.pity_system"
@@ -368,12 +370,12 @@ watch(() => rawDateUpdateTime.value, (val) => {
                 <pre v-if="false" class="text-xs whitespace-pre-wrap">{{ formData }}</pre>
             </div>
             <div class="w-full md:w-1/2">
-                <Fieldset legend="ログ記録用の設定">
-                    <p v-if="true" class="lead mb-4">PullLogでのログ記録時に使用するアプリ内の設定情報や任意のマーカー等を定義できます。</p>
+                <Fieldset :legend="t('modal.appEdit.loggingSettings')">
+                    <p v-if="true" class="lead mb-4">{{ t('modal.appEdit.loggingSettingsDescription') }}</p>
 
                     <div class="mb-4">
                         <label for="rarity_defs" class="label-flex text-sm">
-                            <span>レアリティ定義（任意）</span>
+                            <span>{{ t('modal.appEdit.rarityDefinitions') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('rarityDefs')"></i>
                         </label>
                         <InputOptions
@@ -381,7 +383,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             inputId="rarity_defs"
                             v-model="formData.rarity_defs"
                             v-model:activeEmojiPickerId="activeEmojiPickerId"
-                            placeholder="SR, ★5 など"
+                            :placeholder="t('modal.appEdit.rarityDefinitionsPlaceholder')"
                             :maxItems="20"
                             :maxLength="10"
                             :helpText="true"
@@ -394,7 +396,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
 
                     <div class="mb-0">
                         <label for="marker_defs" class="label-flex text-sm">
-                            <span>マーカー定義（任意）</span>
+                            <span>{{ t('modal.appEdit.markerDefinitions') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('markerDefs')"></i>
                         </label>
                         <InputOptions
@@ -402,7 +404,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             inputId="marker_defs"
                             v-model="formData.marker_defs"
                             v-model:activeEmojiPickerId="activeEmojiPickerId"
-                            placeholder="ピックアップ,すり抜けなど"
+                            :placeholder="t('modal.appEdit.markerDefinitionsPlaceholder')"
                             :maxItems="20"
                             :maxLength="20"
                             :helpText="true"
@@ -428,13 +430,13 @@ watch(() => rawDateUpdateTime.value, (val) => {
             <div class="w-full flex justify-between items-center gap-4">
                 <div class="flex-grow hidden md:block md:w-auto"></div>
                 <Button
-                    label="キャンセル"
+                    :label="t('modal.appEdit.cancel')"
                     class="w-1/2 md:w-56 btn btn-alternative"
                     @click="emit('update:visible', false)"
                     v-blur-on-click
                 />
                 <Button
-                    label="保存"
+                    :label="t('modal.appEdit.save')"
                     class="w-1/2 md:w-56 btn btn-primary"
                     @click="handleSubmit"
                     :disabled="!isValidAll"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '~/stores/useAppStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 
@@ -11,9 +12,10 @@ const emit = defineEmits<
     (e: 'update:modelValue', value: DropDetail[]) => void
 >()
 
-// Stores
+// Stores etc.
 const appStore = useAppStore()
 const optionStore = useOptionStore()
+const { t } = useI18n()
 
 // Refs
 const internalDetails = shallowRef<DropDetail[]>([...props.modelValue])
@@ -70,7 +72,7 @@ watch(() => props.maxEntries, (newMax) => {
             <!-- The rarity field provides an editable selection box (like a combo box) -->
             <div class="h-full w-max flex-1">
                 <label :for="`field-group-${index + 1}-rarity`" class="block text-sm font-medium mb-1 select-none">
-                    レアリティ
+                    {{ t('component.pullItemDetail.rarity') }}
                 </label>
                 <ComboBox
                     :modelValue="entry.rarity"
@@ -80,8 +82,8 @@ watch(() => props.maxEntries, (newMax) => {
                     @update:modelValue="(val: string | null) => updateEntry(index, 'rarity', val ?? null)"
                     @update:options="(opts) => rarityOptions = opts"
                     width="8rem"
-                    placeholder="選択/入力"
-                    emptyMessage="追加できます"
+                    :placeholder="t('component.pullItemDetail.rarityPlaceholder')"
+                    :emptyMessage="t('component.pullItemDetail.rarityEmptyMessage')"
                     :removableOptions="!(appStore.app?.rarity_defs && appStore.app.rarity_defs.length > 0)"
                     class="m-0 p-0"
                     :pt="{ label: 'pr-4' }"
@@ -91,13 +93,13 @@ watch(() => props.maxEntries, (newMax) => {
             <!-- Character/item name fields allow for text entry -->
             <div class="w-full flex-grow">
                 <label :for="`field-group-${index + 1}-name`" class="block text-sm font-medium mb-1 select-none">
-                    キャラ／アイテム名
+                    {{ t('component.pullItemDetail.dropItemName') }}
                 </label>
                 <InputText
                     :modelValue="entry.name"
                     :id="`field-group-${index + 1}-name`"
                     @update:modelValue="(val: string | undefined) => updateEntry(index, 'name', val ?? null)"
-                    placeholder="例: アルトリア・キャスター"
+                    :placeholder="t('component.pullItemDetail.dropItemNamePlaceholder')"
                     fluid
                 />
             </div>
@@ -105,7 +107,7 @@ watch(() => props.maxEntries, (newMax) => {
             <!-- The markup symbol field provides an editable selection box (like a combo box) -->
             <div class="w-max flex-auto">
                 <label :for="`field-group-${index + 1}-marker`" class="block text-sm font-medium mb-1 select-none">
-                    マーキング
+                    {{ t('component.pullItemDetail.marker') }}
                 </label>
                 <ComboBox
                     :modelValue="entry.marker"
@@ -114,8 +116,8 @@ watch(() => props.maxEntries, (newMax) => {
                     @update:modelValue="(val) => updateEntry(index, 'marker', val ?? null)"
                     @update:options="(opts) => markerOptions = opts"
                     width="9rem"
-                    placeholder="選択/入力"
-                    emptyMessage="追加できます"
+                    :placeholder="t('component.pullItemDetail.markerPlaceholder')"
+                    :emptyMessage="t('component.pullItemDetail.markerEmptyMessage')"
                     :removableOptions="!(appStore.app?.marker_defs && appStore.app.marker_defs.length > 0)"
                     :pt="{ label: 'pr-4' }"
                 />

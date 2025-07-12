@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { z } from 'zod'
 import { useToast } from 'primevue/usetoast'
@@ -15,11 +16,12 @@ const appStore = useAppStore()
 const logStore = useLogStore()
 const loader = useLoaderStore()
 const toast = useToast()
+const { t } = useI18n()
 
 // Validation Schema
 const logSchema = computed(() => z.object({
-  appId: z.string().min(1, 'アプリケーションを選択してください'),
-  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '無効な日付形式'),
+  appId: z.string().min(1, t('validation.selectedAppEmpty')),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, t('validation.invalidDate')),
   total_pulls: z.number().min(0),
   discharge_items: z.number().min(0),
   drop_details: z.array(z.object({
@@ -96,13 +98,19 @@ async function handleDateCommit(date: CalenderDate): Promise<void> {
 
   // ログ取得前にフォームをリセット
   resetForm()
-  const loaderId = loader.show('対象日のデータを読み込み中...')
+  const loaderId = loader.show(t('history.loadingLogData'))
   // ログ取得
   const log = await logStore.fetchLog(selectedApp.value.appId, dateStr)
   loader.hide(loaderId)
 
   if (!log) {
-    toast.add({ severity: 'warn', summary: 'データ未登録', detail: 'この日付の履歴は未登録です', group: 'notices', life: 2500 })
+    toast.add({
+      severity: 'warn',
+      summary: t('history.notice.noLogData'),
+      detail: t('history.notice.noLogDataDetail'),
+      group: 'notices',
+      life: 2500
+    })
     return
   }
   // 既存のログがある場合はそれを反映
@@ -169,12 +177,15 @@ async function handleConfirmSave() {
     // API送信処理
     const saved = await logStore.saveLog(pendingLogData.value)
     if (!saved) {
-      throw new Error('履歴の保存に失敗しました。再度お試しください。')
+      throw new Error(t('history.notice.saveFailed'))
     }
     toast.add({
       severity: 'success',
-      summary: '履歴保存完了',
-      detail: `アプリ: ${selectedApp.value?.name} / 対象日: ${formatDate(targetDate.value)}`,
+      summary: t('history.notice.saveSuccess'),
+      detail: t('history.notice.saveSuccessDetail', {
+        appName: selectedApp.value?.name,
+        date: formatDate(targetDate.value),
+      }),
       group: 'notices',
       life: 3000,
     })
@@ -186,12 +197,12 @@ async function handleConfirmSave() {
     historyListReloadKey.value++ // 履歴リストの再読み込みトリガー
     confirmModalVisible.value = false
   } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : '不明なエラーが発生しました'
+    const errorMessage = e instanceof Error ? e.message : t('history.notice.saveFailed')
     //console.error('Failed to save history log:', e)
     confirmModalVisible.value = false
     toast.add({
       severity: 'error',
-      summary: '履歴保存失敗',
+      summary: t('history.notice.saveFailedTitle'),
       detail: errorMessage,
       group: 'notices',
       life: 4000,
@@ -270,7 +281,7 @@ const adConfig: Record<string, AdProps> = {
 <template>
   <div class="w-full p-2 md:p-4">
       <CommonPageHeader
-        title="履歴登録"
+        :title="t('history.header')"
         :adProps="adConfig.banner"
       />
 
@@ -288,9 +299,9 @@ const adConfig: Record<string, AdProps> = {
               <div class="flex flex-wrap md:flex-nowrap justify-start items-center gap-4">
                 <CalendarUI
                   v-model="calendarDraftDate"
-                  label="対象日"
+                  :label="t('history.targetDate')"
                   :commit="true"
-                  commitLabel="変更"
+                  :commitLabel="t('history.targetDateChange')"
                   :commitDisabled="selectedApp === null"
                   :defaultDate="today"
                   :maxDate="today"
@@ -302,25 +313,25 @@ const adConfig: Record<string, AdProps> = {
                 />
                 <div class="flex-grow w-full md:w-1/2 flex items-center justify-start">
                   <Message v-if="targetDate" severity="info" size="small" class="mt-0 md:mt-6.5 p-2.5 w-full text-base">
-                    現在の登録対象日: <strong>{{ formatDate(targetDate) }}</strong>
+                    {{ t('history.currentTargetDate') }}: <strong>{{ formatDate(targetDate) }}</strong>
                   </Message>
                 </div>
               </div>
 
               <!-- 履歴の登録 -->
               <div class="flex flex-col gap-2">
-                  <h3>履歴の登録</h3>
+                  <h3>{{ t('history.register') }}</h3>
                   <div class="input-group-row">
-                    <label for="total-pull-count" class="input-group-label">ガチャ回数</label>
+                    <label for="total-pull-count" class="input-group-label">{{ t('history.totalPullCount') }}</label>
                     <div class="input-group-control">
                       <InputNumber
                         v-model="totalPullCount"
                         inputId="total-pull-count"
-                        placeholder="ガチャ回数"
+                        :placeholder="t('history.totalPullCountPlaceholder')"
                         showButtons
                         :min="0"
                         :disabled="!targetDate"
-                        class="input-number-md"
+                        class="input-number-sm"
                       />
                       <Button
                         icon="pi pi-plus"
@@ -349,17 +360,17 @@ const adConfig: Record<string, AdProps> = {
                     </div>
                   </div>
                   <div class="input-group-row">
-                    <label for="discharged-items" class="input-group-label">最高レア排出数</label>
+                    <label for="discharged-items" class="input-group-label">{{ t('history.highestRarityCount') }}</label>
                     <div class="input-group-control">
                       <InputNumber
                         v-model="dischargedItems"
                         inputId="discharged-items"
-                        placeholder="最高レア排出数"
+                        :placeholder="t('history.highestRarityCountPlaceholder')"
                         showButtons
                         :min="0"
                         :max="totalPullCount"
                         :disabled="totalPullCount === 0"
-                        class="input-number-md"
+                        class="input-number-sm"
                       />
                       <Button
                         icon="pi pi-plus"
@@ -388,19 +399,19 @@ const adConfig: Record<string, AdProps> = {
                     </div>
                   </div>
                   <div v-if="dischargedItems > 0" class="scrollable-container max-h-52 overflow-y-auto">
-                    <label class="font-medium block text-md py-2 sticky top-0 z-20 bg-white dark:bg-[#070D19]">排出内容の記録（任意）</label>
+                    <label class="font-medium block text-md py-2 sticky top-0 z-20 bg-white dark:bg-[#070D19]">{{ t('history.droppedItemsRecord') }}</label>
                     <PullItemDetail
                       :maxEntries="dischargedItems"
                       v-model="dropDetails"
                     />
                   </div>
                   <div class="input-group-row">
-                    <label for="expense" class="input-group-label">課金額</label>
+                    <label for="expense" class="input-group-label">{{ t('history.expense') }}</label>
                     <div class="input-group-control">
                       <InputNumber
                         v-model="expense"
                         inputId="expense"
-                        placeholder="課金額"
+                        :placeholder="t('history.expensePlaceholder')"
                         showButtons
                         :minFractionDigits="0"
                         :maxFractionDigits="2"
@@ -408,7 +419,7 @@ const adConfig: Record<string, AdProps> = {
                         :min="0"
                         :max="9999999"
                         :disabled="!targetDate"
-                        class="input-number-lg"
+                        class="input-number-md"
                       />
                       <div class="min-w-[3rem] px-1 text-md font-medium text-surface-500 truncate">
                         {{ currencyUnit }}
@@ -440,12 +451,12 @@ const adConfig: Record<string, AdProps> = {
                     @close="showCalculator = false"
                   />
                   <div class="input-group-row">
-                    <label for="tags" class="input-group-label pt-0 md:pt-2">タグ（任意）</label>
+                    <label for="tags" class="input-group-label pt-0 md:pt-2">{{ t('history.tags') }}</label>
                     <div class="input-group-control">
                       <InputTags
                         v-model="tags"
                         inputId="tags"
-                        placeholder="タグの追加（最大%maxTags%つまで）"
+                        :placeholder="t('history.tagsPlaceholder', { maxTags: userStore.planLimits?.maxLogTags ?? 5 })"
                         :maxTags="userStore.planLimits?.maxLogTags ?? 5"
                         :maxLength="userStore.planLimits?.maxLogTagLength ?? 22"
                         class="w-full min-h-12 max-h-max"
@@ -455,34 +466,35 @@ const adConfig: Record<string, AdProps> = {
                     </div>
                   </div>
                   <div class="input-group-row items-start! mb-4!">
-                    <label for="note" class="input-group-label pt-0 md:pt-2">アクティビティ（任意）</label>
+                    <label for="note" class="input-group-label pt-0 md:pt-2">{{ t('history.activity') }}</label>
                     <div class="input-group-control">
                       <div class="flex-grow w-full">
                         <Textarea
                           v-model="freeText"
                           inputId="note"
                           autoResize
-                          :placeholder="`活動状況など（${maxTextLength}文字以内）`"
+                          :placeholder="t('history.activityPlaceholder', { maxLength: maxTextLength })"
                           rows="3"
                           :maxlength="maxTextLength"
                           :disabled="!targetDate"
                           @input="textLength = freeText.length"
                           :style="{ minWidth: 'calc(100% - 10rem)' }"
                         />
-                        <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">入力文字数: {{ textLength }}</Message>
+                        <Message size="small" severity="secondary" variant="simple" class="text-surface dark:text-gray-500">
+                          {{ t('history.inputCharacterCount') }}: {{ textLength }}</Message>
                       </div>
                     </div>
                   </div>
                   <div class="flex justify-between items-center gap-2">
                     <Button
-                      label="入力内容をリセット"
+                      :label="t('history.resetInput')"
                       class="btn btn-alternative w-1/2 lg:w-1/3 px-3 py-2 text-center text-base"
                       @click="resetForm"
                       :disabled="!selectedApp || !targetDate"
                       v-blur-on-click
                     />
                     <Button
-                      label="履歴を保存"
+                      :label="t('history.saveLog')"
                       fluid
                       class="btn btn-primary w-1/2 lg:w-2/3 px-3 py-2 text-center text-base"
                       @click="submitLog"
@@ -503,7 +515,7 @@ const adConfig: Record<string, AdProps> = {
           <section class="w-full md:w-1/2 lg:w-3/5 mt-0 flex flex-col gap-4">
               <!-- 履歴推移グラフ -->
               <HistoryChart
-                label="履歴の推移（直近）"
+                :label="t('history.historyTrend')"
                 :key="historyChartReloadKey"
               />
 
@@ -514,7 +526,7 @@ const adConfig: Record<string, AdProps> = {
 
               <!-- 履歴一覧 -->
               <HistoryList
-                label="最新の履歴一覧"
+                :label="t('history.latestHistoryList')"
                 :toDate="todayString"
                 :limit="7"
                 :highlightDate="formatDate(targetDate)"
