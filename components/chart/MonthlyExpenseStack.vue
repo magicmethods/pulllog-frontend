@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useChartPalette } from '~/composables/useChart'
@@ -11,17 +12,20 @@ const props = defineProps<{
     colors?: ColorMap // appId: ChartColor
 }>()
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const appStore = useAppStore()
+const { t, locale } = useI18n()
 
 // Composables
 const { theme, palette, presetColors } = useChartPalette()
 
 // Refs & Local State
+/*
 const locale = computed(() => 
     userStore.user?.language === 'ja' ? 'ja-JP' : 'en-US' // ユーザの言語設定
 )
+*/
 
 // アプリIDリストをprops.dataから抽出
 const appIds = computed<string[]>(() => {
@@ -37,6 +41,20 @@ const appLabels = computed<string[]>(() => {
         const appName = appStore.appList.find(app => app.appId === appId)?.name || appId
         return strBytesTruncate(appName, 7, 80)
     })
+})
+
+// グラフの通貨単位を取得・定義する
+const fixCurrency = computed<string>(() => {
+    const defaultCurrency = locale.value === 'ja' ? 'JPY' : 'USD' // デフォルトの通過単位
+    const appCurrencyCodes = appIds.value.map(appId => {
+        const app = appStore.appList.find(app => app.appId === appId)
+        if (!app || !app.currency_unit) return defaultCurrency
+        const currencyData = getCurrencyData(app.currency_unit)
+        return currencyData ? currencyData.code : defaultCurrency
+    })
+    console.log('MonthlyExpenseStack::fixCurrency(List):', appCurrencyCodes, locale.value)
+    // 最初のアプリの通貨単位を基準にする
+    return appCurrencyCodes[0]
 })
 
 // アプリごとの色マッピング
@@ -87,8 +105,8 @@ const yAxisConfig = computed(() => {
     // すべて0なら
     if (maxExpense.value === 0) {
         // JPYなら1000円
-        const appCurrency = getCurrencyData(appStore.app?.currency_unit || 'JPY')?.code
-        if (appCurrency === 'JPY') {
+        //const appCurrency = getCurrencyData(appStore.app?.currency_unit || 'JPY')?.code
+        if (fixCurrency.value === 'JPY') {
             max = 1000
             step = 500
         } else {
@@ -143,7 +161,7 @@ const chartOptions = computed(() => ({
                     // ctx.dataset.label（アプリ名）, ctx.parsed.y（値）
                     const appLabel = ctx.dataset.label
                     const value = ctx.parsed.y
-                    return `${appLabel}: ${formatCurrency(value, 'JPY', locale.value)}`
+                    return `${appLabel}: ${formatCurrency(value, fixCurrency.value, locale.value)}`
                 },
             }
         },
@@ -158,7 +176,7 @@ const chartOptions = computed(() => ({
                     borderDash: [4, 4],
                     label: {
                         display: averageExpense.value > 0,
-                        content: `平均：${formatCurrency(averageExpense.value, 'JPY', locale.value)}`,
+                        content: t('stats.chart.monthlyExpenseStack.average', { value: formatCurrency(averageExpense.value, fixCurrency.value, locale.value) }),
                         position: 'start',
                         color: palette.value.annotationText,
                         backgroundColor: palette.value.annotationBg,
@@ -185,13 +203,12 @@ const chartOptions = computed(() => ({
             ticks: {
                 color: palette.value.text,
                 stepSize: maxExpense.value === 0 ? yAxisConfig.value.step: undefined,
-                callback: (val: number) => formatCurrency(Number(val), 'JPY', locale.value)
+                callback: (val: number) => formatCurrency(Number(val), fixCurrency.value, locale.value)
             },
             border: { color: palette.value.axis }
         }
     }
 }))
-
 
 </script>
 
@@ -199,7 +216,9 @@ const chartOptions = computed(() => ({
     <Card class="min-h-[20rem] flex-grow">
         <template #title>
             <h3 class="text-base">
-                アプリの<span class="text-primary-800 dark:text-primary-400 mx-0.5">課金推移</span>
+                {{ t('stats.chart.monthlyExpenseStack.titlePrefix') }}
+                <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.monthlyExpenseStack.titleLabel') }}</span>
+                {{ t('stats.chart.monthlyExpenseStack.titleSuffix') }}
             </h3>
         </template>
         <template #content>

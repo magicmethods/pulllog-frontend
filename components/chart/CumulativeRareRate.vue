@@ -1,8 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useChartPalette } from '~/composables/useChart'
-import { formatCurrency } from '~/utils/currency'
 import { strBytesTruncate } from '~/utils/string'
 
 // Types
@@ -35,21 +35,13 @@ const props = defineProps<{
     colors?: ColorMap // appId: ChartColor
 }>()
 
-console.log('CumulativeRareRate', props.data)
-
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const appStore = useAppStore()
+const { t } = useI18n()
 
 // Composables
 const { theme, palette, presetColors } = useChartPalette()
-
-// Refs & Local State
-/*
-const locale = computed(() => 
-    userStore.user?.language === 'ja' ? 'ja-JP' : 'en-US' // ユーザの言語設定
-)
-*/
 
 // X軸（日付）: 最初の系列の全日付
 const xLabels = computed<string[]>(() => {
@@ -151,7 +143,7 @@ const chartOptions = computed(() => ({
                     borderDash: [4, 4],
                     label: {
                         display: averageRates.value[idx] > 0,
-                        content: `平均: ${averageRates.value[idx].toFixed(2)}%`,
+                        content: t('stats.chart.cumulativeRareRate.average', { value: averageRates.value[idx].toFixed(2) }),
                         position: 'start',
                         color: colorMap.value[app.appId]?.annotation ?? palette.value.annotationText,
                         backgroundColor: palette.value.annotationBg,
@@ -190,7 +182,8 @@ const chartOptions = computed(() => ({
     <Card class="min-h-[22rem] w-full md:w-auto flex-grow">
         <template #title>
             <h3 class="text-base">
-                <span class="text-primary-800 dark:text-primary-400 mx-0.5">レア排出率推移</span>（運気の推移）
+                <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.cumulativeRareRate.titleLabel') }}</span>
+                {{ t('stats.chart.cumulativeRareRate.subtitle') }}
             </h3>
         </template>
         <template #content>

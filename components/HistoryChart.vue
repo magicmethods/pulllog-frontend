@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { DateTime } from 'luxon'
 import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
@@ -12,20 +13,21 @@ const props = defineProps<{
     ranges?: RangeOption[] // 未指定時はデフォルト範囲 DEFAULT_RANGES
 }>()
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const appStore = useAppStore()
 const logStore = useLogStore()
+const { t } = useI18n()
 
 // Refs & Local variables
-const DEFAULT_RANGES: RangeOption[] = [
-    { label: '1ヶ月',  value: '1m', days: 30 },
-    { label: '3ヶ月',  value: '3m', days: 91 },
-    { label: '6ヶ月',  value: '6m', days: 182 },
-    { label: '12ヶ月', value: '1y', days: 365 }
-]
+const DEFAULT_RANGES = computed<RangeOption[]>(() => ([
+    { label: t('history.historyChart.month1'),  value: '1m', days: 30 },
+    { label: t('history.historyChart.month3'),  value: '3m', days: 91 },
+    { label: t('history.historyChart.month6'),  value: '6m', days: 182 },
+    { label: t('history.historyChart.month12'), value: '1y', days: 365 }
+]))
 const internalAppId = computed(() => props.appId ?? appStore.app?.appId ?? null)
-const internalRanges = computed(() => props.ranges ?? DEFAULT_RANGES)
+const internalRanges = computed(() => props.ranges ?? DEFAULT_RANGES.value)
 const chartContainer = ref<HTMLElement | null>(null)
 const currentRange = ref<RangeOption>(internalRanges.value[0]) // 初期値は1ヶ月
 const chartData = ref<ChartDataPoint[]>([])
@@ -118,8 +120,8 @@ watch(
                 class="w-full h-64"
             />
             <div v-else class="text-center text-muted text-antialiasing">
-                <span v-if="!internalAppId">アプリケーションを選択してください</span>
-                <span v-else>データがありません</span>
+                <span v-if="!internalAppId">{{ $t('history.historyChart.selectApp') }}</span>
+                <span v-else>{{ $t('history.historyChart.noData') }}</span>
             </div>
         </div>
     </div>

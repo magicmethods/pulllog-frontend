@@ -3,25 +3,24 @@ export const useOptionStore = defineStore('option', () => {
     const t = (key: string | number) => useNuxtApp().$i18n.t(key)
 
     // Options
-    // - 現状 ref で問題ないが、もし locale 変更時に切り替わらない場合は computed に変更する
-    const currencyOptions = ref<SymbolOption[]>([
+    const currencyOptions = computed<SymbolOption[]>(() => ([
         { label: t('options.currency.jpy'), value: 'JPY', desc: t('options.currency.jpyDesc'), symbol: '￥' },
         { label: t('options.currency.usd'), value: 'USD', desc: t('options.currency.usdDesc'), icon: 'pi-dollar' },
         { label: t('options.currency.eur'), value: 'EUR', desc: t('options.currency.eurDesc'), icon: 'pi-euro' },
         { label: t('options.currency.cny'), value: 'CNY', desc: t('options.currency.cnyDesc'), symbol: '￥' },
-    ])
-    const rarityOptions = ref<SymbolOption[]>([
+    ]))
+    const rarityOptions = computed<SymbolOption[]>(() => ([
         { symbol: '', label: t('options.rarity.ssr'), value: 'ssr' },
         { symbol: '', label: t('options.rarity.sr'),  value: 'sr' },
         { symbol: '⭐', label: t('options.rarity.fiveStars'), value: '5stars' },
         { symbol: '⭐', label: t('options.rarity.threeStars'), value: '3stars' },
-    ])
-    const symbolOptions = ref<SymbolOption[]>([
+    ]))
+    const symbolOptions = computed<SymbolOption[]>(() => ([
         { symbol: '🏆', label: t('options.symbol.pickup'), value: 'pickup' },
         { symbol: '💔', label: t('options.symbol.lose'), value: 'lose' },
         { symbol: '🎯', label: t('options.symbol.target'), value: 'target' },
         { symbol: '💖', label: t('options.symbol.guaranteed'), value: 'guaranteed' },
-    ])
+    ]))
     const languageOptions = computed<BasicOption[]>(() => ([
         { label: t('options.language.ja'), value: 'ja' },
         { label: t('options.language.en'), value: 'en' }
@@ -40,7 +39,7 @@ export const useOptionStore = defineStore('option', () => {
 
     // Computed labels (UI表示用)
     const currencyLabels = computed(() =>
-        currencyOptions.value.map(opt => opt.desc ? opt.desc : opt.label)
+        currencyOptions.value.map(opt => opt.desc && opt.desc !== '' ? opt.desc : opt.label)
     )
     const rarityLabels = computed(() =>
         rarityOptions.value.map(opt => opt.label)

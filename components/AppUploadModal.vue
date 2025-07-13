@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FileUploadSelectEvent, FileUploadRemoveEvent } from 'primevue/fileupload'
+import { useI18n } from 'vue-i18n'
 
 // Props/Emits
 const props = defineProps<{
@@ -11,13 +12,15 @@ const emit = defineEmits<{
     (e: 'upload', value: UploadData): void
 }>()
 
+// i18n
+const { t } = useI18n()
+
 // State
 const internalFile = ref<File | undefined>(undefined)
 const fileUploadRef = ref(null)
 const mode = ref<'overwrite' | 'merge'>('overwrite')
 const format = ref<'json' | 'csv' | undefined>(undefined)
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-const uploadHelperMessage = 'ファイルをここへドラッグ＆ドロップすることもできます' // Drag and drop files to here to upload.
 
 // ファイルアップロード処理
 function handleFileSelect(event: FileUploadSelectEvent) {
@@ -106,36 +109,36 @@ const fileUploadPT = {
         :visible="visible"
         @update:visible="(v: boolean) => emit('update:visible', v)"
         modal
-        header="インポート"
+        :header="t('modal.import.header')"
         :dismissableMask="true"
         class="w-max md:w-96"
     >
         <div class="flex flex-col gap-4">
             <p class="mb-2">
-                <span>アプリ</span>
+                <span>{{ t('modal.import.promptPrefix') }}</span>
                 <span class="mx-1 font-bold text-amber-500 dark:text-yellow-600">{{ app?.name }}</span>
-                <span>の履歴をアップロードします。</span>
+                <span>{{ t('modal.import.promptSuffix') }}</span>
             </p>
 
             <!-- インポート方式 -->
             <div class="mb-0">
-                <label class="font-semibold">インポート方式</label>
+                <label class="font-semibold">{{ t('modal.import.importMode') }}</label>
                 <div class="flex flex-wrap items-center gap-6 mt-2">
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="mode" inputId="mode-overwrite" name="mode" value="overwrite" />
-                        <label for="mode-overwrite" class="font-medium mb-0">上書き</label>
+                        <label for="mode-overwrite" class="font-medium mb-0">{{ t('modal.import.overwrite') }}</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="mode" inputId="mode-merge" name="mode" value="merge" />
-                        <label for="mode-merge" class="font-medium mb-0">マージ</label>
+                        <label for="mode-merge" class="font-medium mb-0">{{ t('modal.import.merge') }}</label>
                     </div>
                 </div>
                 <Message v-if="mode" severity="info" variant="simple" size="small" class="w-auto mt-2">
                     <template v-if="mode === 'overwrite'">
-                        既存の履歴は全て削除され、アップロードした履歴で上書きされます
+                        {{ t('modal.import.overwriteDescription') }}
                     </template>
                     <template v-else>
-                        アップロードした履歴が追加され、既存の履歴と重複するデータのみ上書きされます
+                        {{ t('modal.import.mergeDescription') }}
                     </template>
                 </Message>
             </div>
@@ -147,9 +150,9 @@ const fileUploadPT = {
                     accept="application/json,text/csv"
                     :maxFileSize="MAX_UPLOAD_SIZE"
                     :multiple="false"
-                    chooseLabel="ファイル選択"
-                    uploadLabel="アップロード"
-                    cancelLabel="キャンセル　"
+                    :chooseLabel="t('settings.fileUpload.chooseLabel')"
+                    :uploadLabel="t('settings.fileUpload.uploadLabel')"
+                    :cancelLabel="t('settings.fileUpload.cancelLabel')"
                     chooseIcon="pi pi-file-import"
                     uploadIcon="pi pi-cloud-upload"
                     :showUploadButton="false"
@@ -160,11 +163,11 @@ const fileUploadPT = {
                     @remove="handleRemoveFile"
                 >
                     <template #empty>
-                        {{ uploadHelperMessage }}
+                        {{ t('settings.fileUpload.dragAndDrop') }}
                     </template>
                 </FileUpload>
                 <Message severity="info" variant="simple" size="small" class="w-auto mt-2">
-                    <b>1MB以下</b>の<b>CSV</b>もしくは<b>JSON</b>形式のファイルをアップロードできます
+                    <span v-html="t('modal.import.fileSizeInformation', { size: (MAX_UPLOAD_SIZE / 1024 / 1024), format1: 'CSV', format2: 'JSON' })"></span>
                 </Message>
             </div>
         </div>
@@ -172,12 +175,12 @@ const fileUploadPT = {
         <template #footer>
             <div class="w-full flex items-center justify-between gap-4">
                 <Button
-                    label="キャンセル"
+                    :label="t('modal.import.cancel')"
                     class="btn btn-alt w-full"
                     @click="emit('update:visible', false)"
                 />
                 <Button
-                    label="アップロード"
+                    :label="t('modal.import.upload')"
                     class="btn btn-primary w-full"
                     :disabled="mode === undefined || !internalFile"
                     @click="handleUpload"

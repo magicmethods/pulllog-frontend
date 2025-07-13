@@ -2,6 +2,7 @@
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useI18n } from 'vue-i18n'
 import { sleep } from '~/utils/timing'
 
 // Props & Emits
@@ -16,8 +17,9 @@ const emit = defineEmits<
     (e: 'update:visible', v: boolean) => void
 >()
 
-// Stores
+// Stores etc.
 const loaderStore = useLoaderStore()
+const { t } = useI18n()
 
 // State
 const loading = ref<boolean>(false)
@@ -37,7 +39,7 @@ const dialogStyle = computed(() => {
 async function fetchMarkdown() {
     loading.value = true
     await nextTick()
-    const lid = loaderStore.show('文書を取得中...', document.getElementById('document-loading-container') as HTMLElement)
+    const lid = loaderStore.show(t('modal.document.loading'), document.getElementById('document-loading-container') as HTMLElement)
     try {
         const res = await fetch(props.src)
         const md = await res.text()
@@ -45,7 +47,7 @@ async function fetchMarkdown() {
         content.value = DOMPurify.sanitize(html)
         //console.log('Markdown fetched and sanitized:', html, content.value)
     } catch (e: unknown) {
-        content.value = e instanceof Error ? e.message : '文書を取得できませんでした。'
+        content.value = e instanceof Error ? e.message : t('modal.document.error')
         console.error('Markdown fetch error:', e)
     } finally {
         const appConfig = useConfig()
@@ -93,7 +95,7 @@ watch(
         <div class="markdown-body" v-if="!loading" v-html="content" />
         <div v-else id="document-loading-container"></div>
         <template #footer>
-            <Button label="閉じる" @click="emit('update:visible', false)" class="btn btn-alt" />
+            <Button :label="t('modal.document.close')" @click="emit('update:visible', false)" class="btn btn-alt" />
         </template>
     </Dialog>
 </template>

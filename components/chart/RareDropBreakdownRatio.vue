@@ -1,5 +1,5 @@
 <script setup lang="ts">
-//import { useUserStore } from '~/stores/useUserStore'
+import { useI18n } from 'vue-i18n'
 import { useChartPalette } from '~/composables/useChart'
 import { strBytesTruncate } from '~/utils/string'
 
@@ -12,20 +12,18 @@ const props = defineProps<{
     height?: number
 }>()
 
-// Stores
-//const userStore = useUserStore()
-
-// Composables
+// Composables etc.
 const { theme, palette, presetColors } = useChartPalette()
+const { t } = useI18n()
 
 // Refs & Local State
-const labelList = ref<string[]>([
-    'ピックアップ',
-    'すり抜け',
-    '狙い',
-    '確定枠',
-    'その他'
-])
+const labelList = computed<string[]>(() => ([
+    t('stats.chart.rareDropBreakdown.pickup'),
+    t('stats.chart.rareDropBreakdown.lose'),
+    t('stats.chart.rareDropBreakdown.target'),
+    t('stats.chart.rareDropBreakdown.guaranteed'),
+    t('stats.chart.rareDropBreakdown.other'),
+]))
 const breakdownData = computed(() => {
     const app = props.data.find(item => item.appId === props.appId)
     if (!app) {
@@ -150,10 +148,12 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <Card v-if="breakdownData && Object.keys(breakdownData).length > 0" class="min-h-[20rem] w-full flex-grow">
+    <Card v-if="breakdownData && Object.keys(breakdownData).length > 0" class="min-h-[20rem] h-max min-w-max flex-grow">
         <template #title>
             <h3 class="text-base">
-                {{ breakdownData.dispName }}の<span class="text-primary-800 dark:text-primary-400 mr-0.5">排出レア</span>内訳
+                {{ t('stats.chart.rareDropBreakdown.titlePrefix', { name: breakdownData.dispName }) }}
+                <span class="text-primary-800 dark:text-primary-400 mr-0.5">{{ t('stats.chart.rareDropBreakdown.titleLabel') }}</span>
+                {{ t('stats.chart.rareDropBreakdown.titleSuffix') }}
             </h3>
         </template>
         <template #content>
@@ -175,20 +175,20 @@ const chartOptions = computed(() => ({
                             {{ val.label }}
                         </span>
                         <span class="ml-2 text-sm font-medium text-primary-600 dark:text-primary-400">
-                            {{ val.value || 0 }}回 ({{ val.rate }}%)
+                            {{ t('stats.chart.rareDropBreakdown.value', { value: val.value || 0, rate: val.rate }) }}
                         </span>
                     </div>
                 </div>
             </div>
         </template>
         <template #footer>
-            <div class="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                <span class="font-semibold mr-2">レア排出数合計:</span>
+            <div class="text-sm text-gray-500 dark:text-gray-400 my-2">
+                <span class="font-semibold mr-2">{{ t('stats.chart.rareDropBreakdown.total') }}:</span>
                 <span class="font-semibold text-primary-600 dark:text-primary-400">{{ breakdownData.total.toLocaleString() }}</span>
             </div>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-                ※ 内訳はアプリ設定の初期マーカー定義のみ有効です。
-            </span>
+            <div class="md:max-w-[440px] text-xs text-gray-500 dark:text-gray-400 break-all">
+                {{ t('stats.chart.rareDropBreakdown.notice') }}
+            </div>
         </template>
     </Card>
 </template>

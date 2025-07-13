@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useChartPalette } from '~/composables/useChart'
 import { getLabelsAndMap } from '~/utils/date'
 import { getCurrencyData, getExpenseStepSize, getExpenseYAxisMax } from '~/utils/currency'
@@ -10,6 +11,9 @@ const props = defineProps<{
     currencyCode: string // アプリごとの通貨コード
     guaranteeCount?: number // 天井回数（オプション、指定があれば表示）
 }>()
+
+// i18n
+const { t } = useI18n()
 
 // Composables
 const { palette } = useChartPalette()
@@ -24,7 +28,7 @@ const currencySymbol = computed(() => {
 const datasets = computed(() => [
     {
         type: 'line' as const,
-        label: `課金額 (${currencySymbol.value})`,
+        label: t('history.historyChart.expense', { currency: currencySymbol.value }),
         yAxisID: 'y1',
         data: points.map(d => Number(d.expense || 0)),
         borderColor: palette.value.expense,
@@ -35,14 +39,14 @@ const datasets = computed(() => [
     },
     {
         type: 'bar' as const,
-        label: 'その他排出数',
+        label: t('history.historyChart.other'),
         stack: 'pulls',
         data: points.map(d => Number(d.total_pulls || 0) - Number(d.rare_pulls || 0)),
         backgroundColor: palette.value.other,
     },
     {
         type: 'bar' as const,
-        label: '最高レア排出数',
+        label: t('history.historyChart.rare'),
         stack: 'pulls',
         data: points.map(d => Number(d.rare_pulls || 0)),
         backgroundColor: palette.value.rare,
@@ -67,7 +71,7 @@ const pityAnnotations = computed(() => {
             borderDash: [4, 4],
             label: {
                 enabled: true,
-                content: `${v}回 天井`,
+                content: t('history.historyChart.pityLine', { count: v }),
                 position: 'start',
                 backgroundColor: palette.value.annotationBg,
                 color: palette.value.annotationText,
@@ -133,7 +137,7 @@ const chartOptions = computed(() => ({
                 font: { size: 12 },
             },
             grid:   { color: palette.value.grid },
-            title:  { color: palette.value.text, display: true, text: 'ガチャ回数' },
+            title:  { color: palette.value.text, display: true, text: t('history.historyChart.pulls') },
             border: { color: palette.value.axis }
         },
         y1: {
@@ -147,7 +151,7 @@ const chartOptions = computed(() => ({
                 callback: (v: string | number) => v.toLocaleString(),
             },
             grid:   { color: palette.value.grid, drawOnChartArea: false },
-            title:  { color: palette.value.text, display: true, text: `課金額 (${currencySymbol.value})` },
+            title:  { color: palette.value.text, display: true, text: t('history.historyChart.expense', { currency: currencySymbol.value }) },
             border: { color: palette.value.axis }
         },
         x: {
@@ -161,7 +165,7 @@ const chartOptions = computed(() => ({
                 font: { size: 12 },
             },
             grid:   { color: palette.value.grid },
-            title:  { color: palette.value.text, display: false, text: '日付' },
+            title:  { color: palette.value.text, display: false, text: t('history.historyChart.date') },
             border: { color: palette.value.axis }
         }
     }

@@ -4,10 +4,9 @@ import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
 import { useOptionStore } from '~/stores/useOptionStore'
-import { DateTime } from 'luxon'
+import { useI18n } from 'vue-i18n'
 import { getMaxApps } from '~/utils/user'
 import { formatDate } from '~/utils/date'
-import { sleep } from '~/utils/timing'
 
 // Types: in this page only
 type StatsPageData = {
@@ -21,12 +20,13 @@ type StatsPageData = {
     appRareDrops: RareDropRanking
 } | null
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const appStore = useAppStore()
 const logStore = useLogStore()
 const loaderStore = useLoaderStore()
 const optionStore = useOptionStore()
+const { t } = useI18n()
 
 // Composables
 const statsData = useStats()
@@ -44,8 +44,8 @@ const selectedAppsLabel = computed(() => {
         ? selectedApps.value.length === userApps.value.length
         : selectedApps.value.length === maxSelection.value
     return isSelectedMax
-        ? selectedApps.value.length === userApps.value.length ? '全てのアプリを選択中' : '選択可能の上限に達しました'
-        : `${selectedApps.value.length}個のアプリを選択中`
+        ? selectedApps.value.length === userApps.value.length ? t('stats.allAppsSelected') : t('stats.maxSelectionReached')
+        : t('stats.appsSelected', { count: selectedApps.value.length })
 })
 const isReadyCondition = computed(() => {
     // 選択アプリがあり、期間が指定されている場合に更新ボタンを有効化
@@ -75,7 +75,7 @@ async function handleAggregation() {
     const end = useRange && endDate.value ? formatDate(endDate.value) : undefined
 
     const statsElement = document.getElementById('stats-content') ?? null
-    const loaderId = loaderStore.show('集計中...', statsElement)
+    const loaderId = loaderStore.show(t('stats.aggregating'), statsElement)
 
     try {
         // 対象アプリの履歴全件取得（並列処理）
@@ -128,7 +128,7 @@ async function handleAggregation() {
             appRareDropBreakdown: [...appRareDropBreakdown], //JSON.parse(JSON.stringify(appRareDropBreakdown)), // JSON.stringify/parseで参照をクリア
             appRareDrops: [...appRareDrops],
         }
-        console.log('集計結果:', stats.value)
+        //console.log('Aggregation Results:', stats.value)
     } catch (e: unknown) {
         // エラーハンドリング
         console.error('Aggregation Error:', e)
@@ -188,7 +188,7 @@ const adConfig: Record<string, AdProps> = {
 <template>
     <div class="w-full h-max p-4 flex flex-col justify-between">
         <CommonPageHeader
-            title="統計分析"
+            :title="t('stats.header')"
             :adProps="adConfig.default"
         />
         <!-- Page Content -->
@@ -198,14 +198,14 @@ const adConfig: Record<string, AdProps> = {
                 :options="userApps"
                 display="chip"
                 optionLabel="name"
-                placeholder="集計対象アプリ"
+                :placeholder="t('stats.targetApps')"
                 :filter="false"
                 :showToggleAll="true"
                 :showClear="true"
                 :selectedItemsLabel="selectedAppsLabel"
                 :maxSelectedLabels="3"
                 :selectionLimit="maxSelection"
-                emptyMessage="登録されているアプリがありません"
+                :emptyMessage="t('stats.noRegisteredApps')"
             >
                 <template #clearicon>
                     <div class="relative -right-1 flex justify-end items-center self-end">
@@ -218,22 +218,22 @@ const adConfig: Record<string, AdProps> = {
                 </template>
             </MultiSelect>
             <div class="flex items-center gap-4">
-                <label class="font-semibold mb-0">集計期間</label>
+                <label class="font-semibold mb-0">{{ t('stats.aggregationPeriod') }}</label>
                 <div class="flex flex-wrap items-center gap-6">
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="period" inputId="mode-all" name="mode" value="all" />
-                        <label for="mode-all" class="font-medium mb-0">全期間</label>
+                        <label for="mode-all" class="font-medium mb-0">{{ t('stats.allPeriod') }}</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="period" inputId="mode-range" name="mode" value="range" />
-                        <label for="mode-range" class="font-medium mb-0">日付を指定</label>
+                        <label for="mode-range" class="font-medium mb-0">{{ t('stats.specifyDate') }}</label>
                     </div>
                 </div>
             </div>
             <div class="flex items-center gap-2">
                 <CalendarUI
                     v-model="startDate"
-                    placeholder="開始日"
+                    :placeholder="t('stats.startDate')"
                     :maxDate="endDate ? (typeof endDate === 'string' ? new Date(endDate) : endDate) as Date : undefined"
                     :pt="{ root: 'flex-grow w-max md:w-max', panel: 'w-[calc(100%_-_20px)] md:w-80' }"
                     containerClass="w-40"
@@ -244,7 +244,7 @@ const adConfig: Record<string, AdProps> = {
                 <span class="self-center">{{ optionStore.rangeSeparator }}</span>
                 <CalendarUI
                     v-model="endDate"
-                    placeholder="終了日"
+                    :placeholder="t('stats.endDate')"
                     :minDate="startDate ? (typeof startDate === 'string' ? new Date(startDate) : startDate) as Date : undefined"
                     :pt="{ root: 'flex-grow w-max md:w-max', panel: 'w-[calc(100%_-_20px)] md:w-80' }"
                     containerClass="w-40"
@@ -255,14 +255,14 @@ const adConfig: Record<string, AdProps> = {
             </div>
             <div class="flex-grow flex justify-between items-center gap-4">
                 <Button
-                    label="集計開始"
+                    :label="t('stats.startAggregation')"
                     class="btn btn-primary flex-1 w-full md:w-max max-w-1/2 md:max-w-1/2 px-4 py-2 text-base! m-0!"
                     @click="handleAggregation"
                     :disabled="!isReadyCondition"
                 />
                 <div class="flex-grow"></div>
                 <Button
-                    label="詳細設定"
+                    :label="t('stats.advancedSettings')"
                     icon="pi pi-lock"
                     class="btn btn-alt flex-1 w-full md:w-max max-w-1/2 md:max-w-1/2 px-4 py-2 text-base! m-0!"
                     @click=""
@@ -273,7 +273,7 @@ const adConfig: Record<string, AdProps> = {
 
         <!-- 統計データ表示欄 -->
         <div v-if="!stats" class="w-full mt-4 flex flex-grow min-h-full justify-center items-center">
-            <span class="text-center text-muted">集計結果がありません</span>
+            <span class="text-center text-muted">{{ t('stats.noAggregationResults') }}</span>
         </div>
         <div v-else id="stats-content" class="w-full mt-4 flex flex-col gap-4">
             <div class="flex flex-wrap justify-between items-center gap-4">

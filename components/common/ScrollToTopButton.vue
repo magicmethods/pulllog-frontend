@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { debounce } from '~/utils/timing'
+import { useI18n } from 'vue-i18n'
 
 // Props
 const props = defineProps<{
     target?: HTMLElement | null
     threshold?: number
 }>()
+
+// i18n
+const { t } = useI18n()
 
 // Refs & Local variables
 const scrollEl = computed(() => props.target ?? null)
@@ -68,6 +72,6 @@ watch(scrollEl, (newEl, oldEl) => {
         rounded
         class="btn-floating-action"
         @click="scrollToTop"
-        aria-label="トップへ戻る"
+        :aria-label="t('app.scrollToTop')"
     />
 </template>

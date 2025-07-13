@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useOptionStore } from '~/stores/useOptionStore'
 import { DateTime } from 'luxon'
 
@@ -13,8 +14,9 @@ const emit = defineEmits<{
     (e: 'download', value: HistoryDownloadSettings): void
 }>()
 
-// Stores
+// Stores etc.
 const optionStore = useOptionStore()
+const { t } = useI18n()
 
 // State
 const mode = ref<'all' | 'range'>('all')
@@ -79,34 +81,34 @@ watch(
         :visible="visible"
         @update:visible="(v: boolean) => emit('update:visible', v)"
         modal
-        header="エクスポート"
+        :header="t('modal.export.header')"
         :dismissableMask="true"
         class="w-max md:w-96"
     >
         <div class="flex flex-col gap-4">
             <p class="mb-2">
-                <span>アプリ</span>
+                <span>{{ t('modal.export.promptPrefix') }}</span>
                 <span class="mx-1 font-bold text-amber-500 dark:text-yellow-600">{{ app?.name }}</span>
-                <span>の履歴をダウンロードします。</span>
+                <span>{{ t('modal.export.promptSuffix') }}</span>
             </p>
 
             <!-- 期間選択 -->
             <div>
-                <label class="font-semibold">期間指定</label>
+                <label class="font-semibold">{{ t('modal.export.selectPeriod') }}</label>
                 <div class="flex flex-wrap items-center gap-6 mt-2">
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="mode" inputId="mode-all" name="mode" value="all" />
-                        <label for="mode-all" class="font-medium mb-0">全期間</label>
+                        <label for="mode-all" class="font-medium mb-0">{{ t('modal.export.allTime') }}</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="mode" inputId="mode-range" name="mode" value="range" />
-                        <label for="mode-range" class="font-medium mb-0">日付を指定</label>
+                        <label for="mode-range" class="font-medium mb-0">{{ t('modal.export.dateRange') }}</label>
                     </div>
                 </div>
                 <div v-if="mode === 'range'" class="flex flex-wrap gap-2 mt-4">
                     <CalendarUI
                         v-model="startDate"
-                        placeholder="開始日"
+                        :placeholder="t('modal.export.startDate')"
                         :minDate="stats?.startDate ? (typeof stats.startDate === 'string' ? new Date(stats.startDate) : stats.startDate) as Date : undefined"
                         :maxDate="endDate ? (typeof endDate === 'string' ? new Date(endDate) : endDate) as Date : undefined"
                         :pt="{ root: 'flex-grow w-max md:w-max', panel: 'w-[calc(100%_-_20px)] md:w-80' }"
@@ -117,7 +119,7 @@ watch(
                     <span class="self-center">{{ optionStore.rangeSeparator }}</span>
                     <CalendarUI
                         v-model="endDate"
-                        placeholder="終了日"
+                        :placeholder="t('modal.export.endDate')"
                         :minDate="startDate ? (typeof startDate === 'string' ? new Date(startDate) : startDate) as Date : undefined"
                         :maxDate="stats?.endDate ? (typeof stats.endDate === 'string' ? new Date(stats.endDate) : stats.endDate) as Date : undefined"
                         :pt="{ root: 'flex-grow w-max md:w-max', panel: 'w-[calc(100%_-_20px)] md:w-80' }"
@@ -127,21 +129,21 @@ watch(
                     />
                 </div>
                 <Message v-if="mode === 'range' && !!startDate && !!endDate && !isDateRangeValid" severity="error" size="small" variant="simple" class="mt-1">
-                    開始日と終了日が正しく指定されていません
+                    {{ t('modal.export.dateRangeInvalid') }}
                 </Message>
             </div>
 
             <!-- ファイル形式選択 -->
             <div class="mb-4">
-                <label class="font-semibold">ファイル形式</label>
+                <label class="font-semibold">{{ t('modal.export.fileFormat') }}</label>
                 <div class="flex flex-wrap items-center gap-6 mt-2">
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="format" inputId="format-json" name="format" value="json" />
-                        <label for="format-json" class="font-medium mb-0">JSON</label>
+                        <label for="format-json" class="font-medium mb-0">{{ t('modal.export.json') }}</label>
                     </div>
                     <div class="flex items-center gap-2">
                         <RadioButton v-model="format" inputId="format-csv" name="format" value="csv" />
-                        <label for="format-csv" class="font-medium mb-0">CSV</label>
+                        <label for="format-csv" class="font-medium mb-0">{{ t('modal.export.csv') }}</label>
                     </div>
                 </div>
             </div>
@@ -150,12 +152,12 @@ watch(
         <template #footer>
             <div class="w-full flex items-center justify-between gap-4">
                 <Button
-                    label="キャンセル"
+                    :label="t('modal.export.cancel')"
                     class="btn btn-alt w-full"
                     @click="emit('update:visible', false)"
                 />
                 <Button
-                    label="ダウンロード"
+                    :label="t('modal.export.download')"
                     class="btn btn-primary w-full"
                     :disabled="mode === 'range' && !isDateRangeValid"
                     @click="handleDownload"

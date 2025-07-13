@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 
 // Props/Emits
 const props = defineProps<{
@@ -10,6 +11,9 @@ const emit = defineEmits<{
     (e: 'update:visible', value: boolean): void
     (e: 'confirm', value: AppData): void
 }>()
+
+// i18n
+const { t } = useI18n()
 
 // Methods
 // Confirm ハンドラ
@@ -25,26 +29,26 @@ function handleConfirm() {
         :visible="visible"
         @update:visible="(v: boolean) => emit('update:visible', v)"
         modal
-        header="アプリケーションの削除"
+        :header="t('modal.deleteConfirm.header')"
         :dismissableMask="true"
     >
         <div class="flex flex-col gap-1">
             <p>
-                <span>アプリケーション</span>
-                <span class="mx-2 font-bold text-danger">{{ app?.name || '(未選択)' }}</span>
-                <span>を削除します。</span>
+                <span>{{ t('modal.deleteConfirm.confirmTextPrefix') }}</span>
+                <span class="mx-2 font-bold text-danger">{{ app?.name || t('modal.deleteConfirm.noAppName') }}</span>
+                <span>{{ t('modal.deleteConfirm.confirmTextSuffix') }}</span>
             </p>
-            <p>この操作は元に戻せません。よろしいですか？</p>
-            <p class="text-danger text-sm">注意: このアプリケーションに関連するすべてのデータが削除されます。</p>
+            <p>{{ t('modal.deleteConfirm.confirmNotice') }}</p>
+            <p class="text-danger text-sm">{{ t('modal.deleteConfirm.dangerNotice') }}</p>
         </div>
         <template #footer>
             <Button
-                label="キャンセル"
+                :label="t('modal.deleteConfirm.cancel')"
                 @click="emit('update:visible', false)"
                 class="btn btn-alt"
             />
             <Button
-                label="削除する"
+                :label="t('modal.deleteConfirm.delete')"
                 @click="handleConfirm"
                 class="btn btn-secondary"
                 :disabled="!app || loading"

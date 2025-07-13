@@ -1,22 +1,15 @@
 <script setup lang="ts">
 import ChartDataLabels from 'chartjs-plugin-datalabels'
-//import { useChartPalette } from '~/composables/useChart'
-
-// 型定義
-type AppPullStats = {
-    appId: string
-    appName: string
-    pulls: number
-    rareDrops: number
-    rareRate: number // %
-}
-type ColorMap = Record<string, ChartColor>
+import { useI18n } from 'vue-i18n'
 
 // Props
 const props = defineProps<{
     data: AppPullStats[]
     colors?: ColorMap // オプション
 }>()
+
+// i18n
+const { t } = useI18n()
 
 // カラーパレット
 const { theme, presetColors, palette, ceilMaxDigit } = useChartPalette()
@@ -40,7 +33,7 @@ const chartData = computed(() => ({
     labels: yLabels.value,
     datasets: [
         {
-            label: '総ガチャ回数',
+            label: t('stats.chart.appPullStats.totalPulls'),
             data: props.data.map(item => item.pulls),
             backgroundColor: props.data.map(item => colorMap.value[item.appId].bg),
             borderColor: props.data.map(item => colorMap.value[item.appId].border),
@@ -55,7 +48,7 @@ const chartData = computed(() => ({
             },
         },
         {
-            label: 'レア排出数',
+            label: t('stats.chart.appPullStats.rareDrops'),
             data: props.data.map(item => item.rareDrops),
             backgroundColor: props.data.map(item => colorMap.value[item.appId].hover),
             borderColor: props.data.map(item => colorMap.value[item.appId].border),
@@ -91,9 +84,12 @@ const chartOptions = computed(() => ({
             borderColor: palette.value.tooltipBorder, // ボーダー色
             borderWidth: 1,
             callbacks: {
-                label: (ctx: ContextModel) => ctx.datasetIndex === 0
-                    ? `${ctx.dataset.label}: ${ctx.parsed.x}`
-                    : `${ctx.dataset.label}: ${ctx.parsed.x}（レア率: ${props.data[ctx.dataIndex]?.rareRate.toFixed(2)}%）`
+                label: (ctx: ContextModel) => {
+                    const rareRateText = t('stats.chart.appPullStats.rareRate', { value: props.data[ctx.dataIndex]?.rareRate.toFixed(2) })
+                    return ctx.datasetIndex === 0
+                        ? `${ctx.dataset.label}: ${ctx.parsed.x}`
+                        : `${ctx.dataset.label}: ${ctx.parsed.x}${rareRateText}`
+                },
             }
         }
     },
@@ -106,7 +102,7 @@ const chartOptions = computed(() => ({
             title: {
                 display: true,
                 padding: { top: 0 },
-                text: '総ガチャ回数'
+                text: t('stats.chart.appPullStats.totalPulls')
             },
             grid: { drawOnChartArea: false },
             ticks: {
@@ -123,7 +119,7 @@ const chartOptions = computed(() => ({
             title: {
                 display: true,
                 padding: { bottom: 0 },
-                text: 'レア排出数'
+                text: t('stats.chart.appPullStats.rareDrops')
             },
             grid: { drawOnChartArea: false },
             ticks: {
@@ -148,7 +144,7 @@ const chartOptions = computed(() => ({
     <Card class="relative min-h-[22rem] w-full md:w-max md:max-w-1/3">
         <template #title>
             <h3 class="text-base">
-                <span class="text-primary-800 dark:text-primary-400 mx-0.5">引き当て数・レア率</span>
+                <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.appPullStats.title') }}</span>
             </h3>
         </template>
         <template #content>

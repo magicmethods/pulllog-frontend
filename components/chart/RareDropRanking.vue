@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 import { useChartPalette } from '~/composables/useChart'
@@ -6,9 +7,10 @@ import ChartDataLabels from 'chartjs-plugin-datalabels'
 import type { ChartDataset } from 'chart.js'
 import { stripEmoji } from '~/utils/string'
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const optionStore = useOptionStore()
+const { t, locale } = useI18n()
 
 const SYSTEM_OTHER_KEY = computed(() => optionStore.otherPlaceholder)
 const PRESET_MARKER_LABELS = ['pickup', 'lose', 'target', 'guaranteed', 'other'] as const
@@ -26,18 +28,20 @@ const props = defineProps<{
 const { theme, presetColors, palette } = useChartPalette()
 
 // Refs & Local State
+/*
 const locale = computed(() => 
     userStore.user?.language === 'ja' ? 'ja-JP' : 'en-US' // ユーザの言語設定
 )
+*/
 // ラベルマップ
-const labelMap = ref<Record<MarkerKey, string>>({
-    pickup: 'ピックアップ',
-    lose: 'すり抜け',
-    target: '狙い',
-    guaranteed: '確定',
-    other: 'その他'
-})
-const otherLabel = computed(() => locale.value === 'ja-JP' ? 'その他' : 'Other')
+const labelMap = computed<Record<MarkerKey, string>>(() => ({
+    pickup: t('stats.chart.rareDropRanking.pickup'),
+    lose: t('stats.chart.rareDropRanking.lose'),
+    target: t('stats.chart.rareDropRanking.target'),
+    guaranteed: t('stats.chart.rareDropRanking.guaranteed'),
+    other: t('stats.chart.rareDropRanking.other')
+}))
+const otherLabel = computed(() => t('stats.chart.rareDropRanking.other'))
 // 色マップ
 const colorMap = computed<ColorMap>(() => {
     const map: ColorMap = {}
@@ -122,8 +126,6 @@ const raritySummary = computed(() => {
     }
     return summary
 })
-
-console.log('Rarity Summary:', raritySummary.value)
 
 // マーカー・パース＋合計
 const markerKeys = computed(() => {
@@ -247,7 +249,7 @@ const chartOptions = computed(() => ({
             position: 'top',
             min: 0,
             max: maxValue.value,
-            title: { display: false, text: '排出数' },
+            title: { display: false, text: t('stats.chart.rareDropRanking.count') },
             ticks: { color: palette.value.text, stepSize: calcStepSize(maxValue.value) },
             border: { color: palette.value.axis }
         },
@@ -255,12 +257,12 @@ const chartOptions = computed(() => ({
             position: 'bottom',
             min: 0,
             max: maxValue.value,
-            title: { display: false, text: '排出数' },
+            title: { display: false, text: t('stats.chart.rareDropRanking.count') },
             ticks: { color: palette.value.text, stepSize: calcStepSize(maxValue.value) },
             border: { color: palette.value.axis }
         },
         y: {
-            title: { display: false, text: 'アイテム名' },
+            title: { display: false, text: t('stats.chart.rareDropRanking.itemName') },
             grid: { color: palette.value.grid },
             ticks: { color: palette.value.text },
             border: { color: palette.value.axis },
@@ -278,7 +280,7 @@ const chartOptions = computed(() => ({
         <template #title>
             <h3 class="text-base">
                 <span class="text-primary-800 dark:text-primary-400 mx-0.5">
-                    {{ ranking?.appName }}のレアドロップランキング
+                    {{ t('stats.chart.rareDropRanking.title', { appName: strBytesTruncate(ranking?.appName ?? '', 7, 80) }) }}
                 </span>
             </h3>
         </template>
@@ -297,7 +299,7 @@ const chartOptions = computed(() => ({
         </template>
         <template #footer>
             <div v-if="false" class="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-4">
-                <label class="font-semibold mr-2 mb-0">排出レアリティ:</label>
+                <label class="font-semibold mr-2 mb-0">{{ t('stats.chart.rareDropRanking.rarity') }}:</label>
                 <ul class="flex items-center flex-wrap gap-2">
                     <li v-for="(count, rarity) in raritySummary" :key="rarity" class="flex items-center text-sm">
                         <span class="mr-2">{{ rarity }}</span>
@@ -306,7 +308,7 @@ const chartOptions = computed(() => ({
                 </ul>
             </div>
             <span class="text-xs text-gray-500 dark:text-gray-400">
-                ※ ランキングの内訳はアプリ設定の初期マーカー定義のみ集計されます。
+                {{ t('stats.chart.rareDropRanking.note') }}
             </span>
         </template>
     </Card>

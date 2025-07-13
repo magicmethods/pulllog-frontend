@@ -63,6 +63,7 @@ const isValidAll = computed(() => {
     // アプリ名が空でなく、全フィールドのバリデーションが正常かどうかをチェック
     return errors.value === null && formData.value?.name !== ''
 })
+const currencyOptions = computed(() => optionStore.currencyLabels)
 
 // Methods
 // 初期化用ファクトリ
@@ -252,7 +253,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             inputId="currency_unit"
                             :modelValue="formData.currency_unit"
                             @update:modelValue="val => formData.currency_unit = val ?? null"
-                            :options="optionStore.currencyLabels"
+                            :options="currencyOptions"
                             :placeholder="t('modal.appEdit.currencyUnitPlaceholder')"
                             :emptyMessage="t('modal.appEdit.currencyUnitEmptyMessage')"
                             class="max-w-max"

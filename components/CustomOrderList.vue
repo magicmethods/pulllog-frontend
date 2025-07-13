@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import Sortable from 'sortablejs'
+import { useI18n } from 'vue-i18n'
 
 // Types
 // biome-ignore lint:/suspicious/noExplicitAny: Property values ​​for object arrays remain flexible
 type GenericItem = Record<string, any>
 
-// Props
+// Props & Emits
 const props = defineProps<{
     /** 表示対象のアイテム一覧 */
     modelValue: GenericItem[]
@@ -24,11 +25,13 @@ const props = defineProps<{
     /** アイテムの複数選択・並び替えの可否 */
     multiSelect?: boolean
 }>()
-
 const emit = defineEmits<{
     (e: 'update:modelValue', value: GenericItem[]): void
     (e: 'select', value: GenericItem | GenericItem[] | null): void
 }>()
+
+// i18n
+const { t } = useI18n()
 
 // State
 const listRef = ref<HTMLElement | null>(null)
@@ -146,7 +149,7 @@ onBeforeUnmount(() => sortable?.destroy())
             />
         </li>
         <li v-if="modelValue.length === 0" class="text-center text-gray-400 text-sm py-2 select-none">
-            {{ emptyMessage ?? 'No items available' }}
+            {{ emptyMessage ?? t('component.orderList.emptyMessage') }}
         </li>
     </ul>
 </template>

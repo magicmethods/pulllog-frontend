@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { SelectPassThroughOptions } from 'primevue'
+import { useI18n } from 'vue-i18n'
 
-// Props
+// Props & Emits
 const props = defineProps<{
     modelValue: string | null
     options: string[] | Record<string, string>[]
@@ -16,12 +17,13 @@ const props = defineProps<{
     inputId?: string
     pt?: PassThroughValue
 }>()
-
-// Emits
 const emit = defineEmits<{
     (e: 'update:modelValue', value: string | null): void
     (e: 'update:options', value: string[]): void
 }>()
+
+// i18n
+const { t } = useI18n()
 
 // State & Helpers
 const getLabel = (item: string | Record<string, string>): string => 
@@ -84,8 +86,8 @@ function removeOption(option: string) {
             editable
             :options="filteredOptions"
             :optionLabel="optionLabel ?? ''"
-            :placeholder="placeholder ?? 'Select or Input'"
-            :emptyMessage="emptyMessage ?? 'No options found'"
+            :placeholder="placeholder ?? t('component.comboBox.placeholder')"
+            :emptyMessage="emptyMessage ?? t('component.comboBox.emptyMessage')"
             showClear
             highlightOnSelect
             @update:modelValue="(val: string | null) => emit('update:modelValue', val)"
@@ -101,7 +103,7 @@ function removeOption(option: string) {
                         v-if="removableOptions && !isProtected(slotProps.option)"
                         icon="pi pi-trash"
                         variant="text"
-                        aria-label="Remove"
+                        :aria-label="t('component.comboBox.remove')"
                         :disabled="isProtected(slotProps.option)"
                         @mousedown.stop="isRemoving = true"
                         @click.stop="removeOption(slotProps.option)"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useUserStore } from '~/stores/useUserStore'
 import { useChartPalette } from '~/composables/useChart'
 import { formatCurrency } from '~/utils/currency'
@@ -12,16 +13,19 @@ const props = defineProps<{
     height?: number
 }>()
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
+const { t, locale } = useI18n()
 
 // Composables
 const { theme, palette, presetColors } = useChartPalette()
 
 // Refs & Local State
+/*
 const locale = computed(() => 
     userStore.user?.language === 'ja' ? 'ja-JP' : 'en-US' // ユーザの言語設定
 )
+*/
 
 // アプリごとの色マッピング
 const colorMap = computed<ColorMap>(() => {
@@ -46,9 +50,9 @@ const isNoData = computed(() => totalExpense.value === 0)
 const chartData = computed(() => {
     if (isNoData.value) {
         return {
-            labels: ['データなし'],
+            labels: [t('stats.chart.expenseRatio.noData')],
             datasets: [{
-                label: 'データなし',
+                label: t('stats.chart.expenseRatio.noData'),
                 currency: props.data.map(item => item.currency),
                 data: [1],
                 backgroundColor: [palette.value.grid],
@@ -61,7 +65,7 @@ const chartData = computed(() => {
     return {
         labels: props.data.map(item => item.appName),
         datasets: [{
-            label: '課金額',
+            label: t('stats.chart.expenseRatio.expenseLabel'),
             currency: props.data.map(item => item.currency),
             data: props.data.map(item => item.value),
             backgroundColor: props.data.map(item => colorMap.value[item.appId].bg),
@@ -107,7 +111,8 @@ const chartOptions = computed(() => ({
     <Card class="min-h-[20rem]">
         <template #title>
             <h3 class="text-base">
-                <span class="text-primary-800 dark:text-primary-400 mr-0.5">課金額</span>の割合
+                <span class="text-primary-800 dark:text-primary-400 mr-0.5">{{ t('stats.chart.expenseRatio.expenseLabel') }}</span>
+                {{ t('stats.chart.expenseRatio.ratioLabel') }}
             </h3>
         </template>
         <template #content>
@@ -137,11 +142,11 @@ const chartOptions = computed(() => ({
         </template>
         <template #footer>
             <div class="text-sm text-gray-500 dark:text-gray-400 mt-4">
-                <span class="font-semibold mr-2">合計:</span>
+                <span class="font-semibold mr-2">{{ t('stats.chart.expenseRatio.totalLabel') }}:</span>
                 <span class="font-semibold text-primary-600 dark:text-primary-400">{{ isNoData ? formatCurrency(0, chartData.datasets[0].currency[0], locale) : formatCurrency(chartData.datasets[0].data.reduce((sum, value) => sum + value, 0), chartData.datasets[0].currency[0], locale) }}</span>
             </div>
             <span class="text-xs text-gray-500 dark:text-gray-400">
-                ※ 課金額の通貨単位は最初に選択されたアプリに統一されます。
+                {{ t('stats.chart.expenseRatio.currencyNote') }}
             </span>
         </template>
     </Card>

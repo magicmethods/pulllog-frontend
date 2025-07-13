@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
 import { useToast } from 'primevue/usetoast'
@@ -34,10 +35,11 @@ const props = defineProps<{
     highlightDate?: string
 }>()
 
-// Stores
+// Stores etc.
 const appStore = useAppStore()
 const logStore = useLogStore()
 const toast = useToast()
+const { t } = useI18n()
 
 // Refs & Local variables
 const logs = ref<DateLog[]>([])
@@ -52,7 +54,7 @@ const internalAppId = computed(() => props.appId ?? appStore.app?.appId ?? null)
 const loading = computed(() => logStore.isLoading)
 //const error = computed(() => logStore.error)
 const totalColumns = computed(() => (props.columns ?? DEFAULT_COLUMNS).length)
-const displayEmptyText = computed(() => props.emptyText ?? '履歴がありません')
+const displayEmptyText = computed(() => props.emptyText ?? t('history.historyList.empty'))
 // ストアキャッシュ取得用キャッシュキー
 const fetchOptions = computed(() => ({
     fromDate: props.fromDate,
@@ -129,7 +131,13 @@ async function handleSelectionCopy() {
     // 選択テキストがあればコピー
     const success = await copySelectedText()
     if (success) {
-        toast.add({ severity: 'success', summary: 'クリップボードにコピー', detail: '選択したテキストをコピーしました。', group: 'notices', life: 2000 })
+        toast.add({
+            severity: 'success',
+            summary: t('history.historyList.copyToClipboard'),
+            detail: t('history.historyList.copyToClipboardSuccess'),
+            group: 'notices',
+            life: 2000
+        })
         // ブラウザによっては選択解除してもよい（不要なら省略）
         window.getSelection()?.removeAllRanges()
     }
@@ -166,12 +174,12 @@ const scrollPanelPT = {
             <table class="table-fixed">
                 <thead class="bg-surface-100 dark:bg-gray-800">
                     <tr>
-                        <th v-if="showColumn('date')" class="w-24">日付</th>
-                        <th v-if="showColumn('total_pulls')" class="w-14 text-center">回数</th>
-                        <th v-if="showColumn('discharge_items')" class="w-12 text-xs text-center">最高レア</th>
-                        <th v-if="showColumn('expense')" class="w-20 text-center">課金額</th>
-                        <th v-if="showColumn('tags')" class="w-auto min-w-[3rem]">タグ</th>
-                        <th v-if="showColumn('free_text')" class="w-auto min-w-[6rem] hidden md:table-cell">アクティビティ</th>
+                        <th v-if="showColumn('date')" class="w-24">{{ t('history.historyList.date') }}</th>
+                        <th v-if="showColumn('total_pulls')" class="w-14 text-center">{{ t('history.historyList.totalPulls') }}</th>
+                        <th v-if="showColumn('discharge_items')" class="w-12 text-xs text-center">{{ t('history.historyList.dischargeItems') }}</th>
+                        <th v-if="showColumn('expense')" class="w-20 text-center">{{ t('history.historyList.expense') }}</th>
+                        <th v-if="showColumn('tags')" class="w-auto min-w-[3rem]">{{ t('history.historyList.tags') }}</th>
+                        <th v-if="showColumn('free_text')" class="w-auto min-w-[6rem] hidden md:table-cell">{{ t('history.historyList.activity') }}</th>
                     </tr>
                 </thead>
                 <tbody id="HistoryListContainer">
@@ -180,7 +188,7 @@ const scrollPanelPT = {
                             <td
                                 :colspan="totalColumns"
                                 class="py-4! text-center text-antialiasing"
-                            >ロード中...</td>
+                            >{{ t('history.historyList.loading') }}</td>
                         </tr>
                     </template>
                     <template v-else-if="logs.length > 0">

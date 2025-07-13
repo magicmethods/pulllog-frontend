@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 
 // Types
 type AdItem = {
@@ -26,8 +27,9 @@ type AdProps = {
 // Props
 const props = defineProps<AdProps>()
 
-// Composables
+// Composables etc.
 const { isShownAd } = useAdManager(props.disableForPlan)
+const { t } = useI18n()
 
 // Refs & Local state
 const insEl = ref<HTMLElement | null>(null)
@@ -103,7 +105,7 @@ watch(() => props.adType, (val) => {
         >
             <Image
                 :src="adImage.image"
-                :alt="adImage.alt || '広告バナー'"
+                :alt="adImage.alt || t('app.ad.advertisement')"
                 :imageClass="'w-max h-max cursor-pointer'"
                 @click="handleClickAd(adImage.link)"
             />
@@ -121,9 +123,9 @@ watch(() => props.adType, (val) => {
         >
             <template #item="slotProps">
                 <a v-if="slotProps.data.link" @click="handleClickAd(slotProps.data.link)">
-                    <Image :src="slotProps.data.image" :alt="slotProps.data.alt ?? 'Advertisement'" imageClass="w-max h-auto" />
+                    <Image :src="slotProps.data.image" :alt="slotProps.data.alt ?? t('app.ad.advertisement')" imageClass="w-max h-auto" />
                 </a>
-                <Image v-else :src="slotProps.data.image" :alt="slotProps.data.alt ?? 'Advertisement'" imageClass="w-max h-auto" />
+                <Image v-else :src="slotProps.data.image" :alt="slotProps.data.alt ?? t('app.ad.advertisement')" imageClass="w-max h-auto" />
             </template>
         </Carousel>
 
@@ -144,7 +146,7 @@ watch(() => props.adType, (val) => {
         <slot v-else name="ad">
             <div class="bg-surface-200 dark:bg-gray-700 rounded flex items-center justify-center text-surface-400 dark:text-gray-500"
                 :style="adSize"
-            >{{ adText || 'Advertisement' }}</div>
+            >{{ adText || t('app.ad.advertisement') }}</div>
         </slot>
     </div>
 </template>
