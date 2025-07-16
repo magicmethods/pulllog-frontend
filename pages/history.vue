@@ -280,6 +280,9 @@ const adConfig: Record<string, AdProps> = {
 
 <template>
   <div class="w-full p-2 md:p-4">
+      <Head>
+        <Title>{{ `${t('history.header')} | ${t('app.name')}` }}</Title>
+      </Head>
       <CommonPageHeader
         :title="t('history.header')"
         :adProps="adConfig.banner"

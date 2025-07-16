@@ -254,6 +254,9 @@ const adConfig: Record<string, AdProps> = {
 
 <template>
     <div class="w-full p-4 flex flex-col justify-between items-start">
+        <Head>
+            <Title>{{ `${t('settings.header')} | ${t('app.name')}` }}</Title>
+        </Head>
         <CommonPageHeader
             :title="t('settings.header')"
             :adProps="adConfig.default"

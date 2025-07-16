@@ -102,6 +102,9 @@ onMounted(async () => {
 
 <template>
     <div class="flex flex-col gap-12">
+        <Head>
+            <Title>{{ `${t('auth.verify.title')} | ${t('app.name')}` }}</Title>
+        </Head>
         <div class="relative flex flex-col gap-2 items-center mb-2">
             <h1 class="text-2xl font-bold mb-2">{{ t('app.name') }}</h1>
 

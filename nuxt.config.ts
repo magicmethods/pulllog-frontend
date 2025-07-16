@@ -22,13 +22,19 @@ export default defineNuxtConfig({
       deployConfig: true,
       nodeCompat: true,
       wrangler: {
-        name: 'pulllog-worker',
+        name: 'pulllog',
         account_id: 'ea07f43e5f337f658573df295d4dd6b1',
         workers_dev: false,
-        route: {
-          pattern: 'pulllog.net/*',
-          zone_name: 'pulllog.net'
-        },
+        routes: [
+          {
+            pattern: '*pulllog.net/*',
+            zone_name: 'pulllog.net'
+          },
+          {
+            pattern: 'pulllog.net',
+            custom_domain: true
+          }
+        ],
       },
     },
   },
@@ -39,7 +45,7 @@ export default defineNuxtConfig({
       include: ['types/**/*.d.ts'],
     },
   },
-  ssr: false,
+  ssr: true,
   runtimeConfig: {
     // サーバーサイド専用の環境変数
     apiBaseURL: process.env.API_BASE_URL,

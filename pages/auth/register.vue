@@ -143,6 +143,9 @@ watch(
 
 <template>
   <div class="flex flex-col gap-12">
+    <Head>
+      <Title>{{ `${t('auth.register.submit')} | ${t('app.name')}` }}</Title>
+    </Head>
     <!-- TermsModal v-model:visible="showTerms" /-->
     <CommonDocumentModal
       v-model:visible="showTerms"

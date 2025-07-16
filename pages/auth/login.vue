@@ -26,7 +26,7 @@ const touched = reactive<{ email: boolean, password: boolean }>({
 })
 const isSubmitting = ref<boolean>(false)
 const externalLogin = [
-  { service: 'google', label: t('auth.login.google'), icon: 'pi pi-google', enabled: true },
+  { service: 'google', label: t('auth.login.google'), icon: 'pi pi-google', enabled: false },
   { service: 'apple', label: t('auth.login.apple'), icon: 'pi pi-apple', enabled: false },
   { service: 'microsoft', label: t('auth.login.microsoft'), icon: 'pi pi-windows', enabled: false },
   { service: 'twitter', label: t('auth.login.twitter'), icon: 'pi pi-twitter', enabled: false }, // Xは非推奨
@@ -105,6 +105,9 @@ watch(form, () => validate(), { deep: true })
 
 <template>
   <div class="flex flex-col gap-12">
+    <Head>
+      <Title>{{ `${t('auth.login.submit')} | ${t('app.name')}` }}</Title>
+    </Head>
     <div class="relative flex flex-col gap-2 items-center mb-2">
       <h1 class="text-2xl font-bold mb-2">{{ t('app.name') }}</h1>
 

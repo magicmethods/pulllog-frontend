@@ -4,6 +4,10 @@ import { useOptionStore } from '~/stores/useOptionStore'
 import { useI18n } from 'vue-i18n'
 import { StorageUtil } from '~/utils/storage'
 
+definePageMeta({
+    layout: 'landing',
+})
+
 // Stores
 const userStore = useUserStore()
 const optionStore = useOptionStore()
@@ -16,17 +20,7 @@ const { t, getLocaleCookie, setLocale } = useI18n()
 const langOpt = ref()
 const isDarkMode = ref<boolean>(userStore.user?.theme === 'dark')
 const currentLanguage = ref<Language>((userStore.user?.language ?? getLocaleCookie() ?? appConfig.defaultLocale) as Language)
-const storage = new StorageUtil()
-
-// 必要に応じてグローバルCSSやSEO meta設定
-definePageMeta({
-    layout: 'landing',
-    title: t('app.name'),
-    meta: [
-        { name: 'description', content: t('app.description') },
-        { name: 'keywords', content: t('app.keywords') },
-    ]
-})
+const storage = ref()
 
 // Methods
 function handleThemeToggle(value: boolean) {
@@ -44,7 +38,7 @@ function handleThemeToggle(value: boolean) {
         userStore.user.theme = value ? 'dark' : 'light'
     }
     // ローカルストレージ更新
-    storage.setItem('theme', value ? 'dark' : 'light')
+    storage.value.setItem('theme', value ? 'dark' : 'light')
 }
 function handleLangToggle(event: Event) {
     langOpt.value?.toggle(event)
@@ -61,7 +55,8 @@ function applyLocale(lang: Language) {
 
 onMounted(() => {
     // マウント時のテーマ設定優先度は ローカルストレージ > ユーザーストア > ブラウザのレンダリングモード の順
-    const saved = storage.getItem('theme')
+    storage.value = new StorageUtil()
+    const saved = storage.value.getItem('theme')
     const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
     const html = document.documentElement
     html.classList.add('theme-switching')
@@ -95,7 +90,7 @@ watch(
             html.classList.remove('theme-switching')
         })
         // ローカルストレージも更新
-        storage.setItem('theme', newTheme ?? 'light')
+        storage.value.setItem('theme', newTheme ?? 'light')
     }
 )
 
@@ -104,6 +99,11 @@ watch(
 
 <template>
     <div class="min-h-screen flex flex-col bg-primary-500 text-white dark:bg-primary-600 dark:text-white">
+        <Head>
+            <Title>{{ t('app.name') }}</Title>
+            <Meta name="description" :content="t('app.description')" />
+            <Meta name="keywords" :content="t('app.keywords')" />
+        </Head>
         <header class="flex items-center justify-between p-4 border-b border-surface-400 dark:border-gray-900 bg-transparent shadow-md">
             <NuxtLink to="/" class="text-2xl font-bold flex items-center gap-2">
                 <img src="/images/pulllog-icon.svg" alt="PullLog" class="h-8 w-8" />

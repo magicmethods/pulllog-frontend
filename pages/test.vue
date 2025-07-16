@@ -28,6 +28,11 @@ onMounted(() => {
 
 <template>
     <div class="flex flex-col min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <Head>
+            <Title>{{ statusCode }} Error - {{ t('app.name') }}</Title>
+            <Meta name="description" :content="t('app.description')" />
+            <Meta name="keywords" :content="t('app.keywords')" />
+        </Head>
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg px-8 py-10 max-w-md w-full text-center">
             <div class="mb-6">
                 <h1 class="text-5xl font-bold text-rose-600 dark:text-rose-400 mb-2">

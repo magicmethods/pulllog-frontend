@@ -13,7 +13,7 @@ const isDrawerOpen = ref<boolean>(false)
 const mainContainer = ref<HTMLElement | null>(null)
 const headerReloadKey = ref<number>(0)
 const reloadFABKey = ref<number>(0)
-const storage = new StorageUtil()
+const storage = ref()
 
 // Router
 const router = useRouter()
@@ -41,7 +41,7 @@ function handleThemeToggle(value: boolean) {
         userStore.user.theme = value ? 'dark' : 'light'
     }
     // ローカルストレージ更新
-    storage.setItem('theme', value ? 'dark' : 'light')
+    storage.value.setItem('theme', value ? 'dark' : 'light')
 }
 function openDrawer() {
     isDrawerOpen.value = true
@@ -52,8 +52,9 @@ function closeDrawer() {
 
 // Lifecycle hooks
 onMounted(() => {
+    storage.value = new StorageUtil()
     // マウント時のテーマ設定優先度は ローカルストレージ > ユーザーストア > ブラウザのレンダリングモード の順
-    const saved = storage.getItem('theme')
+    const saved = storage.value.getItem('theme')
     const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
     const html = document.documentElement
     html.classList.add('theme-switching')
@@ -89,7 +90,7 @@ watch(
             html.classList.remove('theme-switching')
         })
         // ローカルストレージも更新
-        storage.setItem('theme', newTheme ?? 'light')
+        storage.value.setItem('theme', newTheme ?? 'light')
     }
 )
 
@@ -97,6 +98,11 @@ watch(
 
 <template>
     <div id="app-container">
+        <Head>
+            <Title>{{ t('app.name') }}</Title>
+            <Meta name="description" :content="t('app.description')" />
+            <Meta name="keywords" :content="t('app.keywords')" />
+        </Head>
         <CommonHeader
             :isDarkMode="isDarkMode"
             @update:isDarkMode="handleThemeToggle"

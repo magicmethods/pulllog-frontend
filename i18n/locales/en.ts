@@ -128,6 +128,7 @@ export default defineI18nLocale(async () => ({
             failed: 'Password reset failed. Please check your email address.',
         },
         verify: {
+            title: 'Account Verification',
             signupSuccess: 'Your account has been activated successfully.',
             resetSuccess: 'Your password has been reset successfully.',
             promptPrefix: 'Please',

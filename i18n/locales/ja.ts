@@ -130,6 +130,7 @@ export default defineI18nLocale(async () => ({
             failed: 'パスワードリセットに失敗しました。メールアドレスをご確認ください',
         },
         verify: {
+            title: 'アカウント認証',
             signupSuccess: 'アカウントが有効になりました',
             resetSuccess: 'パスワードの再設定が完了しました',
             promptPrefix: 'こちらから',

@@ -128,6 +128,7 @@ export default defineI18nLocale(async () => ({
             failed: '重置密码失败，请检查邮箱。',
         },
         verify: {
+            title: '账号验证',
             signupSuccess: '账号已成功激活。',
             resetSuccess: '密码已成功重置。',
             promptPrefix: '请',
