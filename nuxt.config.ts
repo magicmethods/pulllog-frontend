@@ -39,7 +39,7 @@ export default defineNuxtConfig({
       include: ['types/**/*.d.ts'],
     },
   },
-  ssr: true,
+  ssr: false,
   runtimeConfig: {
     // サーバーサイド専用の環境変数
     apiBaseURL: process.env.API_BASE_URL,
