@@ -76,6 +76,7 @@ export default defineI18nLocale(async () => ({
             prompt: '请输入您的登录信息',
             emailPlaceholder: '请输入邮箱',
             passwordPlaceholder: '请输入密码',
+            rememberMe: '记住登录状态',
             loading: '登录中...',
             submit: '登录',
             or: '或',

@@ -78,6 +78,7 @@ export default defineI18nLocale(async () => ({
             prompt: 'ログイン情報を入力してください',
             emailPlaceholder: 'メールアドレスを入力',
             passwordPlaceholder: 'パスワードを入力',
+            rememberMe: 'ログイン状態を保持する',
             loading: 'ログイン中...',
             submit: 'ログイン',
             or: 'または',

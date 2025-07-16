@@ -17,6 +17,7 @@ const { t } = useI18n()
 const form = reactive({
   email: '',
   password: '',
+  remember: false,
 })
 const errors = reactive<{ email?: string, password?: string }>({})
 const globalError = ref<string | null>(null) // グローバルエラーメッセージ
@@ -39,33 +40,50 @@ const loginSchema = computed(() => z.object({
   email: z.string().email({ message: t('validation.invalidEmail') }),
   password: z.string().min(8, { message: t('validation.shortPassword') }),
 }))
+const isFormValid = computed(() => loginSchema.value.safeParse(form).success)
 
 // Methods
+// 指定フィールドのみバリデーション
+function validateFields(fields: ('email' | 'password')[]) {
+    for (const f of fields) {
+        if (!form[f]) {
+            errors[f] = undefined
+            continue
+        }
+        touched[f] = true
+        const result = loginSchema.value.shape[f].safeParse(form[f])
+        errors[f] = result.success ? undefined : result.error.issues[0]?.message
+    }
+    return fields.every(f => !errors[f])
+}
+// 全体バリデーション
+function validateAll(): boolean {
+    touched.email = true
+    touched.password = true
+    const result = loginSchema.value.safeParse(form)
+    errors.email = undefined
+    errors.password = undefined
+    if (!result.success) {
+        for (const issue of result.error.issues) {
+            if (issue.path.length > 0) {
+                const field = issue.path[0] as keyof typeof touched
+                if (form[field]) errors[field] = issue.message
+            }
+        }
+        return false
+    }
+    return true
+}
+
 function handleBlur(field: 'email' | 'password') {
   touched[field] = true
-  validate()
+  validateFields([field])
 }
-function validate(): boolean {
-  const result = loginSchema.value.safeParse(form)
-  errors.email = undefined
-  errors.password = undefined
-  if (!result.success) {
-    for (const issue of result.error.issues) {
-      if (issue.path.length > 0) {
-        const field = issue.path[0] as 'email' | 'password'
-        if (touched[field]) errors[field] = issue.message
-      }
-    }
-    return false
-  }
-  return true
-}
-async function handleLogin() {
-  touched.email = true
-  touched.password = true
-  if (!validate()) return
-  isSubmitting.value = true
 
+async function handleLogin() {
+  globalError.value = null
+  if (!validateAll()) return
+  isSubmitting.value = true
   try {
     await login(form.email, form.password)
     if (userStore.isLoggedIn) {
@@ -85,8 +103,9 @@ async function handleLogin() {
     // isSubmitting.value = false
   }
 }
+
 async function handleOauthLogin(service: string) {
-  // OAuthは別途バリデーションや認証フローが必要なら追記
+  // OAuthは別途バリデーションや認証フローが必要
   if (!form.email || !form.password) {
     // Show error message if userId or password is empty
     return
@@ -94,12 +113,41 @@ async function handleOauthLogin(service: string) {
 
   console.log(`OAuth login with ${service} initiated for email: ${form.email}`)
 }
+
 function handleBack() {
   navigateTo({ path: '/' })
 }
 
-// Watchers
-watch(form, () => validate(), { deep: true })
+function autoLoginWithRememberToken() {
+  // Cookieからトークンを取得して自動ログイン
+  return new Promise<void>((resolve, reject) => {
+    const token = useCookie('remember_token').value
+    if (!token) {
+      reject(new Error('No remember token found'))
+      return
+    }
+    /*
+    autoLogin(token)
+      .then(() => resolve())
+      .catch(err => reject(err))
+    */
+  })
+}
+
+// Lifecycle hooks
+onBeforeMount(async () => {
+  if (import.meta.client) {
+    // 自動ログインAPI呼び出し
+    try {
+      await autoLoginWithRememberToken() // Cookieを自動で送信
+      // 成功したらダッシュボード等へリダイレクト
+      navigateTo({ path: userStore.user?.homePage ?? '/apps' })
+    } catch (e: unknown) {
+      // 失敗時は何もしない（ログイン画面を通常通り表示）
+      console.warn('Auto login failed:', e instanceof Error ? e.message : e)
+    }
+  }
+})
 
 </script>
 
@@ -142,6 +190,17 @@ watch(form, () => validate(), { deep: true })
           {{ errors.password }}
         </Message>
 
+        <div class="flex items-center gap-2">
+          <Checkbox
+            v-model="form.remember"
+            :binary="true"
+            inputId="remember-me"
+          />
+          <label for="remember-me" tabindex="0" class="font-normal text-base text-surface-500 dark:text-gray-400 select-none">
+            {{ t('auth.login.rememberMe') }}
+          </label>
+        </div>
+
         <!-- グローバルエラー表示 -->
         <Message v-if="globalError" severity="error" size="small" class="mb-2">
           {{ globalError }}
@@ -152,7 +211,7 @@ watch(form, () => validate(), { deep: true })
             type="submit"
             :label="isSubmitting ? t('auth.login.loading') : t('auth.login.submit')"
             class="btn btn-primary w-40"
-            :disabled="!validate() || isSubmitting"
+            :disabled="isSubmitting || !isFormValid"
             :loading="isSubmitting"
           />
         </div>      

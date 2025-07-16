@@ -76,6 +76,7 @@ export default defineI18nLocale(async () => ({
             prompt: 'Please enter your login information',
             emailPlaceholder: 'Enter your email',
             passwordPlaceholder: 'Enter your password',
+            rememberMe: 'Remember me',
             loading: 'Logging in...',
             submit: 'Login',
             or: 'or',
