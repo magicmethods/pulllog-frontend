@@ -30,10 +30,10 @@ export default defineNuxtConfig({
             pattern: '*pulllog.net/*',
             zone_name: 'pulllog.net'
           },
-          {
+          /*{
             pattern: 'pulllog.net',
             custom_domain: true
-          }
+          }*/
         ],
       },
     },
