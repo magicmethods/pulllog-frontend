@@ -10,6 +10,7 @@ export function useAuth() {
     const error = ref<string | null>(null)
     const isLoading = ref<boolean>(false) // ログイン処理のローディング状態（ログインボタン等での使用を想定）
 
+    const appConfig = useConfig() // アプリケーションの設定を取得
     const { callApi } = useAPI()
     const userStore = useUserStore()
     const csrfStore = useCsrfStore()
@@ -58,7 +59,7 @@ export function useAuth() {
     async function register(name: string, email: string, password: string) {
         isLoading.value = true
         error.value = null
-        const language = locale.value || 'ja' // デフォルト言語を設定
+        const language = locale.value || appConfig.defaultLocale // デフォルト言語を設定
 
         try {
             const response: RegisterResponse = await callApi({

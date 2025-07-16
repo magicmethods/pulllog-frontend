@@ -3,7 +3,8 @@ export function useConfig(): AppConfig {
     return {
         appName: config.public.appName as string,
         appVersion: config.public.appVersion as string,
-        copyright: config.public.copyright as string,
+        appAuthor: config.public.appAuthor as string,
+        defaultLocale: config.public.defaultLocale as Language,
         apiBaseURL: config.public.apiBaseURL as string,
         apiProxy: config.public.apiProxy as string,
         isDebug: config.public.isDebug as boolean,

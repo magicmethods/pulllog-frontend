@@ -9,6 +9,7 @@ import { useI18n } from 'vue-i18n'
 // Stores etc.
 const userStore = useUserStore()
 const optionStore = useOptionStore()
+const appConfig = useConfig()
 const toast = useToast()
 const { t } = useI18n()
 
@@ -31,7 +32,7 @@ const internalUser = reactive<Partial<User> & { avatarFile?: File }>({
     email: userStore.user?.email ?? '',
     password: '',
     avatarUrl: userStore.user?.avatarUrl ?? '',
-    language: userStore.user?.language ?? 'ja',
+    language: userStore.user?.language ?? appConfig.defaultLocale,
     theme: userStore.user?.theme ?? 'light',
     homePage: userStore.user?.homePage ?? '/apps',
     avatarFile: undefined, // アップロード用のファイル
@@ -117,7 +118,7 @@ async function handleSave() {
     formData.append('name', internalUser.name ?? '')
     formData.append('email', internalUser.email ?? '')
     formData.append('password', internalUser.password ?? '')
-    formData.append('language', internalUser.language ?? 'ja')
+    formData.append('language', internalUser.language ?? appConfig.defaultLocale)
     formData.append('theme', internalUser.theme ?? 'light')
     formData.append('homePage', internalUser.homePage ?? '/apps')
     if (internalUser.avatarFile) {
@@ -228,7 +229,7 @@ watch(
             internalUser.name = newUser.name ?? ''
             internalUser.email = newUser.email ?? ''
             internalUser.avatarUrl = newUser.avatarUrl ?? ''
-            internalUser.language = newUser.language ?? 'ja'
+            internalUser.language = newUser.language ?? appConfig.defaultLocale
             internalUser.theme = newUser.theme ?? 'light'
             internalUser.homePage = newUser.homePage ?? '/apps'
         }

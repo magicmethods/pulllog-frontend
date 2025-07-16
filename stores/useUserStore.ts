@@ -41,7 +41,7 @@ export const useUserStore = defineStore('user', () => {
             //plan: 'standard',
             plan: 'free',
             planExpiration: '2025-12-31',
-            language: localStorage.getItem('language') || 'ja',
+            language: localStorage.getItem('language') ??  useConfig().defaultLocale,
             theme: localStorage.getItem('theme') || 'light',
             homePage: '/apps',
             createdAt: nowDateStr,

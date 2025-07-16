@@ -52,6 +52,7 @@ export default defineI18nLocale(async () => ({
         language: {
             ja: '日本語',
             en: 'English',
+            zh: '简体中文',
         },
         theme: {
             light: '🔆 ライト',

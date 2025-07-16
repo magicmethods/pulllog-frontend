@@ -1,11 +1,14 @@
 /**
  * その他、UIでの加工や表示用の補助型
  */
+/** 言語 */
+type Language = 'ja' | 'en' | 'zh' // 追加言語はここに: 'ko' | 'fr' | 'es' | 'de' | 'it' | 'ru' | 'pt'
 /** Runtime Config */
 interface AppConfig {
     appName: string
     appVersion: string
-    copyright: string
+    appAuthor: string
+    defaultLocale: Language
     apiBaseURL: string
     apiProxy: string
     isDebug: boolean
@@ -13,8 +16,6 @@ interface AppConfig {
 }
 /** パースされたクエリ情報 */
 type QueryObject = string | string[][] | Record<string, string> | URLSearchParams | undefined
-/** 言語 */
-type Language = 'ja' | 'en' // 追加言語はここに: 'zh' | 'ko' | 'fr' | 'es' | 'de' | 'it' | 'ru' | 'pt'
 /** テーマ名 */
 type Theme = 'light' | 'dark'
 /** カスタムコンポーネントから PrimeVue コンポーネントの PassThrough を取り扱うための型  */

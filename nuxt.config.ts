@@ -15,15 +15,31 @@ const httpsOptions = {
 }
 
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
-  devtools: { enabled: true },
+  compatibilityDate: '2025-05-15',
+  nitro: {
+    preset: 'cloudflare_module',
+    cloudflare: {
+      deployConfig: true,
+      nodeCompat: true,
+      wrangler: {
+        name: 'pulllog-worker',
+        account_id: 'ea07f43e5f337f658573df295d4dd6b1',
+        workers_dev: false,
+        route: {
+          pattern: 'pulllog.net/*',
+          zone_name: 'pulllog.net'
+        },
+      },
+    },
+  },
+  devtools: { enabled: false },
   typescript: {
     typeCheck: true,
     tsConfig: {
       include: ['types/**/*.d.ts'],
     },
   },
-  ssr: false,
+  ssr: true,
   runtimeConfig: {
     // サーバーサイド専用の環境変数
     apiBaseURL: process.env.API_BASE_URL,
@@ -33,7 +49,8 @@ export default defineNuxtConfig({
     public: {
         appName: process.env.APP_NAME,
         appVersion: process.env.APP_VERSION,
-        copyright: process.env.COPYRIGHT,
+        appAuthor: process.env.APP_AUTHOR,
+        defaultLocale: process.env.DEFAULT_LOCALE || 'en',
         apiBaseURL: process.env.API_BASE_URL,
         apiProxy: process.env.API_PROXY || '/api',
         isDebug: process.env.IS_DEBUG === 'true',
@@ -72,7 +89,7 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n',
   ],
   devServer: {
-    host: 'pulllog.net',
+    host: 'pull.log',
     port: 4649,
     https: httpsOptions,
   },
@@ -140,6 +157,7 @@ export default defineNuxtConfig({
     locales: [
       { code: 'ja', language: 'ja-JP', name: 'Japanese', file: 'ja.ts' },
       { code: 'en', language: 'en-US', name: 'English',  file: 'en.ts' },
+      { code: 'zh', language: 'zh-CN', name: '简体中文', file: 'zh.ts' },
     ],
     defaultLocale: 'ja',
     lazy: true,

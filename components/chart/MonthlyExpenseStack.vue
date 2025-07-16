@@ -20,13 +20,6 @@ const { t, locale } = useI18n()
 // Composables
 const { theme, palette, presetColors } = useChartPalette()
 
-// Refs & Local State
-/*
-const locale = computed(() => 
-    userStore.user?.language === 'ja' ? 'ja-JP' : 'en-US' // ユーザの言語設定
-)
-*/
-
 // アプリIDリストをprops.dataから抽出
 const appIds = computed<string[]>(() => {
     // 最初のrowでアプリIDを抽出（'month'以外）
@@ -45,7 +38,7 @@ const appLabels = computed<string[]>(() => {
 
 // グラフの通貨単位を取得・定義する
 const fixCurrency = computed<string>(() => {
-    const defaultCurrency = locale.value === 'ja' ? 'JPY' : 'USD' // デフォルトの通過単位
+    const defaultCurrency = locale.value === 'ja' ? 'JPY' : (locale.value === 'zh' ? 'CNY' : 'USD') // デフォルトの通過単位
     const appCurrencyCodes = appIds.value.map(appId => {
         const app = appStore.appList.find(app => app.appId === appId)
         if (!app || !app.currency_unit) return defaultCurrency

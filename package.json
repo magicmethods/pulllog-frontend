@@ -1,14 +1,22 @@
 {
   "name": "pulllog",
+  "version": "0.9.0",
+  "description": "A web application for tracking and analyzing gacha pulls.",
+  "author": "MAGIC METHODS",
+  "license": "UNLICENSED",
+  "homepage": "https://pulllog.net",
   "private": true,
   "type": "module",
   "scripts": {
     "clean": "rm -rf .nuxt node_modules/.vite",
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "build": "nuxt build --dotenv .env.production",
+    "dev": "nuxt dev --dotenv .env.local",
+    "generate": "nuxt generate --dotenv .env.production",
+    "preview": "nuxt preview --dotenv .env.production",
+    "postinstall": "nuxt prepare",
+    "wrangler_preview": "pnpm dlx wrangler dev --compatibility-date 2024-11-01 --host pull.log --port 4649 --local-protocol https",
+    "wrangler_login": "pnpm dlx wrangler login",
+    "wrangler_deploy": "pnpm dlx wrangler --cwd .output/ deploy"
   },
   "dependencies": {
     "@loadingio/loading.css": "^3.2.1",

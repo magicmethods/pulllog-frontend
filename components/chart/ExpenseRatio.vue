@@ -20,13 +20,6 @@ const { t, locale } = useI18n()
 // Composables
 const { theme, palette, presetColors } = useChartPalette()
 
-// Refs & Local State
-/*
-const locale = computed(() => 
-    userStore.user?.language === 'ja' ? 'ja-JP' : 'en-US' // ユーザの言語設定
-)
-*/
-
 // アプリごとの色マッピング
 const colorMap = computed<ColorMap>(() => {
     const map: ColorMap = {}

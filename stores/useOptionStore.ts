@@ -23,11 +23,12 @@ export const useOptionStore = defineStore('option', () => {
     ]))
     const languageOptions = computed<BasicOption[]>(() => ([
         { label: t('options.language.ja'), value: 'ja' },
-        { label: t('options.language.en'), value: 'en' }
+        { label: t('options.language.en'), value: 'en' },
+        { label: t('options.language.zh'), value: 'zh' },
     ]))
     const themeOptions = computed<BasicOption[]>(() => ([
         { label: t('options.theme.light'), value: 'light' },
-        { label: t('options.theme.dark'), value: 'dark' }
+        { label: t('options.theme.dark'), value: 'dark' },
     ]))
     const homepageOptions = computed<BasicOption[]>(() => ([
         { label: t('options.homepage.apps'), value: '/apps' },

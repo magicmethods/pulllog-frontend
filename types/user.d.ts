@@ -11,7 +11,7 @@ declare global {
         roles?: string[] // ユーザーの役割
         plan?: string // ユーザープラン
         planExpiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
-        language: string // ユーザーの言語設定（ja, enなど）
+        language: string // ユーザーの言語設定（en | ja | zhなど）
         theme: string // ユーザーのテーマ設定（light, darkなど）
         homePage?: string // ログイン後に表示されるページ（ルートパス）
         createdAt: string // ユーザー登録日時: YYYY-MM-DDTHH:mm:ss形式

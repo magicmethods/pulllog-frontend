@@ -20,7 +20,7 @@ export const useGlobalStore = defineStore('global', () => {
             appStore.clearApp()
             // ユーザー言語設定を適用
             const userStore = useUserStore()
-            const initialLocale = (userStore.user?.language || locale.value || 'ja') as Language
+            const initialLocale = (userStore.user?.language ?? locale.value ?? useConfig().defaultLocale) as Language
             setLocale(initialLocale)
         }
     }

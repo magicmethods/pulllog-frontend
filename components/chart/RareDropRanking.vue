@@ -28,11 +28,6 @@ const props = defineProps<{
 const { theme, presetColors, palette } = useChartPalette()
 
 // Refs & Local State
-/*
-const locale = computed(() => 
-    userStore.user?.language === 'ja' ? 'ja-JP' : 'en-US' // ユーザの言語設定
-)
-*/
 // ラベルマップ
 const labelMap = computed<Record<MarkerKey, string>>(() => ({
     pickup: t('stats.chart.rareDropRanking.pickup'),

@@ -22,7 +22,7 @@ const form = reactive({
 })
 const errors = reactive<{ name?: string; email?: string; password?: string; isAgreed?: string }>({})
 const globalError = ref<string | null>(null)
-const currentLocale = ref<string>(userStore.user?.language ?? getLocaleCookie() ?? locale.value ?? 'ja')
+const currentLocale = ref<string>(userStore.user?.language ?? getLocaleCookie() ?? locale.value ?? useConfig().defaultLocale)
 const touched = reactive<{ name: boolean; email: boolean; password: boolean; isAgreed: boolean }>({
     name: false,
     email: false,
