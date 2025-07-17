@@ -59,6 +59,7 @@ declare global {
         message?: string
         user: UserResponse | null
         csrfToken: string | null
+        rememberToken?: string | null // リメンバートークン（rememberMeオプションがtrueの場合）
     } | null
     /** 登録レスポンス */
     type RegisterResponse = {

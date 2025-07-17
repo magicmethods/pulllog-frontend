@@ -8,6 +8,7 @@ export const endpoints = {
         logout:   () => `${useConfig().apiProxy}/auth/logout`, // POST
         password: () => `${useConfig().apiProxy}/auth/password`, // POST
         verify:   () => `${useConfig().apiProxy}/auth/verify`, // POST
+        autoLogin: () => `${useConfig().apiProxy}/auth/autologin`, // POST
         updatePassword: () => `${useConfig().apiProxy}/auth/password`, // PUT
     },
     user: {

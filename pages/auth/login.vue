@@ -10,7 +10,7 @@ definePageMeta({
 
 // Stores etc.
 const userStore = useUserStore()
-const { login } = useAuth()
+const { login, autoLogin } = useAuth()
 const { t } = useI18n()
 
 // Refs & Local variables
@@ -85,7 +85,7 @@ async function handleLogin() {
   if (!validateAll()) return
   isSubmitting.value = true
   try {
-    await login(form.email, form.password)
+    await login(form.email, form.password, form.remember)
     if (userStore.isLoggedIn) {
       // Redirect to the home page after successful login
       navigateTo({ path: userStore.user?.homePage ?? '/apps' })
@@ -105,12 +105,6 @@ async function handleLogin() {
 }
 
 async function handleOauthLogin(service: string) {
-  // OAuthは別途バリデーションや認証フローが必要
-  if (!form.email || !form.password) {
-    // Show error message if userId or password is empty
-    return
-  }
-
   console.log(`OAuth login with ${service} initiated for email: ${form.email}`)
 }
 
@@ -118,29 +112,13 @@ function handleBack() {
   navigateTo({ path: '/' })
 }
 
-function autoLoginWithRememberToken() {
-  // Cookieからトークンを取得して自動ログイン
-  return new Promise<void>((resolve, reject) => {
-    const token = useCookie('remember_token').value
-    if (!token) {
-      reject(new Error('No remember token found'))
-      return
-    }
-    /*
-    autoLogin(token)
-      .then(() => resolve())
-      .catch(err => reject(err))
-    */
-  })
-}
-
 // Lifecycle hooks
 onBeforeMount(async () => {
   if (import.meta.client) {
-    // 自動ログインAPI呼び出し
     try {
-      await autoLoginWithRememberToken() // Cookieを自動で送信
-      // 成功したらダッシュボード等へリダイレクト
+      // 自動ログイン・Cookieの自動送信
+      await autoLogin()
+      // 成功したらリダイレクト
       navigateTo({ path: userStore.user?.homePage ?? '/apps' })
     } catch (e: unknown) {
       // 失敗時は何もしない（ログイン画面を通常通り表示）
@@ -156,7 +134,7 @@ onBeforeMount(async () => {
     <Head>
       <Title>{{ `${t('auth.login.submit')} | ${t('app.name')}` }}</Title>
     </Head>
-    <div class="relative flex flex-col gap-2 items-center mb-2">
+    <div v-if="!userStore.isLoggedIn" class="relative flex flex-col gap-2 items-center mb-2">
       <h1 class="text-2xl font-bold mb-2">{{ t('app.name') }}</h1>
 
       <p class="text-surface-500 dark:text-surface-400 block mb-2">{{ t('auth.login.prompt') }}</p>
@@ -196,7 +174,7 @@ onBeforeMount(async () => {
             :binary="true"
             inputId="remember-me"
           />
-          <label for="remember-me" tabindex="0" class="font-normal text-base text-surface-500 dark:text-gray-400 select-none">
+          <label for="remember-me" class="font-normal text-base text-surface-500 dark:text-gray-400 select-none">
             {{ t('auth.login.rememberMe') }}
           </label>
         </div>

@@ -19,7 +19,7 @@ export function useAuth() {
     //const t = (key: string | number) => useNuxtApp().$i18n.t(key)
 
     // Methods
-    async function login(userid: string, password: string) {
+    async function login(email: string, password: string, remember = false) {
         isLoading.value = true
         error.value = null
 
@@ -27,7 +27,7 @@ export function useAuth() {
             const response: LoginResponse = await callApi({
                 endpoint: endpoints.auth.login(),
                 method: 'POST',
-                data: { userid, password },
+                data: { email, password, remember },
             })
 
             if (!response || !response.state || response.state !== 'success') {
@@ -46,9 +46,55 @@ export function useAuth() {
                 csrfStore.setToken(response.csrfToken)
             }
 
+            if (response.rememberToken) {
+                // 開発環境のみRememberトークンがレスポンスに含まれる
+                document.cookie = `remember_token=${response.rememberToken}; path=/; samesite=lax`
+            }
+
             globalStore.setInitialized(true)
         } catch (err: unknown) {
             console.error('Login error:', err)
+            error.value = err instanceof Error ? err.message : t('auth.login.error')
+            throw err
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    async function autoLogin() {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response: LoginResponse = await callApi({
+                endpoint: endpoints.auth.autoLogin(),
+                method: 'POST', // Cookieはリクエストヘッダに付与され送信される
+            })
+
+            if (!response || !response.state || response.state !== 'success') {
+                throw new Error(response?.message || t('auth.login.invalidResponse'))
+            }
+            if (!response.user || response.user.is_deleted || !response.user.is_verified) {
+                throw new Error(response?.message || t('auth.login.accountNotAvailable'))
+            }
+
+            userStore.setUser(
+                toUser(response.user),
+                toUserPlanLimits(response.user)
+            )
+
+            if (response.csrfToken) {
+                csrfStore.setToken(response.csrfToken)
+            }
+
+            if (response.rememberToken) {
+                // 開発環境のみRememberトークンがレスポンスに含まれる
+                document.cookie = `remember_token=${response.rememberToken}; path=/; samesite=lax`
+            }
+
+            globalStore.setInitialized(true)
+        } catch (err: unknown) {
+            //console.error('Auto-login error:', err)
             error.value = err instanceof Error ? err.message : t('auth.login.error')
             throw err
         } finally {
@@ -169,6 +215,7 @@ export function useAuth() {
     
     return {
         login,
+        autoLogin,
         register,
         passwordReset,
         verifyToken,
