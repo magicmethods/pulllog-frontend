@@ -4,10 +4,6 @@ import { useOptionStore } from '~/stores/useOptionStore'
 import { useI18n } from 'vue-i18n'
 import { StorageUtil } from '~/utils/storage'
 
-definePageMeta({
-    layout: 'landing',
-})
-
 // Stores
 const userStore = useUserStore()
 const optionStore = useOptionStore()

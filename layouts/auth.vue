@@ -2,10 +2,6 @@
 import { useI18n } from 'vue-i18n'
 import { StorageUtil } from '~/utils/storage'
 
-definePageMeta({
-    layout: 'auth',
-})
-
 // i18n
 const { t } = useI18n()
 

@@ -1,31 +1,13 @@
 <script setup lang="ts">
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-definePageMeta({
-    layout: 'error',
-})
-
-// Props
-const props = defineProps<{
-    error: {
-        statusCode?: number
-        statusMessage?: string
-        message?: string
-        stack?: string
-    }
-}>()
-
 // i18n
+const route = useRoute()
 const { t } = useI18n()
 
 // Refs & Local variables
-const statusCode = props.error.statusCode || 500
-const title = props.error.statusMessage || (statusCode === 404 ? t('app.error.notFound') : t('app.error.errorOccurred'))
-const message = props.error.message || t('app.error.sorrySomethingWentWrong')
-
-const goHome = () => {
-    window.location.href = '/'
-}
+const statusCode = Number(route.params.code || 500)
 
 </script>
 
@@ -36,24 +18,6 @@ const goHome = () => {
             <Meta name="description" :content="t('app.description')" />
             <Meta name="keywords" :content="t('app.keywords')" />
         </Head>
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg px-8 py-10 max-w-md w-full text-center">
-            <div class="mb-6">
-                <h1 class="text-5xl font-bold text-primary-600 dark:text-primary-400 mb-2">
-                    {{ statusCode }}
-                </h1>
-                <p class="text-xl font-semibold text-gray-700 dark:text-gray-200">
-                    {{ title }}
-                </p>
-            </div>
-            <p class="text-gray-500 dark:text-gray-400 mb-8">
-                {{ message }}
-            </p>
-            <button
-                class="mt-4 px-6 py-2 rounded-2xl bg-primary-600 text-white hover:bg-primary-700 transition"
-                @click="goHome"
-            >
-                {{ t('app.backToHome') }}
-            </button>
-        </div>
+        <slot />
     </div>
 </template>
