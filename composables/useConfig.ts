@@ -7,6 +7,7 @@ export function useConfig(): AppConfig {
         defaultLocale: config.public.defaultLocale as Language,
         apiBaseURL: config.public.apiBaseURL as string,
         apiProxy: config.public.apiProxy as string,
+        adsenseAccount: config.public.adsenseAccount as string,
         isDebug: config.public.isDebug as boolean,
         mockMode: config.public.mockMode as boolean,
     }

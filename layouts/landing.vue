@@ -4,12 +4,10 @@ import { useOptionStore } from '~/stores/useOptionStore'
 import { useI18n } from 'vue-i18n'
 import { StorageUtil } from '~/utils/storage'
 
-// Stores
+// Stores etc.
 const userStore = useUserStore()
 const optionStore = useOptionStore()
 const appConfig = useConfig()
-
-// i18n
 const { t, getLocaleCookie, setLocale } = useI18n()
 
 // Refs & Local variables
@@ -90,7 +88,6 @@ watch(
     }
 )
 
-
 </script>
 
 <template>
@@ -99,6 +96,7 @@ watch(
             <Title>{{ t('app.name') }}</Title>
             <Meta name="description" :content="t('app.description')" />
             <Meta name="keywords" :content="t('app.keywords')" />
+            <Meta name="google-adsense-account" :content="appConfig.adsenseAccount" />
         </Head>
         <header class="flex items-center justify-between p-4 border-b border-surface-400 dark:border-gray-900 bg-transparent shadow-md">
             <NuxtLink to="/" class="text-2xl font-bold flex items-center gap-2">

@@ -11,6 +11,7 @@ interface AppConfig {
     defaultLocale: Language
     apiBaseURL: string
     apiProxy: string
+    adsenseAccount: string // Google AdSense アカウントID
     isDebug: boolean
     mockMode: boolean
 }

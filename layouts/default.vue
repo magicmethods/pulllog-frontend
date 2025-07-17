@@ -5,6 +5,7 @@ import { StorageUtil } from '~/utils/storage'
 
 // Stores etc.
 const userStore = useUserStore()
+const appConfig = useConfig()
 const { t } = useI18n()
 
 // Refs & Local variables
@@ -102,6 +103,7 @@ watch(
             <Title>{{ t('app.name') }}</Title>
             <Meta name="description" :content="t('app.description')" />
             <Meta name="keywords" :content="t('app.keywords')" />
+            <Meta name="google-adsense-account" :content="appConfig.adsenseAccount" />
         </Head>
         <CommonHeader
             :isDarkMode="isDarkMode"

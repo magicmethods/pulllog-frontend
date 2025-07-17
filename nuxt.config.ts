@@ -30,10 +30,6 @@ export default defineNuxtConfig({
             pattern: '*pulllog.net/*',
             zone_name: 'pulllog.net'
           },
-          /*{
-            pattern: 'pulllog.net',
-            custom_domain: true
-          }*/
         ],
       },
     },
@@ -59,6 +55,7 @@ export default defineNuxtConfig({
         defaultLocale: process.env.DEFAULT_LOCALE || 'en',
         apiBaseURL: process.env.API_BASE_URL,
         apiProxy: process.env.API_PROXY || '/api',
+        adsenseAccount: process.env.GOOGLE_ADSENSE_ACCOUNT,
         isDebug: process.env.IS_DEBUG === 'true',
         mockMode: process.env.MOCK_MODE === 'true'
     }
@@ -66,13 +63,13 @@ export default defineNuxtConfig({
   app: {
     baseURL: '/',
     head: {
-      script: [
+      /* script: [
         {
           src: 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8602791446931111',
           async: true,
           crossorigin: 'anonymous',
         },
-      ],
+      ], */
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },

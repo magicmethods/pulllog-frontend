@@ -162,21 +162,11 @@ const clearButtonPT = {
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        adItems: [
-            { image: '/sample/ad_9.png',  link: 'https://example.com/?ad=9',  alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: 'リーダーボード広告 (728x90)' },
-        ],
         adType: 'slot',
         adClient: 'ca-pub-8602791446931111',
         adSlotName: '8956575261',
     },
     bottom: {
-        adItems: [
-            { image: '/sample/ad_9.png',  link: 'https://example.com/?ad=9',  alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: 'リーダーボード広告 (728x90)' },
-        ],
         adType: 'slot',
         adClient: 'ca-pub-8602791446931111',
         adSlotName: '5664134061',
@@ -291,6 +281,10 @@ const adConfig: Record<string, AdProps> = {
                 <ChartRareDropBreakdownRatio :data="stats.appRareDropBreakdown" :appId="selectedApps[0].appId ?? ''" />
                 <ChartRareDropRanking :data="stats.appRareDrops" :appId="selectedApps[0].appId ?? ''" />
             </div>
+        </div>
+
+        <div class="mt-auto pb-2 w-full min-h-max h-[90px]">
+            <CommonEmbedAd v-bind="adConfig.bottom" />
         </div>
     </div>
 </template>
