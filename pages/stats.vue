@@ -86,6 +86,7 @@ async function handleAggregation() {
 
         // 期間抽出
         const filteredLogs: Record<string, DateLog[]> = {}
+        let logCount = 0
         for (const appId of targetApps) {
             const allLogs = Array.from(logStore.logs.get(appId)?.values() ?? [])
             filteredLogs[appId] = allLogs.filter(log => {
@@ -95,6 +96,11 @@ async function handleAggregation() {
                 }
                 return true
             })
+            logCount += filteredLogs[appId].length
+        }
+        if (logCount === 0) {
+            stats.value = null // ログがない場合は集計結果をクリアして終了
+            return
         }
 
         // 集計ロジック（統計・グラフ用データ生成）

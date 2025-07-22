@@ -190,7 +190,7 @@ export const useLogStore = defineStore('log', () => {
                 method: 'GET'
             })
             console.log('fetchLogs: APIレスポンスから取得', response)
-            if (Array.isArray(response)) {
+            if (response && Array.isArray(response)) {
                 // 個別キャッシュにも反映（レスポンスが空配列の場合もAPI的に「本当にゼロ件」→キャッシュしてOK）
                 for (const log of response) {
                     if (log?.date) setLog(appId, log.date, log)
