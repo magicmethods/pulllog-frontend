@@ -60,6 +60,7 @@ declare global {
         user: UserResponse | null
         csrfToken: string | null
         rememberToken?: string | null // リメンバートークン（rememberMeオプションがtrueの場合）
+        rememberTokenExpires?: string | null // リメンバートークンの有効期限: YYYY-MM-DDTHH:mm:ss形式の文字列
     } | null
     /** 登録レスポンス */
     type RegisterResponse = {

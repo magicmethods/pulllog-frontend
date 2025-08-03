@@ -16,8 +16,8 @@ declare global {
         discharge_items: number // 対象日のレア排出数の合計値
         drop_details: DropDetail[] // 対象日のレア排出詳細の配列
         expense: number // 対象日のガチャにかかった費用の合計値
-        tags: string[] // 付与されたタグ文字列の配列（日次ログ毎に最大3つまで）
-        free_text: string // フリーテキスト（maxLength: 200）
+        tags: string[] // 付与されたタグ文字列の配列（日次ログ毎に最大5つまで）
+        free_text: string // フリーテキスト（maxLength: 250）
         images: string[] // 添付画像のファイルパスの配列（日次ログ毎に最大n個まで）（将来的な機能）
         tasks: string[] // 完了したタスク名の配列: タスク名は optionStore.taskOptions の label を想定 （将来的な機能）
         last_updated: string | null // 最終更新日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）

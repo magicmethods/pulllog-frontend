@@ -46,9 +46,13 @@ export function useAuth() {
                 csrfStore.setToken(response.csrfToken)
             }
 
-            if (response.rememberToken) {
-                // 開発環境のみRememberトークンがレスポンスに含まれる
-                document.cookie = `remember_token=${response.rememberToken}; path=/; samesite=lax`
+            console.log('Remember token in login:', response.rememberToken, response.rememberTokenExpires)
+            if (response.rememberToken && response.rememberTokenExpires) {
+                // RememberトークンをCookieにセット
+                document.cookie = `remember_token=${response.rememberToken}; expires=${new Date(response.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
+            } else {
+                // 既にあるRememberトークンのCookieを削除
+                document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
             }
 
             globalStore.setInitialized(true)
@@ -87,9 +91,13 @@ export function useAuth() {
                 csrfStore.setToken(response.csrfToken)
             }
 
-            if (response.rememberToken) {
-                // 開発環境のみRememberトークンがレスポンスに含まれる
-                document.cookie = `remember_token=${response.rememberToken}; path=/; samesite=lax`
+            console.log('Remember token in autoLogin:', response.rememberToken, response.rememberTokenExpires)
+            if (response.rememberToken && response.rememberTokenExpires) {
+                // RememberトークンをCookieにセット
+                document.cookie = `remember_token=${response.rememberToken}; expires=${new Date(response.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
+            } else {
+                // 既にあるRememberトークンのCookieを削除
+                document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
             }
 
             globalStore.setInitialized(true)
