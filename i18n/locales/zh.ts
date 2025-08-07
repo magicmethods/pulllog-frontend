@@ -5,6 +5,7 @@ export default defineI18nLocale(async () => ({
         description: 'PullLog 是一个用于管理抽卡历史并进行统计分析的工具。',
         keywords: '抽卡, 抽卡管理, 统计分析, PullLog',
         loading: '加载中...',
+        loggingIn: '正在登录...',
         back: '返回',
         backToHome: '回到首页',
         scrollToTop: '回到顶部',
@@ -18,6 +19,10 @@ export default defineI18nLocale(async () => ({
             userUpdateFailed: '更新用户信息失败。',
             saveFailed: '保存失败。',
             deleteFailed: '删除失败。',
+            noLogin: '您尚未登录。',
+            logsNotFound: '未找到历史数据。',
+            importFailed: '导入失败。',
+            statsNotFound: '未找到统计数据。',
         },
         ad: {
             advertisement: '广告',
@@ -105,6 +110,7 @@ export default defineI18nLocale(async () => ({
             strongLabel: '复杂密码',
             passwordFooter: '密码需至少8位',
             agreeTextPrefix: '我同意',
+            agreeTextMiddle: '和',
             agreeTextSuffix: '。',
             submit: '注册',
             // Error Messages
@@ -160,7 +166,7 @@ export default defineI18nLocale(async () => ({
         nameRequired: '请输入昵称（显示名）',
         nameMaxLength: '昵称不能超过50个字符',
         emailInvalid: '请输入有效的邮箱地址',
-        termsRequired: '请同意服务条款',
+        termsRequired: '您必须同意服务条款和隐私政策',
         invalidCode: '验证码无效',
         languageRequired: '请选择语言',
         themeRequired: '请选择主题',
@@ -274,6 +280,11 @@ export default defineI18nLocale(async () => ({
         loadingLogData: '正在加载目标日期的数据...',
         historyTrend: '历史趋势（最近）',
         latestHistoryList: '最新历史列表',
+        loading: {
+            logs: '加载历史数据中...',
+            saving: '保存历史数据中...',
+            deleting: '删除历史数据中...',
+        },
         notice: {
             noLogData: '暂无数据',
             noLogDataDetail: '该日期暂无历史登记',
@@ -395,6 +406,9 @@ export default defineI18nLocale(async () => ({
                 note: '※ 排行细分仅统计应用设置的初始标记定义。',
             },
         },
+        loading: {
+            stats: '加载统计数据中...',
+        },
     },
     // Settings Page
     settings: {
@@ -416,6 +430,8 @@ export default defineI18nLocale(async () => ({
         homepage: '首页',
         homepagePlaceholder: '请选择首页',
         others: '其他设置项',
+        withdrawal: '提现',
+        accountDelete: '删除账户',
         cancel: '取消',
         saveChanges: '保存更改',
         saving: '保存中...',
@@ -429,6 +445,14 @@ export default defineI18nLocale(async () => ({
             dragAndDrop: '拖拽文件到此处上传。',
             fileSizeLimit: '{size}MB以内',
             fileSizeLimitSuffix: '的文件可上传。',
+        },
+        withdrawalModal: {
+            accountDeleteConfirmTitle: '账户删除确认',
+            accountDeleteWarning: '删除账户将永久删除所有数据。',
+            accountDeleteIrreversible: '此操作无法撤销。您确定要继续吗？',
+            confirmDelete: '删除',
+            deleting: '删除中...',
+            userDeleteFailed: '删除用户失败',
         },
         notice: {
             inputErrorTitle: '输入错误',

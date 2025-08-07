@@ -1,79 +1,102 @@
-# PullLog Terms of Service
+<div style="text-align: right;">Last Updated: August 7, 2025</div>
 
-Last Updated: June 19, 2025
+These Terms of Use (“Terms”) set forth the rights and obligations between users (“Users”) and the operator “MAGIC METHODS” (“Operator”) with respect to the provision and use of PullLog (“Service”). Please read these Terms carefully before using the Service. By using the Service, you agree to these Terms.
 
-These Terms of Service (“Terms”) set forth the conditions of use for the PullLog service (“the Service”) provided by the operator (“the Operator”). All users (“Users”) must read and agree to these Terms before using the Service.
+- Operator: MAGIC METHODS (sole proprietorship)
+- Location: Tokyo, Japan
+- Contact email: support@pulllog.net
 
 ---
 
-## Article 1 (Application)
+## Article 1 (Scope)
 
-1. These Terms apply to all relationships between Users and the Operator regarding the use of the Service.
-2. In addition to these Terms, the Operator may establish individual rules (“Privacy Policy”, etc.) for the use of the Service. Such individual rules shall form part of these Terms.
-3. If any provision of these Terms conflicts with individual rules, the individual rules shall take precedence.
+1. These Terms apply to all relationships related to the use of the Service.
+2. The Operator may establish individual provisions (such as the “Privacy Policy”) in addition to these Terms. Such provisions shall constitute a part of these Terms.
+3. In the event of any inconsistency between these Terms and individual provisions, the individual provisions shall prevail.
 
 ## Article 2 (User Registration)
 
-1. Individuals who wish to use the Service shall apply for registration in accordance with the procedures specified by the Operator. Registration is completed when the Operator approves the application.
-2. The Operator may refuse registration if the applicant falls under any of the following:
-   - Providing false information in the registration process
-   - Having violated these Terms in the past
-   - Any other case the Operator deems inappropriate
+1. Those wishing to use the Service must apply for registration in a manner prescribed by the Operator. Registration will be completed upon approval by the Operator.
+2. The Operator may refuse registration if any of the following apply:
+   - The applicant provides false information.
+   - The applicant has violated these Terms before.
+   - The Operator otherwise deems the registration inappropriate.
 
-## Article 3 (Account Management)
+## Article 3 (Age Requirements)
 
-1. Users are responsible for managing their Service account and password.
-2. The Operator shall not be liable for any loss or damage arising from the misuse or unauthorized use of accounts by Users or third parties.
+1. The Service generally does not have age restrictions; however, if paid plans are introduced in the future, minors must obtain the consent of a parent or legal guardian before using such paid services.
 
-## Article 4 (Prohibited Conduct)
+## Article 4 (Account Management)
 
-Users shall not engage in any of the following acts when using the Service:
+1. Users are responsible for managing their Service accounts and passwords.
+2. The Operator assumes no responsibility for unauthorized use of accounts by Users or third parties.
 
-- Acts in violation of laws or public order and morals
-- Criminal acts or acts related to criminal activity
-- Interference with the operation of the Service
-- Infringement of the rights of other Users or third parties
-- Any other acts the Operator deems inappropriate
+## Article 5 (Fees and Paid Plans)
 
-## Article 5 (Suspension of the Service)
+1. The Service is currently provided free of charge. The Operator may introduce paid plans or paid features in the future. In such cases, details and conditions will be announced on the Service, and the User’s consent will be obtained before implementation.
 
-1. The Operator may suspend or discontinue all or part of the Service without prior notice to Users in the following cases:
-   - When performing maintenance or updates of the system
-   - When provision of the Service becomes difficult due to force majeure (e.g., earthquake, fire, power outage)
-   - Any other case the Operator deems necessary
-2. The Operator shall not be liable for any loss or damage suffered by Users or third parties due to suspension or discontinuation of the Service.
+## Article 6 (Prohibited Acts)
 
-## Article 6 (Intellectual Property Rights)
+Users must not engage in any of the following when using the Service:
 
-1. All intellectual property rights related to the contents, programs, designs, etc. of the Service belong to the Operator or rightful third parties.
-2. Users shall not reproduce, reprint, or sell any information obtained through the Service without the prior consent of the Operator.
+- Acts violating laws or public order and morals.
+- Acts related to criminal activity.
+- Acts that interfere with the operation of the Service.
+- Acts infringing the rights of other Users or third parties.
+- Providing false information or impersonation.
+- Providing benefits to or being involved with anti-social forces.
+- Other acts deemed inappropriate by the Operator.
 
-## Article 7 (Restrictions and Deregistration)
+## Article 7 (User-Submitted Data)
 
-The Operator may, without prior notice, restrict use of the Service or deregister a User if any of the following apply:
+1. Copyright of data posted or registered by Users belongs to the User. However, the Operator may use such data, after anonymization and aggregation, for service operation, improvement, and statistical analysis.
+2. Users may edit or delete their data through account management features (as available).
 
-- Violation of any provision of these Terms
-- Discovery of false information in the registration details
-- Any other case the Operator deems the User’s use inappropriate
+## Article 8 (Handling of Dormant Accounts)
 
-## Article 8 (Disclaimer)
+1. If a User does not log in for over one year, the Operator may, after prior notice, delete the User’s account and related data.
 
-1. The Operator makes no warranty regarding the completeness, accuracy, or usefulness of the content of the Service or information obtained by Users through the Service.
+## Article 9 (Suspension of Service)
+
+1. The Operator may, without prior notice, suspend or interrupt all or part of the Service in the following cases:
+   - For system maintenance or updates.
+   - If provision of the Service becomes difficult due to force majeure such as earthquake, fire, or power outage.
+   - If the Operator otherwise deems suspension or interruption necessary.
+2. The Operator shall not be liable for any loss or damage arising from such suspension or interruption.
+
+## Article 10 (Intellectual Property Rights)
+
+1. All content, programs, designs, etc. on the Service are owned by the Operator or rightful owners.
+2. Users may not reproduce, use, or sell information from the Service without permission from the Operator.
+
+## Article 11 (Restriction and Deregistration)
+
+The Operator may restrict or deregister a User’s access to the Service without prior notice in the following cases:
+
+- Violation of these Terms.
+- Registration of false information.
+- Being an anti-social force or involved with such.
+- Other cases deemed inappropriate by the Operator.
+
+## Article 12 (Data Loss and Service Termination)
+
+1. The Operator shall make every effort to protect data, but Users agree that data may be lost due to technical reasons or force majeure.
+2. In the event of service termination, the Operator will give prior notice by reasonable means, but shall not be obliged to return data.
+
+## Article 13 (Disclaimer)
+
+1. The Operator makes no warranty as to the completeness, accuracy, or usefulness of any information obtained through the Service.
 2. The Operator shall not be liable for any damages arising from the use of the Service by Users.
 
-## Article 9 (Service Changes and Termination)
+## Article 14 (Amendment of Terms)
 
-The Operator reserves the right to change, add, or discontinue the Service, in whole or in part, at any time without prior notice to Users.
+The Operator may amend these Terms without prior notice. Amended Terms shall become effective upon posting on the Service.
 
-## Article 10 (Modification of the Terms)
+## Article 15 (Governing Law and Jurisdiction)
 
-The Operator may modify these Terms at any time without prior notice to Users if deemed necessary. The revised Terms shall become effective from the time they are posted on the Service.
-
-## Article 11 (Governing Law and Jurisdiction)
-
-1. These Terms shall be governed by and construed in accordance with the laws of Japan.
-2. Any disputes arising out of or in connection with the Service shall be subject to the exclusive jurisdiction of the court having jurisdiction over the location of the Operator’s principal office.
+1. These Terms shall be governed by the laws of Japan.
+2. The Tokyo District Court shall have exclusive jurisdiction for the first instance over any disputes related to the Service.
 
 ---
 
-End of document.
+End

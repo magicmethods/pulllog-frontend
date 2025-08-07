@@ -47,6 +47,7 @@ const homepageOptions = optionStore.homepageOptions
 const fileUploadRef = ref(null)
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
 const uploadHelperMessage = computed(() => t('settings.fileUpload.dragAndDrop')) // Drag and drop files to here to upload.
+const showDeleteModal = ref<boolean>(false)
 
 // Methods
 function showToast(
@@ -191,6 +192,10 @@ function clearUploadFile() {
 function handleCancel() {
     navigateTo({ path: internalUser.homePage })
 }
+function handleAccountDeleted() {
+    // ここではページ遷移等不要（ストアでリダイレクト処理済み）
+    // 必要ならToast通知など
+}
 const avatarProps = () => {
     const avatarProps = {
         size: 'xlarge',
@@ -241,12 +246,17 @@ watch(
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
+        /*
         adItems: [
             { image: '/sample/ad_9.png',  link: 'https://example.com', alt: '広告9 (728x90)' },
             { image: '/sample/ad_10.png', link: 'https://example.com', alt: '広告10 (728x90)' },
             { image: '/sample/ad_11.png', link: 'https://example.com', alt: '広告11 (728x90)' }
         ],
         adType: 'carousel',
+        */
+        adType: 'slot',
+        adClient: 'ca-pub-8602791446931111',
+        adSlotName: '8956575261',
     },
 }
 
@@ -291,132 +301,143 @@ const adConfig: Record<string, AdProps> = {
                     <Message severity="warn" variant="simple" size="small" class="w-full md:w-80">{{ t('settings.emailCannotBeChanged') }}</Message>
                 </div>
             </div>
-        <div class="input-group-row">
-            <label for="input-password" class="input-group-label md:self-start md:mt-2">{{ t('settings.newPassword') }}</label>
-            <div class="input-group-control flex-col md:items-start">
-                <Password
-                    id="input-password"
-                    v-model="internalUser.password"
-                    :promptLabel="t('auth.register.passwordPrompt')"
-                    :weakLabel="t('auth.register.weakLabel')"
-                    :mediumLabel="t('auth.register.mediumLabel')"
-                    :strongLabel="t('auth.register.strongLabel')"
-                    :placeholder="t('settings.newPasswordPlaceholder')"
-                    toggleMask
-                    :minlength="8"
-                    class="w-full md:w-80"
-                    :pt:pcinputtext:root="{ inputmode: 'text', autocomplete: 'current-password',
-                        class: { 'p-invalid': touched.password && errors.password },
-                    }"
-                    @blur="handleBlur('password')"
-                >
-                    <template #footer>
-                        <Divider :pt="{ root: 'opacity-50' }" />
-                        <span class="text-sm text-surface-500 dark:text-gray-400">{{ t('auth.register.passwordFooter') }}</span>
-                    </template>
-                </Password>
-                <Message v-if="touched.password && errors.password" v-bind="errorMessageProps()">{{ errors.password }}</Message>
-                <Message severity="info" variant="simple" size="small" class="w-full md:w-max">
-                    {{ t('settings.passwordChangeInfoPrefix') }}
-                    <b>{{ t('settings.passwordChangeInfoEmphasis') }}</b>
-                    {{ t('settings.passwordChangeInfoSuffix') }}
-                </Message>
-            </div>
-        </div>
-        <div class="input-group-row">
-            <label for="input-avatar" class="input-group-label md:self-center md:-mt-6">{{ t('settings.avatar') }}</label>
-            <div class="input-group-control flex-col md:items-start">
-                <div class="flex items-center justify-start gap-4">
-                    <div class="hidden md:block md:flex md:items-center md:justify-center md:gap-2 md:h-max md:w-max">
-                        <Avatar v-bind="avatarProps()" />
-                        <i class="pi pi-arrow-right text-muted"></i>
-                    </div>
-                    <FileUpload
-                        ref="fileUploadRef"
-                        name="avatar"
-                        accept="image/*"
-                        :maxFileSize="MAX_UPLOAD_SIZE"
-                        :multiple="false"
-                        :invalidFileSizeMessage="t('settings.fileUpload.invalidFileSize', { file: '{0}', size: '{1}' })"
-                        :invalidFileLimitMessage="t('settings.fileUpload.invalidFileLimit', { limit: '{0}' })"
-                        :invalidFileTypeMessage="t('settings.fileUpload.invalidFileType', { file: '{0}' })"
-                        :chooseLabel="t('settings.fileUpload.chooseLabel')"
-                        :uploadLabel="t('settings.fileUpload.uploadLabel')"
-                        :cancelLabel="t('settings.fileUpload.cancelLabel')"
-                        chooseIcon="pi pi-image"
-                        uploadIcon="pi pi-cloud-upload"
-                        :showUploadButton="false"
-                        :customUpload="true"
-                        @select="handleFileSelect"
-                        @clear="handleClearFile"
-                        @remove="handleRemoveFile"
+            <div class="input-group-row">
+                <label for="input-password" class="input-group-label md:self-start md:mt-2">{{ t('settings.newPassword') }}</label>
+                <div class="input-group-control flex-col md:items-start">
+                    <Password
+                        id="input-password"
+                        v-model="internalUser.password"
+                        :promptLabel="t('auth.register.passwordPrompt')"
+                        :weakLabel="t('auth.register.weakLabel')"
+                        :mediumLabel="t('auth.register.mediumLabel')"
+                        :strongLabel="t('auth.register.strongLabel')"
+                        :placeholder="t('settings.newPasswordPlaceholder')"
+                        toggleMask
+                        :minlength="8"
+                        class="w-full md:w-80"
+                        :pt:pcinputtext:root="{ inputmode: 'text', autocomplete: 'current-password',
+                            class: { 'p-invalid': touched.password && errors.password },
+                        }"
+                        @blur="handleBlur('password')"
                     >
-                        <template #empty>
-                            {{ uploadHelperMessage }}
+                        <template #footer>
+                            <Divider :pt="{ root: 'opacity-50' }" />
+                            <span class="text-sm text-surface-500 dark:text-gray-400">{{ t('auth.register.passwordFooter') }}</span>
                         </template>
-                    </FileUpload>
+                    </Password>
+                    <Message v-if="touched.password && errors.password" v-bind="errorMessageProps()">{{ errors.password }}</Message>
+                    <Message severity="info" variant="simple" size="small" class="w-full md:w-max">
+                        {{ t('settings.passwordChangeInfoPrefix') }}
+                        <b>{{ t('settings.passwordChangeInfoEmphasis') }}</b>
+                        {{ t('settings.passwordChangeInfoSuffix') }}
+                    </Message>
                 </div>
-                <Message severity="info" variant="simple" size="small" class="w-full md:w-max">
-                    <b>{{ t('settings.fileUpload.fileSizeLimit', { size: MAX_UPLOAD_SIZE / 1024 / 1024 }) }}</b>
-                    {{ t('settings.fileUpload.fileSizeLimitSuffix') }}</Message>
             </div>
-        </div>
-        <Divider />
-        <div class="input-group-row">
-            <label for="language-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.language') }}</label>
-            <div class="input-group-control flex-col md:items-start">
-                <Select
-                    id="language-select"
-                    v-model="internalUser.language"
-                    :options="languageOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    :placeholder="t('settings.languagePlaceholder')"
-                    class="w-full md:w-40"
-                    :class="{ 'p-invalid': touched.language && errors.language }"
-                    @blur="handleBlur('language')"
-                />
-                <Message v-if="touched.language && errors.language" v-bind="errorMessageProps()">{{ errors.language }}</Message>
+            <div class="input-group-row">
+                <label for="input-avatar" class="input-group-label md:self-center md:-mt-6">{{ t('settings.avatar') }}</label>
+                <div class="input-group-control flex-col md:items-start">
+                    <div class="flex items-center justify-start gap-4">
+                        <div class="hidden md:block md:flex md:items-center md:justify-center md:gap-2 md:h-max md:w-max">
+                            <Avatar v-bind="avatarProps()" />
+                            <i class="pi pi-arrow-right text-muted"></i>
+                        </div>
+                        <FileUpload
+                            ref="fileUploadRef"
+                            name="avatar"
+                            accept="image/*"
+                            :maxFileSize="MAX_UPLOAD_SIZE"
+                            :multiple="false"
+                            :invalidFileSizeMessage="t('settings.fileUpload.invalidFileSize', { file: '{0}', size: '{1}' })"
+                            :invalidFileLimitMessage="t('settings.fileUpload.invalidFileLimit', { limit: '{0}' })"
+                            :invalidFileTypeMessage="t('settings.fileUpload.invalidFileType', { file: '{0}' })"
+                            :chooseLabel="t('settings.fileUpload.chooseLabel')"
+                            :uploadLabel="t('settings.fileUpload.uploadLabel')"
+                            :cancelLabel="t('settings.fileUpload.cancelLabel')"
+                            chooseIcon="pi pi-image"
+                            uploadIcon="pi pi-cloud-upload"
+                            :showUploadButton="false"
+                            :customUpload="true"
+                            @select="handleFileSelect"
+                            @clear="handleClearFile"
+                            @remove="handleRemoveFile"
+                        >
+                            <template #empty>
+                                {{ uploadHelperMessage }}
+                            </template>
+                        </FileUpload>
+                    </div>
+                    <Message severity="info" variant="simple" size="small" class="w-full md:w-max">
+                        <b>{{ t('settings.fileUpload.fileSizeLimit', { size: MAX_UPLOAD_SIZE / 1024 / 1024 }) }}</b>
+                        {{ t('settings.fileUpload.fileSizeLimitSuffix') }}</Message>
+                </div>
             </div>
-        </div>
-        <div class="input-group-row">
-            <label for="theme-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.theme') }}</label>
-            <div class="input-group-control flex-col md:items-start">
-                <Select
-                    id="theme-select"
-                    v-model="internalUser.theme"
-                    :options="themeOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    :placeholder="t('settings.themePlaceholder')"
-                    class="w-full md:w-40"
-                    :class="{ 'p-invalid': touched.theme && errors.theme }"
-                    @blur="handleBlur('theme')"
-                />
-                <Message v-if="touched.theme && errors.theme" v-bind="errorMessageProps()">{{ errors.theme }}</Message>
-            </div>
-        </div>
-        <div class="input-group-row">
-            <label for="homepage-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.homepage') }}</label>
-            <div class="input-group-control flex-col md:items-start">
-                <Select
-                    id="homepage-select"
-                    v-model="internalUser.homePage"
-                    :options="homepageOptions"
-                    optionLabel="label"
-                    optionValue="value"
-                    :placeholder="t('settings.homepagePlaceholder')"
-                    class="w-full md:w-40"
-                    :class="{ 'p-invalid': touched.homePage && errors.homePage }"
-                    @blur="handleBlur('homePage')"
-                />
-                <Message v-if="touched.homePage && errors.homePage" v-bind="errorMessageProps()">{{ errors.homePage }}</Message>
-            </div>
-        </div>
-        <div class="flex-grow w-full">
             <Divider />
-            <p class="text-antialiasing mb-2">{{ t('settings.others') }}</p>
-        </div>
+            <div class="input-group-row">
+                <label for="language-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.language') }}</label>
+                <div class="input-group-control flex-col md:items-start">
+                    <Select
+                        id="language-select"
+                        v-model="internalUser.language"
+                        :options="languageOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        :placeholder="t('settings.languagePlaceholder')"
+                        class="w-full md:w-40"
+                        :class="{ 'p-invalid': touched.language && errors.language }"
+                        @blur="handleBlur('language')"
+                    />
+                    <Message v-if="touched.language && errors.language" v-bind="errorMessageProps()">{{ errors.language }}</Message>
+                </div>
+            </div>
+            <div class="input-group-row">
+                <label for="theme-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.theme') }}</label>
+                <div class="input-group-control flex-col md:items-start">
+                    <Select
+                        id="theme-select"
+                        v-model="internalUser.theme"
+                        :options="themeOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        :placeholder="t('settings.themePlaceholder')"
+                        class="w-full md:w-40"
+                        :class="{ 'p-invalid': touched.theme && errors.theme }"
+                        @blur="handleBlur('theme')"
+                    />
+                    <Message v-if="touched.theme && errors.theme" v-bind="errorMessageProps()">{{ errors.theme }}</Message>
+                </div>
+            </div>
+            <div class="input-group-row">
+                <label for="homepage-select" class="input-group-label md:self-start md:mt-2">{{ t('settings.homepage') }}</label>
+                <div class="input-group-control flex-col md:items-start">
+                    <Select
+                        id="homepage-select"
+                        v-model="internalUser.homePage"
+                        :options="homepageOptions"
+                        optionLabel="label"
+                        optionValue="value"
+                        :placeholder="t('settings.homepagePlaceholder')"
+                        class="w-full md:w-40"
+                        :class="{ 'p-invalid': touched.homePage && errors.homePage }"
+                        @blur="handleBlur('homePage')"
+                    />
+                    <Message v-if="touched.homePage && errors.homePage" v-bind="errorMessageProps()">{{ errors.homePage }}</Message>
+                </div>
+            </div>
+            <div class="flex-grow w-full">
+                <Divider />
+                <p class="text-antialiasing mb-2">{{ t('settings.others') }}</p>
+                <!-- アカウント削除動線 -->
+                <div class="input-group-row">
+                    <label class="input-group-label self-start mt-2">{{ t('settings.withdrawal') }}</label>
+                    <div class="input-group-control w-auto">
+                        <Button
+                            :label="t('settings.accountDelete')"
+                            class="btn btn-secondary -ml-4"
+                            @click="showDeleteModal = true"
+                        />
+                    </div>
+                </div>
+            </div>
         </form>
         <div class="w-full">
             <Divider />
@@ -433,5 +454,10 @@ const adConfig: Record<string, AdProps> = {
                 <div class="hidden md:block md:flex-grow"></div>
             </div>
         </div>
+
+        <AccountDeleteModal
+            v-model:visible="showDeleteModal"
+            @deleted="handleAccountDeleted"
+        />
     </div>
 </template>

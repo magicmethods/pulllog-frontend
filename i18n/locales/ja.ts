@@ -7,6 +7,7 @@ export default defineI18nLocale(async () => ({
         description: 'PullLogは、ガチャの履歴を管理し、統計分析を行うためのツールです',
         keywords: 'ガチャ, 履歴管理, 統計分析, PullLog',
         loading: '読み込み中...',
+        loggingIn: 'ログイン中...',
         back: '戻る',
         backToHome: 'ホームへ戻る',
         scrollToTop: 'トップへ戻る',
@@ -20,6 +21,10 @@ export default defineI18nLocale(async () => ({
             userUpdateFailed: 'ユーザー情報の更新に失敗しました',
             saveFailed: '保存に失敗しました',
             deleteFailed: '削除に失敗しました',
+            noLogin: 'ログインしていません',
+            logsNotFound: '履歴データが見つかりません',
+            importFailed: '履歴のインポートに失敗しました',
+            statsNotFound: '統計データが見つかりません',
         },
         ad: {
             advertisement: '広告',
@@ -107,6 +112,7 @@ export default defineI18nLocale(async () => ({
             strongLabel: '複雑なパスワード',
             passwordFooter: '※ パスワードは8文字以上で入力してください',
             agreeTextPrefix: '',
+            agreeTextMiddle: 'および',
             agreeTextSuffix: 'に同意します',
             submit: '新規登録',
             // Error messages
@@ -162,7 +168,7 @@ export default defineI18nLocale(async () => ({
         nameRequired: '名前（表示名）を入力してください',
         nameMaxLength: '名前は50文字以内で入力してください',
         emailInvalid: '有効なメールアドレスを入力してください',
-        termsRequired: '利用規約への同意が必要です',
+        termsRequired: '利用規約、プライバシーポリシーへの同意が必要です',
         invalidCode: '無効な認証コードです',
         languageRequired: '言語を選択してください',
         themeRequired: 'テーマを選択してください',
@@ -273,6 +279,11 @@ export default defineI18nLocale(async () => ({
         loadingLogData: '対象日のデータを読み込み中...',
         historyTrend: '履歴の推移（直近）',
         latestHistoryList: '最新の履歴一覧',
+        loading: {
+            logs: '履歴データを読み込み中...',
+            saving: '履歴データを保存中...',
+            deleting: '履歴データを削除中...',
+        },
         notice: {
             noLogData: 'データ未登録',
             noLogDataDetail: 'この日付の履歴は未登録です',
@@ -394,6 +405,9 @@ export default defineI18nLocale(async () => ({
                 note: '※ ランキングの内訳はアプリ設定の初期マーカー定義のみ集計されます。',
             },
         },
+        loading: {
+            stats: '統計データを読み込み中...',
+        },
     },
     // Settings Page
     settings: {
@@ -415,6 +429,8 @@ export default defineI18nLocale(async () => ({
         homepage: 'ホームページ',
         homepagePlaceholder: 'ホームページを選択',
         others: 'その他の設定項目',
+        withdrawal: '退会',
+        accountDelete: 'アカウントを削除',
         cancel: 'キャンセル',
         saveChanges: '変更を保存',
         saving: '保存中...',
@@ -428,6 +444,14 @@ export default defineI18nLocale(async () => ({
             dragAndDrop: 'ファイルをここへドラッグ＆ドロップすることもできます',
             fileSizeLimit: '{size}MB以下',
             fileSizeLimitSuffix: 'のファイルがアップロードできます',
+        },
+        withdrawalModal: {
+            accountDeleteConfirmTitle: 'アカウント削除の確認',
+            accountDeleteWarning: 'アカウントを削除すると<br>すべてのデータが失われます',
+            accountDeleteIrreversible: 'この操作は元に戻せません。よろしいですか？',
+            confirmDelete: '削除する',
+            deleting: '削除中...',
+            userDeleteFailed: 'ユーザーの削除に失敗しました',
         },
         notice: {
             inputErrorTitle: '入力エラー',

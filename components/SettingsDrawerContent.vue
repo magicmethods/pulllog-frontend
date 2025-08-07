@@ -34,8 +34,8 @@ const lastLoginDate = computed(() => {
     return userStore.user?.lastLogin ? strFromDate(userStore.user.lastLogin, '%Y-%m-%d %H:%M') : '&mdash;'
 })
 const storage = new StorageUtil()
-// デバッグ用
 const currentPlan = ref<string>(capitalize(userStore.user?.plan ?? 'free'))
+// デバッグ用
 const showModal = ref<boolean>(false)
 const showPPModal = ref<boolean>(false)
 
@@ -177,6 +177,7 @@ watch(
                     <Button :label="t('settingsDrawer.change')" class="btn btn-alt mb-0" :disabled="true" @click="" />
                 </div>
                 <div class="flex justify-between items-center gap-2 mt-auto">
+                    <!-- /*
                     <CommonDocumentModal
                         v-model:visible="showModal"
                         src="/docs/template.md"
@@ -195,6 +196,7 @@ watch(
                         <Button :label="t('settingsDrawer.showDocument')" class="btn btn-alt" @click="showModal = true" />
                         <Button :label="t('settingsDrawer.privacyPolicy')" class="btn btn-alt" @click="showPPModal = true" />
                     </div>
+                    */ -->
                 </div>
             </template>
         </div>

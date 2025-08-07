@@ -13,6 +13,9 @@ export const useStatsStore = defineStore('stats', () => {
     // composables
     const { callApi } = useAPI()
 
+    // i18n
+    const t = (key: string | number) => useNuxtApp().$i18n.t(key)
+
     // appId -> queryKey -> StatsData
     const statsMap = ref<StatsMap>(new Map())
     const isLoading = ref<boolean>(false)
@@ -56,7 +59,7 @@ export const useStatsStore = defineStore('stats', () => {
         const queryKey = generateStatsQueryKey({ start, end })
         const cached = getStats(appId, queryKey)
         if (cached) {
-            console.log('fetchStats: キャッシュから取得', cached)
+            console.log('fetchStats: fetched from cache', cached)
             return cached // キャッシュがあれば即返す
         }
 
@@ -65,27 +68,27 @@ export const useStatsStore = defineStore('stats', () => {
         let loaderId: string | undefined
         if (showLoader) {
             const targetElement = loaderElement ? loaderElement : null
-            loaderId = loaderStore.show('統計データを読み込み中...', targetElement)
+            loaderId = loaderStore.show(t('stats.loading.stats'), targetElement)
         }
         try {
             const userStore = useUserStore()
-            if (!userStore.user?.id) throw new Error('未ログイン')
+            if (!userStore.user?.id) throw new Error(t('app.error.noLogin'))
 
             // APIコール
             const response = await callApi<StatsData>({
                 endpoint: endpoints.stats.list(appId, start, end), // `/api/stats/{appId}?start=yyyy-mm-dd&end=yyyy-mm-dd`
                 method: 'GET'
             })
-            //console.log('fetchStats: APIレスポンスから取得', response)
+            console.log('fetchStats: fetch from API response', response)
             if (!response) {
-                error.value = '統計データが見つかりません'
+                error.value = t('app.error.statsNotFound')
                 return null
             }
             setStats(appId, queryKey, response)
             return response
         } catch (e: unknown) {
             console.error('fetchStats error:', e)
-            error.value = e instanceof Error ? e.message : '統計情報の取得に失敗しました'
+            error.value = e instanceof Error ? e.message : t('app.error.statsNotFound')
             return null
         } finally {
             isLoading.value = false

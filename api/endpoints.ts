@@ -15,6 +15,7 @@ export const endpoints = {
         profile: () => `${useConfig().apiProxy}/user/profile`, // GET
         create:  () => `${useConfig().apiProxy}/user/profile`, // POST
         update:  () => `${useConfig().apiProxy}/user/update`, // PUT
+        delete:  () => `${useConfig().apiProxy}/user`, // DELETE
         //avatar:  () => `${useConfig().apiProxy}/user/avatar`,  // POST
     },
     apps: {

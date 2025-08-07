@@ -34,6 +34,9 @@ export const useLogStore = defineStore('log', () => {
     // composables
     const { callApi } = useAPI()
 
+    // i18n
+    const t = (key: string | number) => useNuxtApp().$i18n.t(key)
+
     // appId -> date -> DateLog
     const logs = ref<LogsMap>(new Map())
     // appId -> queryKey -> DateLog[]
@@ -101,17 +104,17 @@ export const useLogStore = defineStore('log', () => {
         error.value = null
         const cached = getLog(appId, date)
         if (cached) {
-            console.log('fetchLog: キャッシュから取得', cached)
+            console.log('fetchLog: fetch from cache', cached)
             return cached // キャッシュがあれば即返す
         }
 
         isLoading.value = true
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show('履歴データを読み込み中...')
+        const loaderId = loaderStore.show(t('history.loading.logs'))
         try {
             // CSRFトークンからユーザーIDは補完されるので、ユーザーIDを指定する必要はない
             const userStore = useUserStore()
-            if (!userStore.user?.id) throw new Error('未ログイン')
+            if (!userStore.user?.id) throw new Error(t('app.error.noLogin'))
 
             // API呼び出し
             const response = await callApi<DateLog>({
@@ -119,16 +122,16 @@ export const useLogStore = defineStore('log', () => {
                 method: 'GET'
             })
             // 該当するログが見つからない場合は null が返る
-            console.log('fetchLog: APIレスポンスから取得', response)
+            console.log('fetchLog: fetch from API response', response)
             if (!response) {
-                error.value = '履歴データが見つかりません'
+                error.value = t('app.error.logsNotFound')
                 return null
             }
             setLog(appId, date, response)
             return response
         } catch (e: unknown) {
             console.error('Failed to fetch log:', e)
-            error.value = e instanceof Error ? e.message : '履歴データ取得エラー'
+            error.value = e instanceof Error ? e.message : t('app.error.logsNotFound')
             return null
         } finally {
             isLoading.value = false
@@ -165,7 +168,7 @@ export const useLogStore = defineStore('log', () => {
         if (isCacheValid) {
             const cached = getLogsList(appId, queryKey)
             if (cached) {
-                console.log('fetchLogs: キャッシュから取得', cached)
+                console.log('fetchLogs: fetch from cache', cached)
                 return cached // キャッシュがあれば即返す
             }
         }
@@ -173,10 +176,10 @@ export const useLogStore = defineStore('log', () => {
         error.value = null
         isLoading.value = true
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show('履歴リストを取得中...', loaderContainerElement ?? null)
+        const loaderId = loaderStore.show(t('history.loading.logs'), loaderContainerElement ?? null)
         try {
             const userStore = useUserStore()
-            if (!userStore.user?.id) throw new Error('未ログイン')
+            if (!userStore.user?.id) throw new Error(t('app.error.noLogin'))
 
             // APIコール
             const endpoint = endpoints.logs.list(appId, {
@@ -189,7 +192,7 @@ export const useLogStore = defineStore('log', () => {
                 endpoint,
                 method: 'GET'
             })
-            console.log('fetchLogs: APIレスポンスから取得', response)
+            console.log('fetchLogs: fetch from API response', response)
             if (response && Array.isArray(response)) {
                 // 個別キャッシュにも反映（レスポンスが空配列の場合もAPI的に「本当にゼロ件」→キャッシュしてOK）
                 for (const log of response) {
@@ -199,13 +202,13 @@ export const useLogStore = defineStore('log', () => {
                 setLastFetchedAt(appId, new Date().toISOString())
                 return response
             }
-            error.value = '履歴リストが取得できません'
+            error.value = t('app.error.logsNotFound')
             // キャッシュを作らず、明示的に該当Keyを削除（既にあれば）
             logsList.value.get(appId)?.delete(queryKey)
             return []
         } catch (e: unknown) {
             console.error('Failed to fetch logs:', e)
-            error.value = e instanceof Error ? e.message : '履歴リスト取得エラー'
+            error.value = e instanceof Error ? e.message : t('app.error.logsNotFound')
             // キャッシュせず、既存キャッシュも削除
             logsList.value.get(appId)?.delete(queryKey)
             return []
@@ -224,7 +227,7 @@ export const useLogStore = defineStore('log', () => {
         isLoading.value = true
         error.value = null
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show('履歴データを保存中...')
+        const loaderId = loaderStore.show(t('history.loading.saving'))
         try {
             // 既存編集はPUT、新規登録はPOST
             const isEdit = Boolean(getLog(log.appId, log.date))
@@ -238,7 +241,7 @@ export const useLogStore = defineStore('log', () => {
                 data: log,
             })
             // ローカル logs も即時同期（返却された内容で上書き）
-            console.log('saveLog: APIレスポンス', saved)
+            console.log('saveLog: returned API response', saved)
             if (saved) {
                 setLog(log.appId, log.date, saved)
                 if (isEdit) {
@@ -259,11 +262,11 @@ export const useLogStore = defineStore('log', () => {
                 statsStore.clearStatsCache(log.appId)
                 return saved
             }
-            error.value = '履歴の保存に失敗しました'
+            error.value = t('app.error.saveFailed')
             throw new Error(error.value)
         } catch (e: unknown) {
             console.error('Failed to save log:', e)
-            error.value = e instanceof Error ? e.message : '履歴の保存に失敗しました'
+            error.value = e instanceof Error ? e.message : t('app.error.saveFailed')
             throw e
         } finally {
             isLoading.value = false
@@ -292,7 +295,7 @@ export const useLogStore = defineStore('log', () => {
                 method: 'POST',
                 data: formData
             })
-            console.log('importLogsFile: APIレスポンス', response)
+            console.log('importLogsFile: returned API response', response)
             if (response?.state === 'success') {
                 // インポート成功時は対象appIdのキャッシュをクリア
                 logs.value.delete(appId) // 全てのキャッシュをクリア
@@ -301,11 +304,11 @@ export const useLogStore = defineStore('log', () => {
                 //await fetchLogs(appId)
                 return true
             }
-            error.value = response?.message ?? '履歴のインポートに失敗しました'
+            error.value = response?.message ?? t('app.error.importFailed')
             throw new Error(error.value)
         } catch (e: unknown) {
             console.error('Failed to import history:', e)
-            error.value = e instanceof Error ? e.message : '履歴のインポートに失敗しました'
+            error.value = e instanceof Error ? e.message : t('app.error.importFailed')
             return false
         } finally {
             isLoading.value = false

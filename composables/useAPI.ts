@@ -204,14 +204,14 @@ export function useAPI() {
             navigateTo(ERROR_URL.Unauthorized, { external: true })
         } else if (response.status === 403) {
             //navigateTo(ERROR_URL.Forbidden, { external: true })
-            throw new Error(`403 Error: ${errorJson?.detail ?? 'Forbidden'}`)
+            throw new Error(`403 Error: ${errorJson?.message ?? 'Forbidden'}`)
         } else if (response.status === 422) {
             // 画面側でバリデーションエラー表示
-            throw new Error(errorJson?.detail ?? 'Validation error occurred')
+            throw new Error(errorJson?.message ?? 'Validation error occurred')
         } else if (response.status >= 500) {
             throw new Error('Internal server error occurred. Please try again later.')
         }
-        throw new Error(errorJson?.detail ?? `API Error: ${response.status} - ${response.statusText}`)
+        throw new Error(errorJson?.message ?? `API Error: ${response.status} - ${response.statusText}`)
     }
 
     // デバッグ用レスポンスJSONダウンロード

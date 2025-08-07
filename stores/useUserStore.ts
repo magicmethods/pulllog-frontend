@@ -63,8 +63,14 @@ export const useUserStore = defineStore('user', () => {
         const dummyLimits = { ...baseDummyLimits, ...planLimitsData } as UserPlanLimits
         setUser(dummyUser, dummyLimits)
     }
+    /**
+     * ユーザーデータをクリア
+     * - ユーザーデータをnullに設定
+     * - プラン制限もnullに設定
+     */
     function clearUser() {
         user.value = null
+        planLimits.value = null
     }
 
     // Methods
@@ -143,6 +149,45 @@ export const useUserStore = defineStore('user', () => {
         }
     }
     /** ログインは useAuth.ts コンポーザブルで実装 */
+    /**
+     * ユーザー削除処理
+     * - バックエンドAPIを呼び出してユーザーを削除
+     * - ユーザーデータをクリア
+     * @throws {Error} - ユーザー削除に失敗した場合
+     */
+    async function deleteUser() {
+        if (!user.value) throw new Error(t('app.error.unknownUser'))
+
+        const global = useGlobalStore()
+        global.setLoading(true)
+        try {
+            // APIリクエスト
+            const res: UserDeleteResponse = await callApi({
+                endpoint: endpoints.user.delete(),
+                method: 'DELETE',
+            })
+
+            if (!res || res.state !== 'success') {
+                throw new Error(res?.message || t('app.error.userDeleteFailed'))
+            }
+
+            // ユーザーデータおよび関連データをクリア
+            clearUser()
+            useCsrfStore().clearToken()
+            const appStore = useAppStore()
+            appStore.clearApp()
+            appStore.clearAppList()
+            useLogStore().clearLogs()
+            useStatsStore().clearStatsCacheAll()
+            // トップページにリダイレクト
+            useRouter().push('/')
+        } catch (err: unknown) {
+            console.error('Failed to delete user:', err)
+            throw new Error(err instanceof Error ? err.message : t('app.error.userDeleteFailed'))
+        } finally {
+            global.setLoading(false)
+        }
+    }
 
     return {
         user,
@@ -153,5 +198,6 @@ export const useUserStore = defineStore('user', () => {
         clearUser,
         updateUser,
         logout,
+        deleteUser,
     }
 })

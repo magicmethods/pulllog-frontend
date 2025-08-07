@@ -32,6 +32,7 @@ const touched = reactive<{ name: boolean; email: boolean; password: boolean; isA
 const isSubmitting = ref<boolean>(false)
 const isMeterVisible = ref<boolean>(false) // パスワード強度インジケータ表示状態
 const showTerms = ref<boolean>(false) // 利用規約モーダル表示状態
+const showPolicy = ref<boolean>(false) // プライバシーポリシーモーダル表示状態
 const isAccepted = ref<boolean>(false) // ユーザー登録が受理されたかどうか
 // Schema for form validation
 const registerSchema = computed(() => z.object({
@@ -44,7 +45,8 @@ const registerSchema = computed(() => z.object({
 // Computed
 const isFormValid = computed(() => registerSchema.value.safeParse(form).success)
 const termSrc = computed(() => `/docs/terms_${currentLocale.value}.md`)
-const docTitle = computed(() => t('app.termsTitle'))
+//const docTitle = computed(() => t('app.termsTitle'))
+const policySrc = computed(() => `/docs/privacy_policy_${currentLocale.value}.md`)
 
 // Methods
 // 強度インジケータ開いた
@@ -150,7 +152,14 @@ watch(
     <CommonDocumentModal
       v-model:visible="showTerms"
       :src="termSrc"
-      :title="docTitle"
+      :title="t('app.termsTitle')"
+      width="80vw"
+      maxWidth="800px"
+    />
+    <CommonDocumentModal
+      v-model:visible="showPolicy"
+      :src="policySrc"
+      :title="t('settingsDrawer.privacyPolicyTitle')"
       width="80vw"
       maxWidth="800px"
     />
@@ -222,14 +231,15 @@ watch(
             {{ errors.password }}
           </Message>
 
-          <div class="flex items-center gap-2 my-1">
+          <div class="flex items-start gap-2 my-1">
             <Checkbox
               v-model="form.isAgreed"
               :binary="true"
               inputId="agree"
+              class="mt-0"
               @change="validateFields(['isAgreed'])"
             />
-            <label for="agree" tabindex="0" class="font-normal text-base text-surface-500 dark:text-gray-400 select-none">
+            <label for="agree" tabindex="0" class="font-normal text-sm text-surface-500 dark:text-gray-400 select-none">
               <span>
                 {{ t('auth.register.agreeTextPrefix') }}
                 <NuxtLink
@@ -238,6 +248,13 @@ watch(
                   :aria-label="t('app.termsLabel')"
                   class="inline-flex flex-nowrap items-center gap-1 font-semibold hover:border-b hover:-mb-[1px] hover:text-primary-500 dark:hover:text-primary-600"
                 >{{ t('app.termsLabel') }}<i class="pi pi-file-check text-sm"></i></NuxtLink>
+                {{ t('auth.register.agreeTextMiddle') }}
+                <NuxtLink
+                  to="#"
+                  @click.prevent="showPolicy = true"
+                  :aria-label="t('settingsDrawer.privacyPolicy')"
+                  class="inline-flex flex-nowrap items-center gap-1 font-semibold hover:border-b hover:-mb-[1px] hover:text-primary-500 dark:hover:text-primary-600"
+                >{{ t('settingsDrawer.privacyPolicy') }}<i class="pi pi-file-check text-sm"></i></NuxtLink>
                 {{ t('auth.register.agreeTextSuffix') }}
               </span>
             </label>

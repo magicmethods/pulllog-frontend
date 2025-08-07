@@ -230,6 +230,12 @@ onBeforeMount(async () => {
         </div>
       </div>
     </div>
+    <div v-else class="flex flex-col items-center gap-4">
+      <div class="loader-inner-container">
+        <span class="loader-spinner h-8 w-8 mb-3"></span>
+        <span class="loader-text text-base">{{ t('app.loggingIn') }}</span>
+      </div>
+    </div>
     <slot />
   </div>
 </template>

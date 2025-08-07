@@ -5,6 +5,7 @@ export default defineI18nLocale(async () => ({
         description: 'PullLog is a tool for managing gacha history and performing statistical analysis.',
         keywords: 'gacha, history management, statistical analysis, PullLog',
         loading: 'Now Loading...',
+        loggingIn: 'Now logging in...',
         back: 'Back',
         backToHome: 'Back to Home',
         scrollToTop: 'Scroll to Top',
@@ -18,6 +19,10 @@ export default defineI18nLocale(async () => ({
             userUpdateFailed: 'Failed to update user profile.',
             saveFailed: 'Failed to save.',
             deleteFailed: 'Failed to delete.',
+            noLogin: 'You are not logged in.',
+            logsNotFound: 'No history data found.',
+            importFailed: 'Failed to import history.',
+            statsNotFound: 'No statistics data found.',
         },
         ad: {
             advertisement: 'Advertisement',
@@ -105,6 +110,7 @@ export default defineI18nLocale(async () => ({
             strongLabel: 'Complex password',
             passwordFooter: 'Password must be at least 8 characters long',
             agreeTextPrefix: 'I agree to the',
+            agreeTextMiddle: 'and',
             agreeTextSuffix: '.',
             submit: 'Register',
             // Error Messages
@@ -160,7 +166,7 @@ export default defineI18nLocale(async () => ({
         nameRequired: 'Please enter your name (display name)',
         nameMaxLength: 'Name must be within 50 characters',
         emailInvalid: 'Please enter a valid email address',
-        termsRequired: 'You must agree to the terms of service',
+        termsRequired: 'You must agree to the terms of service and privacy policy',
         invalidCode: 'Invalid verification code',
         languageRequired: 'Please select a language',
         themeRequired: 'Please select a theme',
@@ -274,6 +280,11 @@ export default defineI18nLocale(async () => ({
         loadingLogData: 'Loading log data for the target date...',
         historyTrend: 'History Trend (Recent)',
         latestHistoryList: 'Latest History List',
+        loading: {
+            logs: 'Loading history data...',
+            saving: 'Saving history data...',
+            deleting: 'Deleting history data...',
+        },
         notice: {
             noLogData: 'No log data available',
             noLogDataDetail: 'No history registered for this date',
@@ -395,6 +406,9 @@ export default defineI18nLocale(async () => ({
                 note: 'note: The breakdown of ranking is only valid for the initial marker definitions in the app settings.',
             },
         },
+        loading: {
+            stats: 'Loading statistics data...',
+        },
     },
     // Settings Page
     settings: {
@@ -416,6 +430,8 @@ export default defineI18nLocale(async () => ({
         homepage: 'Homepage',
         homepagePlaceholder: 'Select Homepage',
         others: 'Other Settings',
+        withdrawal: 'Withdrawal',
+        accountDelete: 'Delete Account',
         cancel: 'Cancel',
         saveChanges: 'Save Changes',
         saving: 'Saving...',
@@ -429,6 +445,14 @@ export default defineI18nLocale(async () => ({
             dragAndDrop: 'Drag and drop files to here to upload.',
             fileSizeLimit: '{size}MB or less',
             fileSizeLimitSuffix: 'file can be uploaded.',
+        },
+        withdrawalModal: {
+            accountDeleteConfirmTitle: 'Account Deletion Confirmation',
+            accountDeleteWarning: 'Deleting your account will permanently remove all data.',
+            accountDeleteIrreversible: 'This action cannot be undone. Are you sure?',
+            confirmDelete: 'Delete',
+            deleting: 'Deleting...',
+            userDeleteFailed: 'Failed to delete user',
         },
         notice: {
             inputErrorTitle: 'Input Error',

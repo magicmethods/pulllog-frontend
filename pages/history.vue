@@ -248,6 +248,7 @@ watch(
 const adConfig: Record<string, AdProps> = {
   // 上部バナー広告
   banner: {
+    /*
     adType: 'carousel',
     adItems: [
       { image: '/sample/ad_2.jpg',  link: 'https://example.com/?ad=2',  alt: '1020x160' },
@@ -258,9 +259,14 @@ const adConfig: Record<string, AdProps> = {
       { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: '728x90' },
     ],
     adWidth: 1020, // カルーセル画像の最大幅を指定
+    */
+    adType: 'slot',
+    adClient: 'ca-pub-8602791446931111',
+    adSlotName: '8956575261',
   },
   // インライン広告
   inline: {
+    /*
     adType: 'image',
     adItems: [
       { image: '/sample/ad_5.jpg',  link: 'https://example.com/?ad=5',  alt: '広告バナー 5 (616x353)' },
@@ -273,6 +279,10 @@ const adConfig: Record<string, AdProps> = {
       { image: '/sample/ad_17.jpg', link: 'https://example.com/?ad=17', alt: '広告バナー 17 (600x338)' },
     ],
     // adHeight: 250,
+    */
+    adType: 'slot',
+    adClient: 'ca-pub-8602791446931111',
+    adSlotName: '5664134061',
   }
 }
 

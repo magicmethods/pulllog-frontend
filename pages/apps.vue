@@ -339,23 +339,29 @@ const tooltipPT = {
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
+        /*
         adItems: [
             { image: '/sample/ad_1.jpg',  link: 'https://example.com', alt: '広告1 (500x220)' },
             { image: '/sample/ad_12.jpg', link: 'https://example.com', alt: '広告12 (1440x550)' },
             { image: '/sample/ad_13.jpg', link: 'https://example.com', alt: '広告13 (1200x675)' },
         ],
-        adType: 'image',// 'slot'
+        adType: 'image',
+        */
+        adType: 'slot',
         adClient: 'ca-pub-8602791446931111',
         adSlotName: '8956575261',
     },
     bottom: {
+        /*
         adItems: [
             { image: '/sample/ad_9.png',  link: 'https://example.com/?ad=9',  alt: 'リーダーボード広告 (728x90)' },
             { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: 'リーダーボード広告 (728x90)' },
             { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: 'リーダーボード広告 (728x90)' },
         ],
-        adType: 'carousel', // 'slot'
+        adType: 'carousel',
         adHeight: 90,// must set carousel height
+        */
+        adType: 'slot',
         adClient: 'ca-pub-8602791446931111',
         adSlotName: '5664134061',
     }

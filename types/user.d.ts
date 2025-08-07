@@ -71,6 +71,8 @@ declare global {
     type PasswordResetResponse = {
         success: boolean
         message?: string
+        blocked?: boolean // trueの場合、パスワードリセットがブロックされた
+        failed_attempts?: number // パスワードリセット失敗の試行回数
     } | null
     /** ユーザー情報更新レスポンス */
     type UserUpdateResponse = {
@@ -78,5 +80,11 @@ declare global {
         message?: string
         user: UserResponse | null
     } | null
+    /** ユーザー削除レスポンス */
+    type UserDeleteResponse = {
+        state: 'success' | 'error'
+        message?: string
+    } | null
+    
 }
 export {}
