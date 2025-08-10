@@ -2,6 +2,8 @@ export default defineI18nLocale(async () => ({
     // Globals
     app: {
         name: 'PullLog',
+        slogan: '抽卡命运，留住它',
+        tagline: '管理您的抽卡历史并分析统计数据',
         description: 'PullLog 是一个用于管理抽卡历史并进行统计分析的工具。',
         keywords: '抽卡, 抽卡管理, 统计分析, PullLog',
         loading: '加载中...',
@@ -704,5 +706,60 @@ export default defineI18nLocale(async () => ({
         nextYear: '下一年',
         prevMonth: '上个月',
         nextMonth: '下个月',
+    },
+    // Landing Page
+    landing: {
+        hero: {
+            getStarted: '立即开始',
+            tryDemo: '尝试演示',
+            alert: '开放测试中',
+        },
+        about: {
+            title: '什么是 PullLog？',
+            description: 'PullLog 是一个用于管理和分析您的抽卡历史的工具。',
+            features: '功能',
+            feature1: '轻松的抽卡历史管理',
+            feature1Desc: '通过我们直观的界面轻松管理您的抽卡和历史记录。',
+            feature2: '详细的统计和分析',
+            feature2Desc: '通过详细的统计和分析工具深入了解您的抽卡表现。',
+            feature3: '用户友好的界面',
+            feature3Desc: '享受一个旨在便于导航和管理的用户友好界面。',
+            feature4: '多平台支持',
+            feature4Desc: '无论是桌面、平板还是智能手机，都可以从任何设备访问 PullLog。',
+            feature5: '免费使用',
+            feature5Desc: '免费享受 PullLog 的所有精彩功能。',
+        },
+        gallery: {
+            title: '一目了然的历史和统计数据',
+            description: '通过我们的画廊探索 PullLog 的功能和界面。',
+            image1Caption: '您的应用管理',
+            image2Caption: '详细的抽卡历史',
+            image3Caption: '全面的统计数据',
+            note: '注意：所示图像仅供参考，可能与实际应用有所不同。',
+        },
+        steps: {
+            title: '如何使用 PullLog',
+            step1: {
+                title: '1. 在抽卡后启动 PullLog',
+                description: '从浏览器登录 PullLog。',
+            },
+            step2: {
+                title: '2. 记录您的抽卡历史',
+                description: '您可以轻松地记录抽卡方式和历史，只需几次点击。',
+            },
+            step3: {
+                title: '3. 历史和统计数据自动更新',
+                description: '汇总的数据和图表会自动生成，您可以随时查看。',
+            },
+        },
+        footer: {
+            contactUs: '联系我们',
+            contactDesc: '如果您对服务有任何疑问、担忧或问题，请通过电子邮件联系 support@pulllog.net，提供您的注册电子邮件地址。',
+            privacyPolicy: '隐私政策',
+            termsOfService: '服务条款',
+            github: 'GitHub',
+            blog: '博客',
+            followUs: '关注我们',
+        },
     },
 }))

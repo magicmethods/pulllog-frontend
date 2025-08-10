@@ -103,9 +103,9 @@ export function useStats() {
      * - レアドロップ率は累積レアドロップ数 / 累積引き当て数 * 100
      * - 複数アプリ対応・期間外の累進値踏襲対応
      * @param apps Array<{ appId: string, logs: DateLog[] }>
-     * @param startDate 集計開始日（YYYY-MM-DD）。未指定なら最小日付。
-     * @param endDate 集計終了日（YYYY-MM-DD）。未指定なら最大日付。
-     * @param unit 粒度。未指定で自動。
+     * @param startDate 集計開始日（YYYY-MM-DD）。未指定なら最小日付
+     * @param endDate 集計終了日（YYYY-MM-DD）。未指定なら「現在日」
+     * @param unit 粒度。未指定で自動
      * @returns CumulativeRareRate 型
      */
     function getMultiCumulativeRareRate(
@@ -117,13 +117,22 @@ export function useStats() {
         // 全ログからグローバルな集計範囲（日付）を決定
         let minDate: string | undefined = startDate
         let maxDate: string | undefined = endDate
+
         const allDates = apps.flatMap(app => app.logs.map(log => log.date))
         const validDates = allDates
             .map(d => DateTime.fromISO(d))
             .filter(dt => dt.isValid)
             .sort((a, b) => a.toMillis() - b.toMillis())
-        if (!minDate && validDates.length > 0) minDate = validDates[0].toFormat('yyyy-MM-dd')
-        if (!maxDate && validDates.length > 0) maxDate = validDates[validDates.length - 1].toFormat('yyyy-MM-dd')
+        
+        // 開始日の指定がなければ最小日付
+        if (!minDate && validDates.length > 0) {
+            minDate = validDates[0].toFormat('yyyy-MM-dd')
+        }
+        // 終了日の指定がなければ「今日」
+        if (!maxDate && validDates.length > 0) {
+            const today = DateTime.now().toFormat('yyyy-MM-dd')
+            maxDate = today// validDates[validDates.length - 1].toFormat('yyyy-MM-dd')
+        }
         if (!minDate || !maxDate) return []
 
         // unit自動判定
@@ -167,9 +176,13 @@ export function useStats() {
             let cumulativeRare = initRare
             const dateMap = new Map(sorted.map(log => [log.date, log]))
 
+            // 終端の上限（週/月の最終区間を切り詰めるために使う）
+            const endBound = DateTime.fromISO(maxDate)
+
             const rate: LineChartData = labels.map(date => {
                 let pulls = 0
                 let rareDrops = 0
+
                 if (resolvedUnit === 'day') {
                     const log = dateMap.get(date)
                     if (log) {
@@ -178,18 +191,18 @@ export function useStats() {
                     }
                 } else if (resolvedUnit === 'week' || resolvedUnit === 'month') {
                     const dt = DateTime.fromISO(date)
-                    let endDt: DateTime
-                    if (resolvedUnit === 'week') {
-                        endDt = dt.plus({ days: 6 })
-                    } else {
-                        endDt = dt.endOf('month')
-                    }
-                    const groupLogs = sorted.filter(
-                        log => {
-                            const logDt = DateTime.fromISO(log.date)
-                            return logDt.isValid && logDt >= dt && logDt <= endDt
-                        }
-                    )
+                    // 週/月の終端候補
+                    const naiveEnd = resolvedUnit === 'week'
+                        ? dt.plus({ days: 6 })
+                        : dt.endOf('month')
+                    // 終了日を上限にカット
+                    const intervalEnd = naiveEnd < endBound ? naiveEnd : endBound
+
+                    const groupLogs = sorted.filter(log => {
+                        const logDt = DateTime.fromISO(log.date)
+                        return logDt.isValid && logDt >= dt && logDt <= intervalEnd
+                    })
+                    
                     pulls = groupLogs.reduce((sum, log) => sum + log.total_pulls, 0)
                     rareDrops = groupLogs.reduce((sum, log) => sum + log.discharge_items, 0)
                 }

@@ -15,6 +15,14 @@ const langOpt = ref()
 const isDarkMode = ref<boolean>(userStore.user?.theme === 'dark')
 const currentLanguage = ref<Language>((userStore.user?.language ?? getLocaleCookie() ?? appConfig.defaultLocale) as Language)
 const storage = ref()
+const showTerms = ref<boolean>(false) // 利用規約モーダル表示状態
+const showPolicy = ref<boolean>(false) // プライバシーポリシーモーダル表示状態
+const showContact = ref<boolean>(false) // お問い合わせモーダル表示状態
+
+// Computed
+const termSrc = computed(() => `/docs/terms_${currentLanguage.value}.md`)
+const policySrc = computed(() => `/docs/privacy_policy_${currentLanguage.value}.md`)
+const contactSrc = computed(() => `/docs/contact_${currentLanguage.value}.md`)
 
 // Methods
 function handleThemeToggle(value: boolean) {
@@ -45,6 +53,7 @@ function applyLocale(lang: Language) {
     if (userStore.user) {
         userStore.user.language = lang
     }
+    langOpt.value?.toggle(false)
 }
 
 onMounted(() => {
@@ -98,9 +107,12 @@ watch(
             <Meta name="keywords" :content="t('app.keywords')" />
             <Meta name="google-adsense-account" :content="appConfig.adsenseAccount" />
         </Head>
-        <header class="flex items-center justify-between p-4 border-b border-surface-400 dark:border-gray-900 bg-transparent shadow-md">
+        <header
+            class="sticky top-0 flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-600 z-50"
+            scrolled="border-b border-surface-500 dark:border-gray-900 bg-transparent"
+        >
             <NuxtLink to="/" class="text-2xl font-bold flex items-center gap-2">
-                <img src="/images/pulllog-icon.svg" alt="PullLog" class="h-8 w-8" />
+                <img src="/images/pulllog-icon.svg" alt="PullLog" class="h-8 w-8 ld ld-swim" />
                 <span class="tracking-tight">{{ t('app.name') }}</span>
             </NuxtLink>
             <nav class="flex m-0 p-0 items-center gap-2">
@@ -131,9 +143,9 @@ watch(
                     class="btn btn-primary mb-0 w-20 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
                     v-blur-on-click
                 />
-                <Popover ref="langOpt">
-                    <div class="flex flex-col items-start">
-                        <ul class="list-none p-0 m-0 flex flex-col">
+                <Popover ref="langOpt" class="min-w-32">
+                    <div class="w-full flex flex-col items-start">
+                        <ul class="list-none w-full p-0 m-0 flex flex-col text-sm">
                             <li v-for="lang in optionStore.languageOptions" :key="lang.value"
                                 @click="applyLocale(lang.value as Language)"
                                 class="flex items-center gap-2 px-2 py-3 hover:bg-emphasis cursor-pointer rounded-border"
@@ -144,16 +156,78 @@ watch(
             </nav>
         </header>
 
-        <main class="flex-1 flex flex-col items-center justify-start p-4 bg-gradient-to-b from-primary-200 dark:from-gray-950 to-white dark:to-gray-800">
+        <main class="flex-1 flex flex-col items-center justify-start p-0 bg-gradient-to-b from-primary-500 to-primary-100 dark:from-primary-600 dark:to-gray-900">
             <slot />
         </main>
 
-        <CommonFooter />
+        <div id="landing-footer" class="h-max w-full bg-primary-50 text-surface-600 dark:bg-gray-900 dark:text-gray-400 text-sm">
+            <div class="mx-auto py-4 flex flex-col justify-center items-center">
+                <ul class="list-none m-0 p-0 flex flex-col sm:flex-row gap-4 mb-2">
+                    <li class="mb-2">
+                        <NuxtLink
+                            @click.prevent="showPolicy = true"
+                            :aria-label="t('settingsDrawer.privacyPolicy')"
+                            class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer"
+                        >{{ t('landing.footer.privacyPolicy') }}</NuxtLink>
+                    </li>
+                    <li class="text-surface-400 select-none">|</li>
+                    <li>
+                        <NuxtLink
+                            @click.prevent="showTerms = true"
+                            :aria-label="t('app.termsLabel')"
+                            class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer"
+                        >{{ t('landing.footer.termsOfService') }}</NuxtLink>
+                    </li>
+                    <template v-if="false">
+                        <li class="text-surface-400 select-none">|</li>
+                        <li>
+                            <NuxtLink to="https://github.com/magicmethods/pulllog" class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400">
+                                {{ t('landing.footer.github') }}
+                            </NuxtLink>
+                        </li>
+                    </template>
+                    <li class="text-surface-400 select-none">|</li>
+                    <li>
+                        <NuxtLink
+                            @click.prevent="showContact = true"
+                            :aria-label="t('landing.footer.contactUs')"
+                            class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer"
+                        >{{ t('landing.footer.contactUs') }}</NuxtLink>
+                    </li>
+                    <template v-if="false">
+                        <li class="text-surface-400 select-none">|</li>
+                        <li>
+                            <NuxtLink to="https://ka2.org/" class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400">
+                                {{ t('landing.footer.blog') }}
+                            </NuxtLink>
+                        </li>
+                    </template>
+                </ul>
+                <p>&copy; {{ new Date().getFullYear() }} {{ t('app.name') }} Project by MAGIC METHODS</p>
+            </div>
+        </div>
+
+        <CommonDocumentModal
+            v-model:visible="showTerms"
+            :src="termSrc"
+            :title="t('app.termsTitle')"
+            width="80vw"
+            maxWidth="800px"
+        />
+        <CommonDocumentModal
+            v-model:visible="showPolicy"
+            :src="policySrc"
+            :title="t('settingsDrawer.privacyPolicyTitle')"
+            width="80vw"
+            maxWidth="800px"
+        />
+        <CommonDocumentModal
+            v-model:visible="showContact"
+            :src="contactSrc"
+            :title="t('landing.footer.contactUs')"
+            width="80vw"
+            maxWidth="800px"
+        />
+
     </div>
 </template>
-
-<style lang="scss" scoped>
-.landing-wrapper {
-    font-family: 'Nunito', 'M PLUS Rounded 1c', sans-serif;
-}
-</style>

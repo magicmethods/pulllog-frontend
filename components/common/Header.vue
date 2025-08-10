@@ -18,6 +18,10 @@ const userStore = useUserStore()
 const { t } = useI18n()
 
 // Refs & Local variables
+const animationClass = computed(() => {
+    const classes = ['beat', 'bounce', 'breath', 'metronome', 'swing', 'spin', 'swim', 'tick', 'jelly', 'jingle', 'wrench' ]
+    return `ld-${classes[Math.floor(Math.random() * classes.length)]}`
+})
 const naviLinks = computed(() => ([
     { name: t('options.homepage.apps'), icon: 'pi pi-crown', symbol: '🎮', prefix: 'symbol', path: '/apps' },
     { name: t('options.homepage.history'), icon: 'pi pi-trophy', symbol: '📝', prefix: 'symbol', path: '/history' },
@@ -57,7 +61,7 @@ const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded tex
     <header class="flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-700 text-white shadow-md">
         <NuxtLink :to="homePage">
             <div class="flex items-center space-x-4">
-                <img src="/images/pulllog-icon.svg" alt="PullLog" class="w-6 h-6 inline-block mr-2 ld ld-swing" />
+                <img src="/images/pulllog-icon.svg" alt="PullLog" :class="['w-6 h-6 inline-block mr-2 ld', animationClass]" />
                 <h1 class="text-xl font-bold">{{ t('app.name') }}</h1>
             </div>
         </NuxtLink>

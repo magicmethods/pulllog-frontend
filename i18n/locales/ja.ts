@@ -4,6 +4,8 @@ export default defineI18nLocale(async () => ({
     // Globals
     app: {
         name: 'PullLog',
+        slogan: '引いた運命、残しておこう',
+        tagline: 'ガチャ履歴を管理・分析する専用アプリ',
         description: 'PullLogは、ガチャの履歴を管理し、統計分析を行うためのツールです',
         keywords: 'ガチャ, 履歴管理, 統計分析, PullLog',
         loading: '読み込み中...',
@@ -703,5 +705,60 @@ export default defineI18nLocale(async () => ({
         nextYear: '翌年へ',
         prevMonth: '前月へ',
         nextMonth: '翌月へ',
+    },
+    // Landing Page
+    landing: {
+        hero: {
+            getStarted: '今すぐ始める',
+            tryDemo: 'デモを試す',
+            alert: 'オープンベータテスト中',
+        },
+        about: {
+            title: 'PullLogとは？',
+            description: 'PullLogは、ガチャ履歴を管理・分析するためのツールです。',
+            features: '主な特徴',
+            feature1: '簡単なガチャ履歴管理',
+            feature1Desc: '直感的なインターフェースでガチャの引き方や履歴を簡単に管理できます。',
+            feature2: '詳細な統計と分析',
+            feature2Desc: '詳細な統計と分析ツールでガチャのパフォーマンスを把握できます。',
+            feature3: 'ユーザーフレンドリーなインターフェース',
+            feature3Desc: '簡単なナビゲーションと管理のために設計されたユーザーフレンドリーなインターフェースをお楽しみください。',
+            feature4: 'マルチプラットフォームサポート',
+            feature4Desc: 'デスクトップ、タブレット、スマートフォンなど、任意のデバイスからPullLogにアクセスできます。',
+            feature5: '無料で使用',
+            feature5Desc: 'PullLogの優れた機能を無料でお楽しみください。',
+        },
+        gallery: {
+            title: '一目でわかる履歴と統計',
+            description: 'ギャラリーを通じてPullLogの機能とインターフェースを覗いてみてください。',
+            image1Caption: 'アプリケーション管理',
+            image2Caption: '詳細なガチャ履歴',
+            image3Caption: '包括的な統計',
+            note: '注: 表示されている画像は紹介用であり、実際のアプリケーションとは異なる場合があります。',
+        },
+        steps: {
+            title: 'PullLogの使い方',
+            step1: {
+                title: '1. ガチャを引いた後にPullLogを起動',
+                description: 'ガチャを引いた後にPullLogにログインするだけで、履歴の登録が可能です。',
+            },
+            step2: {
+                title: '2. ガチャ履歴を記録',
+                description: 'ガチャの引き方や履歴を簡単に記録できます。',
+            },
+            step3: {
+                title: '3. 履歴と統計に自動反映',
+                description: '集計データとグラフが自動生成され、いつでも確認できます。',
+            },
+        },
+        footer: {
+            contactUs: 'お問い合わせ',
+            contactDesc: 'サービスに関するご質問や懸念がある場合は、support@pulllog.netまでご連絡ください。登録メールアドレスを必ずご記入ください。',
+            privacyPolicy: 'プライバシーポリシー',
+            termsOfService: '利用規約',
+            github: 'GitHub',
+            blog: 'ブログ',
+            followUs: 'フォローする',
+        },
     },
 }))

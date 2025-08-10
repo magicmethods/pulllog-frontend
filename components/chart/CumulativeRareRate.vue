@@ -187,7 +187,7 @@ const chartOptions = computed(() => ({
             </h3>
         </template>
         <template #content>
-            <div id="monthlyExpenseStackChart" class="relative h-[20rem] w-full">
+            <div id="cumulativeRareRateChart" class="relative h-[20rem] w-full">
                 <CommonChart
                     type="line"
                     :data="chartData"

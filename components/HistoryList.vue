@@ -108,7 +108,7 @@ async function fetchLogs() {
         // タグマップを作成
         createTagsMap(data)
     }
-    //console.log('HistoryList::fetchLogs::data:', data, tagsMap.value)
+    //console.log('HistoryList@fetchLogs:', fetchOptions.value, data, tagsMap.value)
     logs.value = data ? [...data] : []
 }
 function resizeHandler() {
@@ -219,7 +219,7 @@ const scrollPanelPT = {
                                 </template>
                             </td>
                             <td v-if="showColumn('free_text')" class="hidden md:table-cell">
-                                <ScrollPanel v-if="log.free_text.trim() !== ''" style="width: 100%; height: 2rem;" :pt="scrollPanelPT">
+                                <ScrollPanel v-if="log.free_text && log.free_text.trim() !== ''" style="width: 100%; height: 2rem;" :pt="scrollPanelPT">
                                     <span class="select-text" @click="handleSelectionCopy">
                                         {{ log.free_text }}
                                     </span>

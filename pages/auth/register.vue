@@ -45,7 +45,6 @@ const registerSchema = computed(() => z.object({
 // Computed
 const isFormValid = computed(() => registerSchema.value.safeParse(form).success)
 const termSrc = computed(() => `/docs/terms_${currentLocale.value}.md`)
-//const docTitle = computed(() => t('app.termsTitle'))
 const policySrc = computed(() => `/docs/privacy_policy_${currentLocale.value}.md`)
 
 // Methods
@@ -148,7 +147,6 @@ watch(
     <Head>
       <Title>{{ `${t('auth.register.submit')} | ${t('app.name')}` }}</Title>
     </Head>
-    <!-- TermsModal v-model:visible="showTerms" /-->
     <CommonDocumentModal
       v-model:visible="showTerms"
       :src="termSrc"
@@ -243,17 +241,15 @@ watch(
               <span>
                 {{ t('auth.register.agreeTextPrefix') }}
                 <NuxtLink
-                  to="#"
                   @click.prevent="showTerms = true"
                   :aria-label="t('app.termsLabel')"
-                  class="inline-flex flex-nowrap items-center gap-1 font-semibold hover:border-b hover:-mb-[1px] hover:text-primary-500 dark:hover:text-primary-600"
+                  class="inline-flex flex-nowrap items-center gap-1 font-semibold hover:border-b hover:-mb-[1px] hover:text-primary-500 dark:hover:text-primary-600 cursor-pointer"
                 >{{ t('app.termsLabel') }}<i class="pi pi-file-check text-sm"></i></NuxtLink>
                 {{ t('auth.register.agreeTextMiddle') }}
                 <NuxtLink
-                  to="#"
                   @click.prevent="showPolicy = true"
                   :aria-label="t('settingsDrawer.privacyPolicy')"
-                  class="inline-flex flex-nowrap items-center gap-1 font-semibold hover:border-b hover:-mb-[1px] hover:text-primary-500 dark:hover:text-primary-600"
+                  class="inline-flex flex-nowrap items-center gap-1 font-semibold hover:border-b hover:-mb-[1px] hover:text-primary-500 dark:hover:text-primary-600 cursor-pointer"
                 >{{ t('settingsDrawer.privacyPolicy') }}<i class="pi pi-file-check text-sm"></i></NuxtLink>
                 {{ t('auth.register.agreeTextSuffix') }}
               </span>

@@ -2,6 +2,8 @@ export default defineI18nLocale(async () => ({
     // Globals
     app: {
         name: 'PullLog',
+        slogan: 'Drawn Fate, Let\'s Keep It',
+        tagline: 'Manage Your Gacha History and Analyze Statistics',
         description: 'PullLog is a tool for managing gacha history and performing statistical analysis.',
         keywords: 'gacha, history management, statistical analysis, PullLog',
         loading: 'Now Loading...',
@@ -704,5 +706,60 @@ export default defineI18nLocale(async () => ({
         nextYear: 'Next Year',
         prevMonth: 'Previous Month',
         nextMonth: 'Next Month',
+    },
+    // Landing Page
+    landing: {
+        hero: {
+            getStarted: 'Get Started Now',
+            tryDemo: 'Try Demo',
+            alert: 'Open Beta Testing Now',
+        },
+        about: {
+            title: 'What is PullLog?',
+            description: 'PullLog is a tool for managing and analyzing your gacha history.',
+            features: 'Features',
+            feature1: 'Easy Gacha History Management',
+            feature1Desc: 'Effortlessly manage your gacha pulls and history with our intuitive interface.',
+            feature2: 'Detailed Statistics and Analysis',
+            feature2Desc: 'Gain insights into your gacha performance with detailed statistics and analysis tools.',
+            feature3: 'User-Friendly Interface',
+            feature3Desc: 'Enjoy a user-friendly interface designed for easy navigation and management.',
+            feature4: 'Multi-Platform Support',
+            feature4Desc: 'Access PullLog from any device, whether it’s a desktop, tablet, or smartphone.',
+            feature5: 'Free to Use',
+            feature5Desc: 'Enjoy PullLog\'s great features for free.',
+        },
+        gallery: {
+            title: 'History and statistics at a glance',
+            description: 'Explore the features and interface of PullLog through our gallery.',
+            image1Caption: 'Your Application Management',
+            image2Caption: 'Detailed Pull History',
+            image3Caption: 'Comprehensive Statistics',
+            note: 'Note: The images shown are for illustrative purposes and may differ from the actual application.',
+        },
+        steps: {
+            title: 'How to Use PullLog',
+            step1: {
+                title: '1. Launch PullLog after drawing a gacha',
+                description: 'Log in to PullLog from your browser.',
+            },
+            step2: {
+                title: '2. Record Your Gacha History',
+                description: 'You can easily record how to draw gacha and your history with just a few clicks.',
+            },
+            step3: {
+                title: '3. Automatically Reflect in History & Statistics',
+                description: 'Aggregated data and graphs are automatically generated and can be viewed at any time.',
+            },
+        },
+        footer: {
+            contactUs: 'Contact Us',
+            contactDesc: 'If you have any questions, concerns, or issues regarding the service, please contact support@pulllog.net and provide your registered email address.',
+            privacyPolicy: 'Privacy Policy',
+            termsOfService: 'Terms of Service',
+            github: 'GitHub',
+            blog: 'Blog',
+            followUs: 'Follow Us',
+        },
     },
 }))
