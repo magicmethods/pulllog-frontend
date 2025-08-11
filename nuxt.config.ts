@@ -56,6 +56,7 @@ export default defineNuxtConfig({
         apiBaseURL: process.env.API_BASE_URL,
         apiProxy: process.env.API_PROXY || '/api',
         adsenseAccount: process.env.GOOGLE_ADSENSE_ACCOUNT,
+        gaId: process.env.GA_ID,
         isDebug: process.env.IS_DEBUG === 'true',
         mockMode: process.env.MOCK_MODE === 'true'
     }

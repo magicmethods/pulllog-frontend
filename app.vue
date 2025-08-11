@@ -7,5 +7,6 @@
 <template>
   <NuxtLayout>
     <NuxtPage />
+    <CookieConsentManager />
   </NuxtLayout>
 </template>
