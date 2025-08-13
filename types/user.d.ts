@@ -85,6 +85,15 @@ declare global {
         state: 'success' | 'error'
         message?: string
     } | null
-    
+    /** OAuth 認証レスポンス */
+    type ExchangeResponse = {
+        state: 'success' | 'error' | 'warn'
+        message?: string | null
+        user?: UserResponse
+        csrfToken?: string
+        rememberToken?: string | null
+        rememberTokenExpires?: string | null
+    }
+
 }
 export {}

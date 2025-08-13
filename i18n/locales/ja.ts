@@ -91,6 +91,8 @@ export default defineI18nLocale(async () => ({
             or: 'または',
             hasAccount: 'すでにアカウントをお持ちの方は',
             hasAccountSuffix: 'してください',
+            signingIn: 'ログイン中...',
+            backToLogin: 'ログイン画面に戻る',
             // Error messages
             invalidResponse: 'ログインレスポンスが不正です',
             accountNotAvailable: 'このアカウントは使用できません',
@@ -712,6 +714,7 @@ export default defineI18nLocale(async () => ({
             getStarted: '今すぐ始める',
             tryDemo: 'デモを試す',
             alert: 'オープンベータテスト中',
+            cheering: 'あなたのガチャライフに幸あれ！',
         },
         about: {
             title: 'PullLogとは？',
@@ -750,6 +753,15 @@ export default defineI18nLocale(async () => ({
                 title: '3. 履歴と統計に自動反映',
                 description: '集計データとグラフが自動生成され、いつでも確認できます。',
             },
+        },
+        statistics: {
+            title: 'どんな統計分析ができる？',
+            description: 'PullLogは、ガチャ履歴と支出に関する詳細な統計情報を提供し、パフォーマンスや傾向を分析できるようにします。',
+            totalPulls: '総引き数',
+            totalExpense: '総支出',
+            averageRareRate: '平均レアリティ',
+            rareDropCount: 'レアドロップ数',
+            rareDropRate: 'レアドロップ率',
         },
         footer: {
             contactUs: 'お問い合わせ',

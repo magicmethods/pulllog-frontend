@@ -12,7 +12,7 @@ export default defineEventHandler(async (event) => {
 
     if (!appId || !date) {
         event.node.res.statusCode = 400
-        return { error: 'appIdとdateが必要です' }
+        return { error: 'appId and date are required.' }
     }
 
     // バックエンド用URL組み立て
@@ -22,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey)
     if (!headers) {
         event.node.res.statusCode = 403
-        return { error: 'パラメータに不備があります' }
+        return { error: 'Invalid parameters.' }
     }
 
     // ボディ取得

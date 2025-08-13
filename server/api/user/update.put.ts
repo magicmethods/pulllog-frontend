@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey)
     if (!headers) {
         event.node.res.statusCode = 403
-        return { error: 'パラメータに不備があります' }
+        return { error: 'Invalid parameters.' }
     }
     if ('content-length' in headers) {
         // biome-ignore lint:/performance/noDelete
@@ -29,7 +29,7 @@ export default defineEventHandler(async (event) => {
         // アバターファイルが存在する場合、先にアップロードを処理
         if (!(avatarFile instanceof File)) {
             event.node.res.statusCode = 400
-            return { error: 'アバターはファイル形式が不正です' }
+            return { error: 'Invalid avatar file format.' }
         }
         const newFormData = new FormData()
         const blob = new Blob([avatarFile], { type: (avatarFile as File).type })
@@ -42,7 +42,7 @@ export default defineEventHandler(async (event) => {
         const response = await proxyFetchAndReturn(event, avatarUrl, headers, 'POST', newFormData)
         if (!response || response.state !== 'success' || !response.user) {
             event.node.res.statusCode = 500
-            return { error: 'アバターのアップロードに失敗しました' }
+            return { error: 'Failed to upload avatar.' }
         }
         formData.append('avatarUrl', response.user.avatarUrl)
         formData.delete('avatar') // アップロード後は元のファイルを削除

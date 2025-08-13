@@ -6,21 +6,20 @@ export default defineEventHandler(async (event) => {
     const apiBaseURL = config.apiBaseURL
     const apiKey = config.secretApiKey
 
-    // パスワード再設定時はCSRFトークン不要
+    // /auth 配下は CSRF 不要
     const headers = buildProxyHeaders(event, apiKey, [], false)
     if (!headers) {
         event.node.res.statusCode = 500
         return { error: 'An unexpected error has occurred.' }
     }
-    // body取得
+
     const body = await readBody(event)
 
-    // fetch&レスポンス返却
     return await proxyFetchAndReturn(
         event,
-        `${apiBaseURL}/auth/password`,
+        `${apiBaseURL}/auth/google/exchange`,
         headers,
-        'PUT',
+        'POST',
         body
     )
 })

@@ -31,7 +31,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey)
     if (!headers) {
         event.node.res.statusCode = 403
-        return { error: 'パラメータに不備があります' }
+        return { error: 'Invalid parameters.' }
     }
 
     // 汎用APIプロキシを通過する野良リクエストはログに記録する

@@ -43,7 +43,7 @@ const adConfig: Record<string, AdProps> = {
         <h1 class="text-white font-bold text-3xl text-center">{{ t('app.slogan') }}</h1>
         <h3 class="text-white font-semibold text-xl text-center">{{ t('app.tagline') }}</h3>
         <div class="flex gap-4">
-          <NuxtLink to="/auth/register" class="btn btn-primary mb-0 w-32 hover:bg-primary-600/60 dark:hover:bg-primary-500/50">
+          <NuxtLink to="/auth/login" class="btn btn-primary mb-0 w-32 hover:bg-primary-600/60 dark:hover:bg-primary-500/50">
             {{ t('landing.hero.getStarted') }}
           </NuxtLink>
           <NuxtLink v-if="false" to="/demo" class="btn btn-secondary mb-0 w-32 hover:bg-secondary-600/60 dark:hover:bg-secondary-500/50">
@@ -94,6 +94,7 @@ const adConfig: Record<string, AdProps> = {
         </div>
       </div>
     </section>
+
     <section id="gallery" class="w-full mb-4">
       <div class="flex flex-col items-center justify-center gap-4">
         <h2 class="text-primary-800 dark:text-primary-300 font-bold text-2xl text-center">
@@ -109,6 +110,7 @@ const adConfig: Record<string, AdProps> = {
         <p class="text-primary-800 dark:text-primary-400 text-center mt-4">{{ t('landing.gallery.note') }}</p>
       </div>
     </section>
+
     <section id="steps" class="w-full mb-4">
       <div class="flex flex-col items-center justify-center gap-4">
         <h2 class="text-primary-800 dark:text-primary-300 font-bold text-2xl text-center">
@@ -131,6 +133,7 @@ const adConfig: Record<string, AdProps> = {
         </ul>
       </div>
     </section>
+
     <section v-if="false" id="faq" class="w-full mb-4">
       <div class="flex flex-col items-center justify-center gap-4">
         <h2 class="text-primary-800 font-bold text-2xl text-center">
@@ -146,8 +149,21 @@ const adConfig: Record<string, AdProps> = {
       </div>
     </section>
 
+    <section id="statistics" class="w-full mb-4">
+      <div class="flex flex-col items-center justify-center gap-4">
+        <h2 class="text-primary-800 dark:text-primary-300 font-bold text-2xl text-center">
+          <img src="/images/pulllog-icon.svg" alt="Pulllog Icon" class="w-6 h-6 inline-block mr-2 ld ld-jump" />
+          {{ t('landing.statistics.title') }}
+        </h2>
+        <p class="text-primary-800 dark:text-primary-300 text-center">{{ t('landing.statistics.description') }}</p>
+      </div>
+    </section>
+
     <div class="mt-auto pb-2 w-full min-h-max">
-      <NuxtLink to="/auth/register" class="btn btn-primary mb-0 w-32 hover:bg-primary-600/60 dark:hover:bg-primary-500/50">
+      <h3 class="text-amber-600 dark:text-yellow-500 font-bold text-3xl text-center mb-6">
+        {{ t('landing.hero.cheering') }}
+      </h3>
+      <NuxtLink to="/auth/login" class="btn btn-primary mb-0 w-32 hover:bg-primary-600/60 dark:hover:bg-primary-500/50">
         {{ t('landing.hero.getStarted') }}
       </NuxtLink>
     </div>

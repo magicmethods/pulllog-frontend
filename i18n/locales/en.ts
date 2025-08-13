@@ -89,6 +89,8 @@ export default defineI18nLocale(async () => ({
             or: 'or',
             hasAccount: 'Already have an account?',
             hasAccountSuffix: 'now.',
+            signingIn: 'Signing you in…',
+            backToLogin: 'Back to Login',
             // Error Messages
             invalidResponse: 'Invalid login response',
             accountNotAvailable: 'This account is not available',
@@ -713,6 +715,7 @@ export default defineI18nLocale(async () => ({
             getStarted: 'Get Started Now',
             tryDemo: 'Try Demo',
             alert: 'Open Beta Testing Now',
+            cheering: 'May good fortune bring you a fun gacha life!',
         },
         about: {
             title: 'What is PullLog?',
@@ -751,6 +754,15 @@ export default defineI18nLocale(async () => ({
                 title: '3. Automatically Reflect in History & Statistics',
                 description: 'Aggregated data and graphs are automatically generated and can be viewed at any time.',
             },
+        },
+        statistics: {
+            title: 'What statistics are there?',
+            description: 'PullLog provides detailed statistics on your gacha history and spending, allowing you to analyze your performance and trends.',
+            totalPulls: 'Total Pulls',
+            totalExpense: 'Total Expense',
+            averageRareRate: 'Average Rare Rate',
+            rareDropCount: 'Rare Drop Count',
+            rareDropRate: 'Rare Drop Rate',
         },
         footer: {
             contactUs: 'Contact Us',

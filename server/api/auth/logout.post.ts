@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey, [], true)
     if (!headers) {
         event.node.res.statusCode = 500
-        return { error: '予期せぬエラーが発生しました' }
+        return { error: 'An unexpected error has occurred.' }
     }
     // 通常ログアウトはbody不要ですが、API側仕様に合わせて取得
     const body = await readBody(event)

@@ -1,3 +1,5 @@
+import { CheckboxStyle } from "primevue";
+
 export default defineI18nLocale(async () => ({
     // Globals
     app: {
@@ -89,6 +91,8 @@ export default defineI18nLocale(async () => ({
             or: '或',
             hasAccount: '已有账号？',
             hasAccountSuffix: '请立即登录。',
+            signingIn: '登录中...',
+            backToLogin: '返回登录',
             // Error Messages
             invalidResponse: '登录响应无效',
             accountNotAvailable: '此账号无法使用',
@@ -713,6 +717,7 @@ export default defineI18nLocale(async () => ({
             getStarted: '立即开始',
             tryDemo: '尝试演示',
             alert: '开放测试中',
+            cheering: '愿好运带给您有趣的抽卡生活！',
         },
         about: {
             title: '什么是 PullLog？',
@@ -751,6 +756,15 @@ export default defineI18nLocale(async () => ({
                 title: '3. 历史和统计数据自动更新',
                 description: '汇总的数据和图表会自动生成，您可以随时查看。',
             },
+        },
+        statistics: {
+            title: '有哪些统计数据？',
+            description: 'PullLog提供有关您的抽卡历史和支出的详细统计信息，使您能够分析性能和趋势。',
+            totalPulls: '总抽卡次数',
+            totalExpense: '总支出',
+            averageRareRate: '平均稀有度',
+            rareDropCount: '稀有掉落次数',
+            rareDropRate: '稀有掉落率',
         },
         footer: {
             contactUs: '联系我们',

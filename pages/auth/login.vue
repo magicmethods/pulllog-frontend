@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { useUserStore } from '~/stores/useUserStore'
 import { useI18n } from 'vue-i18n'
 import { useAuth }  from '~/composables/useAuth'
+import { useGoogleAuth } from '~/composables/useGoogleAuth'
 
 definePageMeta({
     layout: 'auth'
@@ -12,6 +13,7 @@ definePageMeta({
 const userStore = useUserStore()
 const { login, autoLogin } = useAuth()
 const { t } = useI18n()
+const { start: startGoogle } = useGoogleAuth()
 
 // Refs & Local variables
 const form = reactive({
@@ -27,7 +29,7 @@ const touched = reactive<{ email: boolean, password: boolean }>({
 })
 const isSubmitting = ref<boolean>(false)
 const externalLogin = [
-  { service: 'google', label: t('auth.login.google'), icon: 'pi pi-google', enabled: false },
+  { service: 'google', label: t('auth.login.google'), icon: 'pi pi-google', enabled: true },
   { service: 'apple', label: t('auth.login.apple'), icon: 'pi pi-apple', enabled: false },
   { service: 'microsoft', label: t('auth.login.microsoft'), icon: 'pi pi-windows', enabled: false },
   { service: 'twitter', label: t('auth.login.twitter'), icon: 'pi pi-twitter', enabled: false }, // Xは非推奨
@@ -105,7 +107,16 @@ async function handleLogin() {
 }
 
 async function handleOauthLogin(service: string) {
-  console.log(`OAuth login with ${service} initiated for email: ${form.email}`)
+  if (service === 'google') {
+    // Google OAuthの開始
+    await startGoogle({
+      redirectUri: `${window.location.origin}/auth/callback`,
+      remember: form.remember,
+    })
+    return
+  }
+  // 他サービスは今後追加
+  console.log(`OAuth login with ${service} is not enabled yet.`)
 }
 
 function handleBack() {

@@ -11,7 +11,7 @@ export default defineEventHandler(async (event) => {
 
     if (!appId) {
         event.node.res.statusCode = 400
-        return { error: 'パラメータが不足しています' }
+        return { error: 'Missing parameters.' }
     }
 
     // バックエンド用URL組み立て
@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey)
     if (!headers) {
         event.node.res.statusCode = 403
-        return { error: 'パラメータに不備があります' }
+        return { error: 'Invalid parameters.' }
     }
     if ('content-length' in headers) {
         // biome-ignore lint:/performance/noDelete

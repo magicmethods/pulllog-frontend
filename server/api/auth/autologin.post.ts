@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey, [], false)
     if (!headers) {
         event.node.res.statusCode = 500
-        return { error: '予期せぬエラーが発生しました' }
+        return { error: 'An unexpected error has occurred.' }
     }
     // body取得
     //const body = await readBody(event)

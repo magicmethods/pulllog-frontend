@@ -10,7 +10,7 @@ export default defineEventHandler(async (event) => {
     const appId = event.context.params?.appId
     if (!appId) {
         event.node.res.statusCode = 400
-        return { error: 'パラメータが不足しています' }
+        return { error: 'Missing parameters.' }
     }
 
     // クエリ付きURL生成
@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey)
     if (!headers) {
         event.node.res.statusCode = 403
-        return { error: 'パラメータに不備があります' }
+        return { error: 'Invalid parameters.' }
     }
 
     // fetch&レスポンス返却
