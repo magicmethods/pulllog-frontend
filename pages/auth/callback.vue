@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { usePkce } from '~/composables/usePkce'
-import { useAuth } from '~/composables/useAuth'
+//import { useAuth } from '~/composables/useAuth'
 import { useAPI } from '~/composables/useAPI'
 import { useUserStore } from '~/stores/useUserStore'
 import { useCsrfStore } from '~/stores/useCsrfStore'
@@ -16,7 +16,7 @@ const route = useRoute()
 const router = useRouter()
 const { popVerifier, popState } = usePkce()
 const { t } = useI18n()
-const { autoLogin } = useAuth()
+//const { autoLogin } = useAuth()
 const { callApi } = useAPI()
 const userStore = useUserStore()
 const csrfStore = useCsrfStore()
@@ -66,8 +66,8 @@ onMounted(async () => {
                 redirect_uri: `${window.location.origin}/auth/callback`,
                 remember,
             },
-            // /auth 配下は CSRF 不要だが、callApi は自動で x-csrf-token を付けます。
-            // APIプロキシ側で mustCsrfToken=false にしているので問題ありません。
+            // /auth 配下は CSRF 不要だが、callApi は自動で x-csrf-token を付ける
+            // APIプロキシ側で mustCsrfToken=false にしているので問題はない
             timeout: 15,
             retries: 0,
         })
@@ -77,7 +77,7 @@ onMounted(async () => {
         }
 
         // サーバー側でセッション確立済み → 既存の autoLogin と同じ処理をここで実施
-        //await autoLogin()
+        // await autoLogin() → リメンバートークン未設定時にエラーになるためNG
         userStore.setUser(toUser(res.user), toUserPlanLimits(res.user))
 
         if (res.csrfToken) {
@@ -91,7 +91,6 @@ onMounted(async () => {
         }
 
         globalStore.setInitialized(true)
-        // await router.replace({ path: '/apps' })
         navigateTo({ path: userStore.user?.homePage ?? '/apps' })
     } catch (e) {
         // サーバーからのエラー応答メッセージを出す
@@ -102,7 +101,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex items-center justify-center min-h-[50vh]">
+  <div class="flex items-center justify-center py-4">
     <div v-if="!error" class="loader-inner-container">
       <span class="loader-spinner h-8 w-8 mb-3"></span>
       <span class="loader-text text-base">{{ t('auth.login.signingIn') }}</span>
