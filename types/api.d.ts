@@ -19,6 +19,7 @@ declare global {
         timeout?: number // 秒単位, デフォルト10
         extraHeaders?: Record<string, string>
         requestInit?: RequestInit
+        onAuthError?: 'redirect' | 'throw' // 認証エラー時の動作
     }
     /** 削除レスポンス（汎用） */
     type DeleteResponse = {

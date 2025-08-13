@@ -5,3 +5,14 @@ export const ERROR_URL = {
     NotFound: '/error/404',
     InternalServerError: '/error/500',
 }
+
+export class ApiError extends Error {
+    status: number
+    data?: unknown
+    constructor(message: string, status: number, data?: unknown) {
+        super(message)
+        this.name = 'ApiError'
+        this.status = status
+        this.data = data
+    }
+}

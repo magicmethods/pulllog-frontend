@@ -1,37 +1,42 @@
 import { useCsrfStore } from '~/stores/useCsrfStore'
-import { ERROR_URL } from '~/utils/error'
-
-const OK_RESPONSE_CODES = new Set([
-    200, 201, 202, 203, 204, 205, 206, 207, 208, 226,
-])
+import { ERROR_URL, ApiError } from '~/utils/error'
 
 const apiCache = new Map<string, { timestamp: number; data: unknown }>()
 
 export function useAPI() {
     const appConfig = useConfig()
     const apiProxy = appConfig.apiProxy ?? '/api'
-    const apiBaseURL = appConfig.apiBaseURL ?? ''
+    //const apiBaseURL = appConfig.apiBaseURL ?? ''
     const mockMode = appConfig.mockMode ?? false
     const csrfStore = useCsrfStore()
 
     // ユーティリティ
     function createQueryParams(params: RequestParams): string {
-        const searchParams = new URLSearchParams()
+        const sp = new URLSearchParams()
         for (const key in params) {
-            const value = params[key]
-            if (Array.isArray(value)) {
-                for (const v of value) searchParams.append(key, String(v))
+            const v = params[key]
+            if (v === undefined || v === null) continue
+            if (Array.isArray(v)) {
+                for (const x of v) sp.append(key, String(x))
             } else {
-                searchParams.append(key, String(value))
+                sp.append(key, String(v))
             }
         }
-        return searchParams.toString()
+        return sp.toString()
     }
 
     // キャッシュキー生成
+    function stableStringify(obj: Record<string, unknown>): string {
+        const sorted = Object.keys(obj).sort().reduce((acc, k) => {
+            // biome-ignore lint:/suspicious/noExplicitAny
+            (acc as any)[k] = (obj as any)[k]
+            return acc
+        }, {} as Record<string, unknown>)
+        return JSON.stringify(sorted)
+    }
     function generateCacheKey(options: CallApiOptions): string {
         const { endpoint, method, params } = options
-        return `${method}:${endpoint}:${params ? JSON.stringify(params) : ''}`
+        return `${method}:${endpoint}:${params ? stableStringify(params) : ''}`
     }
 
     // タイムアウト付きfetch
@@ -39,11 +44,7 @@ export function useAPI() {
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), timeoutSec * 1000)
         try {
-            const response = await fetch(url, { ...options, signal: controller.signal })
-            return response
-        } catch (error) {
-            clearTimeout(timeoutId)
-            throw error
+            return await fetch(url, { ...options, signal: controller.signal })
         } finally {
             clearTimeout(timeoutId)
         }
@@ -63,6 +64,7 @@ export function useAPI() {
             timeout = 10,
             extraHeaders = {},
             requestInit = {},
+            onAuthError = 'redirect',
         } = options
 
         const cacheKey = generateCacheKey(options)
@@ -93,7 +95,8 @@ export function useAPI() {
                 : apiProxy.replace(/\/$/, '') + (endpoint.startsWith('/') ? endpoint : `/${endpoint}`)
         }
         if (method === 'GET' && params) {
-            url += `?${createQueryParams(params)}`
+            const qs = createQueryParams(params)
+            if (qs) url += `?${qs}`
         }
 
         // リクエストヘッダ
@@ -115,25 +118,37 @@ export function useAPI() {
         }
         // extraHeadersで上書き（明示的なcontent-typeや他ヘッダも反映）
         Object.assign(headers, normalizedExtraHeaders)
+        // requestInit.headers をマージ（大文字小文字は問わないが一応小文字統一）
+        const initHeadersRaw = requestInit.headers
+        const initHeaders: Record<string, string> = {}
+        if (initHeadersRaw) {
+            // Headers | Record | Array いずれにも対応
+            const h = new Headers(initHeadersRaw as HeadersInit)
+            h.forEach((v, k) => { initHeaders[k.toLowerCase()] = v })
+        }
+        const mergedObj = { ...headers, ...initHeaders }
+        const finalHeaders = new Headers()
+        for (const [k, v] of Object.entries(mergedObj)) {
+            // != null で nullと undefined を除外
+            if (v != null) finalHeaders.set(k, String(v))
+        }
+        if (isFormData) {
+            // FormDataの場合はcontent-typeを削除
+            finalHeaders.delete('content-type')
+        }
+        // 最終ヘッダー（自動付与 → extraHeaders → requestInit.headers の順）
         const requestOptions: RequestInit = {
             method,
-            headers,
             ...requestInit,
-        }
-        if (['POST', 'PUT', 'PATCH'].includes(method)) {
-            if (isFormData) {
-                // FormDataの場合はbodyにそのままセット
-                requestOptions.body = data as FormData
-                // FormDataのときはcontent-typeを明示的に削除（念のため）
-                if (headers['content-type']) {
-                    (requestOptions.headers as Record<string, string | undefined>)['content-type'] = undefined
-                }
-            } else if (data) {
-                requestOptions.body = JSON.stringify(data)
-            }
+            headers: finalHeaders,
         }
 
-        console.log('API Request:', { url, requestOptions, endpoint, overrideURI, currentCSRFToken })
+        if (['POST', 'PUT', 'PATCH'].includes(method)) {
+            // FormDataの場合はbodyにそのままセット
+            requestOptions.body = isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined
+        }
+
+        //console.log('API Request:', { url, requestOptions, endpoint, overrideURI, currentCSRFToken })
 
         // リトライロジック
         for (let attempt = 0; attempt <= retries; attempt++) {
@@ -142,16 +157,14 @@ export function useAPI() {
 
                 if (!response.ok) {
                     // エラーハンドラに委譲
-                    await handleErrorResponse(response)
+                    await handleErrorResponse(response, onAuthError)
                 }
 
-                // 200系/204対応
-                if (!OK_RESPONSE_CODES.has(response.status)) {
-                    throw new Error(`API Error: ${response.status} - ${response.statusText}`)
-                }
+                // 204 No Content は nullを返す
                 if (response.status === 204) {
                     return null
                 }
+
                 const contentType = response.headers.get('content-type')
                 if (!contentType || !contentType.includes('application/json')) {
                     // JSON以外はテキストで返す
@@ -184,34 +197,40 @@ export function useAPI() {
 
     // 5xx/429エラー時のみリトライ
     function shouldRetry(error: unknown): boolean {
-        if (error instanceof Response) {
-            return [429, 500, 502, 503, 504].includes(error.status)
-        }
-        return false
+        const status = error instanceof ApiError ? error.status : undefined
+        return status !== undefined && [429, 500, 502, 503, 504].includes(status)
     }
 
     // 共通エラー処理（認証・認可・バリデーション等）
-    async function handleErrorResponse(response: Response): Promise<never> {
-        let errorJson = null
-        try {
-            errorJson = await response.json()
-        } catch (e) {
-            // JSON以外は無視
-        }
+    async function handleErrorResponse(
+        response: Response,
+        onAuthError: 'redirect' | 'throw'
+    ): Promise<never> {
+        let errorJson: unknown = null
+        try { errorJson = await response.json() } catch (e) { /* ignore */ }
+
+        const msg = (errorJson as { message?: string } | null)?.message
+            ?? `API Error: ${response.status} - ${response.statusText}`
 
         // エラーコードごとの遷移/通知
-        if (response.status === 401) {
-            navigateTo(ERROR_URL.Unauthorized, { external: true })
-        } else if (response.status === 403) {
-            //navigateTo(ERROR_URL.Forbidden, { external: true })
-            throw new Error(`403 Error: ${errorJson?.message ?? 'Forbidden'}`)
-        } else if (response.status === 422) {
-            // 画面側でバリデーションエラー表示
-            throw new Error(errorJson?.message ?? 'Validation error occurred')
-        } else if (response.status >= 500) {
-            throw new Error('Internal server error occurred. Please try again later.')
+        if ((response.status === 401 || response.status === 419)) {
+            if (onAuthError === 'redirect') {
+                navigateTo(ERROR_URL.Unauthorized, { external: true })
+            }
+            // 遷移したとしても上位が finally 等を通るため例外は投げる
+            throw new ApiError(msg, response.status, errorJson)
         }
-        throw new Error(errorJson?.message ?? `API Error: ${response.status} - ${response.statusText}`)
+
+        if (response.status === 403) {
+            throw new ApiError(msg || 'Forbidden', 403, errorJson)
+        }
+        if (response.status === 422) {
+            throw new ApiError(msg || 'Validation error occurred', 422, errorJson)
+        }
+        if (response.status >= 500) {
+            throw new ApiError('Internal server error occurred. Please try again later.', response.status, errorJson)
+        }
+        throw new ApiError(msg, response.status, errorJson)
     }
 
     // デバッグ用レスポンスJSONダウンロード
