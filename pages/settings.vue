@@ -254,9 +254,12 @@ const adConfig: Record<string, AdProps> = {
         ],
         adType: 'carousel',
         */
+        adHeight: 90,
+        /*
         adType: 'slot',
         adClient: 'ca-pub-8602791446931111',
         adSlotName: '8956575261',
+        */
     },
 }
 

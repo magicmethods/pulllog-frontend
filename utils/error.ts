@@ -3,6 +3,7 @@ export const ERROR_URL = {
     Unauthorized: '/error/401',
     Forbidden: '/error/403',
     NotFound: '/error/404',
+    SessionExpired: '/error/419',
     InternalServerError: '/error/500',
 }
 

@@ -6,7 +6,7 @@ export function useAdManager(disableForPlan?: string) {
     const isShownAd = computed(() =>
         disableForPlan
             ? userStore.user?.plan !== disableForPlan
-            : userStore.user?.plan === 'free'
+            : /^(free|demo)$/i.test(userStore.user?.plan || 'free')
     )
     return { isShownAd }
 }

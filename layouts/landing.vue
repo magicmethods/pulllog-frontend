@@ -25,7 +25,7 @@ const policySrc = computed(() => `/docs/privacy_policy_${currentLanguage.value}.
 const contactSrc = computed(() => `/docs/contact_${currentLanguage.value}.md`)
 
 // Methods
-function handleThemeToggle(value: boolean) {
+async function handleThemeToggle(value: boolean) {
     isDarkMode.value = value
     // フロントUI更新
     const html = document.documentElement
@@ -160,7 +160,7 @@ watch(
             <slot />
         </main>
 
-        <div id="landing-footer" class="h-max w-full bg-primary-50 text-surface-600 dark:bg-gray-900 dark:text-gray-400 text-sm">
+        <div id="landing-footer" class="h-max w-full bg-primary-100 text-surface-600 dark:bg-gray-900 dark:text-gray-400 text-sm">
             <div class="mx-auto py-4 flex flex-col justify-center items-center">
                 <ul class="list-none m-0 p-0 flex flex-col sm:flex-row gap-4 mb-2">
                     <li class="mb-2">
@@ -229,5 +229,6 @@ watch(
             maxWidth="800px"
         />
 
+        <CommonScrollToTopButton />
     </div>
 </template>

@@ -12,7 +12,7 @@ export default defineNuxtRouteMiddleware((to, from) => {
         //console.debug('auth.global.ts::', to.path, userStore.isLoggedIn, /^\/dashboard\/?$/.test(to.path))
         if (!userStore.isLoggedIn) {
             // 未認証ならログインページへ
-            return navigateTo('/auth/login')
+            return navigateTo('/auth/login', { replace: true })
         }
         if (/^\/dashboard\/?$/.test(to.path)) {
             // ダッシュボードはユーザーのホームページにリダイレクト
@@ -23,5 +23,5 @@ export default defineNuxtRouteMiddleware((to, from) => {
     }
 
     // 未定義ルート → トップページへ（404系はNuxtのエラーページへ）
-    return navigateTo('/')
+    return navigateTo('/', { replace: true })
 })

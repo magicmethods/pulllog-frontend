@@ -20,6 +20,7 @@ const { fetchWebIcon } = useWebIcon()
 // Refs & Local variables
 const modalVisible = ref<boolean>(false)
 const editTarget = ref<AppData | undefined>(undefined)
+const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
 
 // Computed
 const selectedApp = computed<AppData | null>({
@@ -85,8 +86,22 @@ function openModal(mode: 'edit' | 'add', e: Event) {
     }
     modalVisible.value = true
 }
+function abortDemo() {
+    // デモユーザーの場合は何もしない
+    toast.add({
+        severity: 'warn',
+        summary: t('app.error.demoTitle'),
+        detail: t('app.error.demoDetail'),
+        group: 'notices',
+        life: 3000
+    })
+    // モーダルを閉じる
+    modalVisible.value = false
+    return
+}
 async function handleAppSubmit(app: AppData | undefined) {
     if (!app) return undefined
+    if (isDemoUser.value) return abortDemo()
 
     let loaderId: string | undefined = undefined
     let notices: ToastMessageOptions = {}

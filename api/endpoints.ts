@@ -10,6 +10,8 @@ export const endpoints = {
         verify:   () => `${useConfig().apiProxy}/auth/verify`, // POST
         autoLogin: () => `${useConfig().apiProxy}/auth/autologin`, // POST
         updatePassword: () => `${useConfig().apiProxy}/auth/password`, // PUT
+        demoLogin: () => `${useConfig().apiProxy}/auth/demoLogin`, // POST
+        csrfRefresh: () => `${useConfig().apiProxy}/auth/csrf/refresh`, // POST
         googleExchange: () => `${useConfig().apiProxy}/auth/google/exchange`, // POST
     },
     user: {

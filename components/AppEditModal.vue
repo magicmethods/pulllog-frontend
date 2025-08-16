@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 import { useI18n } from 'vue-i18n'
+import { getCurrencyData } from '~/utils/currency'
 
 // Props/Emits
 const props = defineProps<{
@@ -43,8 +44,8 @@ const schema = computed(() => z.object({
     name: z.string().min(1, t('validation.appNameRequired')).max(maxAppNameLength.value, t('validation.appNameLengthExceeded', { maxLength: maxAppNameLength.value })),
     url: z.string().url(t('validation.invalidURL')).optional().or(z.literal('')).nullable(),
     description: z.string().max(maxDescLength.value, t('validation.textLengthExceeded', { maxLength: maxDescLength.value })).optional().or(z.literal('')).nullable(),
-    currency_unit: z.string().optional().or(z.literal('')).nullable(),
-    date_update_time: z.string().regex(timeRegex, t('invalidTime')).optional().or(z.literal('')).nullable(),
+    currency_unit: z.string().max(8, t('validation.textLengthExceeded', { maxLength: 8 })).optional().or(z.literal('')).nullable(),
+    date_update_time: z.string().regex(timeRegex, t('validation.invalidTime')).optional().or(z.literal('')).nullable(),
     //raw_date_update_time: z.any().optional(), // 時刻の入力値は内部で処理されるため検証は不要
     sync_update_time: z.boolean().optional(),
     pity_system: z.boolean().optional(),
@@ -62,6 +63,10 @@ const displayMode = computed(() => isEditMode.value ? t('modal.appEdit.edit') : 
 const isValidAll = computed(() => {
     // アプリ名が空でなく、全フィールドのバリデーションが正常かどうかをチェック
     return errors.value === null && formData.value?.name !== ''
+})
+const exampleAppName = computed(() => {
+    const exampleApps = optionStore.exampleApps
+    return `${t('modal.appEdit.appNamePlaceholder')}: ${exampleApps[Math.floor(Math.random() * exampleApps.length)]}`
 })
 const currencyOptions = computed(() => optionStore.currencyLabels)
 
@@ -123,6 +128,15 @@ function toTimeString(d: CalenderDate): string {
 }
 // フォームの値を検証
 function validateForm(): boolean {
+    if (formData.value.currency_unit) {
+        const inputCurrency = formData.value.currency_unit
+        const currencyData = getCurrencyData(inputCurrency)
+        if (currencyData) {
+            formData.value.currency_unit = currencyData.code
+        }
+        //console.log('validateForm::currency_unit:', inputCurrency, currencyData?.code, formData.value.currency_unit)
+    }
+
     const result = schema.value.safeParse(formData.value)
     if (!result.success) {
         const { error } = result
@@ -198,7 +212,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                         <InputText
                             id="app_name"
                             v-model="formData.name"
-                            placeholder="例: FGO"
+                            :placeholder="exampleAppName"
                             class="w-full"
                         />
                         <Message v-if="errors?.name" severity="error" size="small" variant="simple" class="mt-1">

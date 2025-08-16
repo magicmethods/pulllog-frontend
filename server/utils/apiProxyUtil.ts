@@ -29,7 +29,7 @@ export function buildProxyHeaders(
     mustCsrfToken = true
 ): Record<string, string> | null {
     const clientHeaders = event.node.req.headers
-    let allowedHeaders = ['origin', 'x-csrf-token', 'authorization', 'content-type', 'content-length', 'accept', 'cookie', 'credentials', 'user-agent']
+    let allowedHeaders = ['origin', 'x-csrf-token', 'authorization', 'content-type', 'content-length', 'accept', 'cookie', 'user-agent']
     // 追加のヘッダが指定されていればマージ
     if (extendedHeaders.length > 0) {
         allowedHeaders = [...allowedHeaders, ...extendedHeaders]

@@ -143,16 +143,18 @@ export function useAPI() {
             headers: finalHeaders,
         }
 
-        if (['POST', 'PUT', 'PATCH'].includes(method)) {
-            // FormDataの場合はbodyにそのままセット
-            requestOptions.body = isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined
-        }
-
+        // 419 リカバリを一度だけ
+        let didCsrfRefresh = false
         //console.log('API Request:', { url, requestOptions, endpoint, overrideURI, currentCSRFToken })
 
         // リトライロジック
         for (let attempt = 0; attempt <= retries; attempt++) {
             try {
+                // 再試行のたびに body を再セット
+                if (['POST', 'PUT', 'PATCH'].includes(method)) {
+                    requestOptions.body = isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined
+                }
+
                 const response = await fetchWithTimeout(url, requestOptions, timeout)
 
                 if (!response.ok) {
@@ -167,8 +169,7 @@ export function useAPI() {
 
                 const contentType = response.headers.get('content-type')
                 if (!contentType || !contentType.includes('application/json')) {
-                    // JSON以外はテキストで返す
-                    // @ts-ignore
+                    // @ts-ignore - JSON以外はテキストで返す
                     return (await response.text()) as T
                 }
 
@@ -177,8 +178,27 @@ export function useAPI() {
                 if (cacheTime) {
                     apiCache.set(cacheKey, { timestamp: now, data: responseJson })
                 }
+                //console.log(`API Request [${attempt + 1}/${retries + 1}]:`, { url, requestOptions, responseJson })
                 return responseJson
             } catch (error: unknown) {
+                const status = error instanceof ApiError ? error.status : undefined
+
+                // 419 レスポンスは CSRF リフレッシュ→ヘッダ差し替え→即再試行
+                if (status === 419 && !didCsrfRefresh) {
+                    const refreshed = await csrfStore.refresh() // POST /auth/csrf/refresh
+                    if (refreshed) {
+                        finalHeaders.set('x-csrf-token', csrfStore.token ?? '')
+                        didCsrfRefresh = true
+                        continue // 同じ attempt で再試行（retries を消費しない）
+                    }
+                    if (onAuthError === 'redirect') {
+                        // CSRFリフレッシュ失敗時は認証エラーとして処理
+                        navigateTo(ERROR_URL.SessionExpired, { replace: true })
+                    }
+                    // 上位の finally 用にエラーも投げる
+                    throw new Error('Session expired. please login again.')
+                }
+
                 if (error instanceof Error && error.name === 'AbortError') {
                     // タイムアウト
                     throw new Error('API Request timed out')
@@ -189,7 +209,7 @@ export function useAPI() {
                     await new Promise(resolve => setTimeout(resolve, delay))
                     continue
                 }
-                throw error // 画面側でcatchされる
+                throw error // コンポーネント側でcatchできる
             }
         }
         return null
@@ -213,14 +233,17 @@ export function useAPI() {
             ?? `API Error: ${response.status} - ${response.statusText}`
 
         // エラーコードごとの遷移/通知
-        if ((response.status === 401 || response.status === 419)) {
+        if (response.status === 419) {
+            throw new ApiError(msg || 'CSRF token expired', 419, errorJson)
+        }
+
+        if (response.status === 401) {
             if (onAuthError === 'redirect') {
-                navigateTo(ERROR_URL.Unauthorized, { external: true })
+                navigateTo(ERROR_URL.Unauthorized, { replace: true })
             }
             // 遷移したとしても上位が finally 等を通るため例外は投げる
             throw new ApiError(msg, response.status, errorJson)
         }
-
         if (response.status === 403) {
             throw new ApiError(msg || 'Forbidden', 403, errorJson)
         }

@@ -1,10 +1,8 @@
-//import { useLogStore } from '~/stores/useLogStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 import { DateTime } from 'luxon'
 import { stripEmoji } from '~/utils/string'
 
 export function useStats() {
-    //const logStore = useLogStore()
     const SYSTEM_OTHER_KEY = computed(() => useOptionStore().otherPlaceholder)
 
     /**
@@ -333,16 +331,16 @@ export function useStats() {
         let pattern: RegExp
         switch (marker) {
             case 'lose': // すり抜け
-                pattern = /(すり(抜|ぬ)け|lose\s?(the\s?)?(50(\/|\-)50))/g
+                pattern = /(すり(抜|ぬ)け|lose\s?(the\s?)?(50(\/|\-)50)|(歪(了|斜)))/ig
                 break
             case 'pickup': // ピックアップ
-                pattern = /(ピックアップ|pickup)/g
+                pattern = /(ピック(アップ|)|pick(ed|-|)\s?up|((捡|拾)起))/ig
                 break
             case 'target': // 狙い
-                pattern = /((狙|ねら)い|target)/g
+                pattern = /((狙|ねら)い|target|目(标|標))/ig
                 break
             case 'guaranteed': // 確定枠
-                pattern = /((確定|かくてい)(枠|)|guaranteed)/g
+                pattern = /((確定|かくてい)(枠|)|guaranteed|(保(底|证)))/ig
                 break
             default:
                 return 0

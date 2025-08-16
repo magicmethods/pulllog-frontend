@@ -55,6 +55,7 @@ const pendingValidationErrors = ref<Record<string, string[]> | null>(null) // �
 const historyChartReloadKey = ref<number>(0) // 履歴グラフの再読み込みキー（強制更新用）
 const historyStatsReloadKey = ref<number>(0) // 履歴統計の再読み込みキー（強制更新用）
 const historyListReloadKey = ref<number>(0) // 履歴リストの再読み込みキー（強制更新用）
+const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
 
 // Computed
 const selectedApp = computed<AppData | null>({
@@ -260,9 +261,12 @@ const adConfig: Record<string, AdProps> = {
     ],
     adWidth: 1020, // カルーセル画像の最大幅を指定
     */
+    adHeight: 90,
+    /*
     adType: 'slot',
-    adClient: 'ca-pub-8602791446931111',
+    //adClient: 'ca-pub-8602791446931111',
     adSlotName: '8956575261',
+    */
   },
   // インライン広告
   inline: {
@@ -278,11 +282,13 @@ const adConfig: Record<string, AdProps> = {
       { image: '/sample/ad_16.jpg', link: 'https://example.com/?ad=16', alt: '広告バナー 16 (300x250)' },
       { image: '/sample/ad_17.jpg', link: 'https://example.com/?ad=17', alt: '広告バナー 17 (600x338)' },
     ],
-    // adHeight: 250,
     */
+    adHeight: 250,
+    /*
     adType: 'slot',
-    adClient: 'ca-pub-8602791446931111',
+    //adClient: 'ca-pub-8602791446931111',
     adSlotName: '5664134061',
+    */
   }
 }
 

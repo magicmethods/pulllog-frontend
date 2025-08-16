@@ -41,7 +41,7 @@ function handleCancel() {
         :dismissableMask="!loading"
         :header="t('settings.withdrawalModal.accountDeleteConfirmTitle')"
         class="w-full max-w-md"
-        @update:visible="val => emit('update:visible', val)"
+        @update:visible="(val: boolean) => emit('update:visible', val)"
     >
         <div class="flex flex-col items-center gap-4">
             <div class="text-center text-red-700 font-semibold text-lg" v-html="t('settings.withdrawalModal.accountDeleteWarning')">

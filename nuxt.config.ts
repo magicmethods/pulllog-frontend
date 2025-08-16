@@ -47,6 +47,8 @@ export default defineNuxtConfig({
     apiBaseURL: process.env.API_BASE_URL,
     apiProxy: process.env.API_PROXY || '/api',
     secretApiKey: process.env.SECRET_API_KEY,
+    demoEmail: process.env.DEMO_EMAIL,
+    demoPassword: process.env.DEMO_PASSWORD,
     // クライアントサイドでも使用する環境変数
     public: {
         appName: process.env.APP_NAME,

@@ -12,12 +12,22 @@ export default defineI18nLocale(async () => ({
         loggingIn: '正在登录...',
         back: '返回',
         backToHome: '回到首页',
+        goToLogin: '前往登录',
         scrollToTop: '回到顶部',
         termsTitle: 'PullLog 服务条款',
         termsLabel: '服务条款',
         error: {
+            badRequestTitle: '请求错误',
+            badRequestMessage: '请求无效，请检查输入内容。',
+            unauthorizedTitle: '未授权',
+            unauthorizedMessage: '需要登录才能执行此操作。',
+            forbiddenTitle: '禁止访问',
+            forbiddenMessage: '不允许访问此页面。',
+            notFound: '未找到页面',
+            notFoundMessage: '您要找的页面不存在或已被删除。',
+            sessionExpiredTitle: '会话已过期',
+            sessionExpiredMessage: '您的会话已过期。请重新登录。',
             errorOccurred: '发生错误。',
-            notFound: '页面未找到。',
             sorrySomethingWentWrong: '很抱歉，发生了问题。',
             unknownUser: '当前登录用户未知。',
             userUpdateFailed: '更新用户信息失败。',
@@ -27,6 +37,8 @@ export default defineI18nLocale(async () => ({
             logsNotFound: '未找到历史数据。',
             importFailed: '导入失败。',
             statsNotFound: '未找到统计数据。',
+            demoTitle: '演示用户限制',
+            demoDetail: '此功能不适用于演示用户。',
         },
         ad: {
             advertisement: '广告',
@@ -34,6 +46,11 @@ export default defineI18nLocale(async () => ({
     },
     // Common Options
     options: {
+        exampleApp1: '原神',
+        exampleApp2: '智龙迷城',
+        exampleApp3: 'FGO',
+        exampleApp4: '怪物弹珠',
+        exampleApp5: '赛马娘',
         currency: {
             jpy: '日元',
             jpyDesc: 'JPY - 日元',
@@ -389,8 +406,8 @@ export default defineI18nLocale(async () => ({
                 titlePrefix: '{name}',
                 titleLabel: '稀有掉落',
                 titleSuffix: '细分占比',
-                pickup: '限定UP',
-                lose: '歪了（非UP）',
+                pickup: '捡起',
+                lose: '歪了（非捡起）',
                 target: '目标',
                 guaranteed: '保底',
                 other: '其他',
@@ -480,6 +497,7 @@ export default defineI18nLocale(async () => ({
             basicInfo: '基本信息',
             basicInfoDescription: '设置 PullLog 管理的应用注册信息。',
             appName: '应用名称',
+            appNamePlaceholder: '例如',
             appUrl: '网站URL（可选）',
             appUrlPlaceholder: '如官网等URL',
             appDescription: '应用描述（可选）',
@@ -744,27 +762,48 @@ export default defineI18nLocale(async () => ({
         },
         steps: {
             title: '如何使用 PullLog',
+            description: '使用 PullLog 非常简单。只需按照以下步骤操作即可开始记录和分析您的抽卡历史。',
+            prev: '上一步',
+            next: '下一步',
             step1: {
-                title: '1. 在抽卡后启动 PullLog',
+                title: '在抽卡后启动 PullLog',
+                imageCaption: '',
                 description: '从浏览器登录 PullLog。',
             },
             step2: {
-                title: '2. 记录您的抽卡历史',
+                title: '记录您的抽卡历史',
+                imageCaption: '',
                 description: '您可以轻松地记录抽卡方式和历史，只需几次点击。',
             },
             step3: {
-                title: '3. 历史和统计数据自动更新',
+                title: '历史和统计数据自动更新',
+                imageCaption: '',
                 description: '汇总的数据和图表会自动生成，您可以随时查看。',
             },
         },
         statistics: {
             title: '有哪些统计数据？',
             description: 'PullLog提供有关您的抽卡历史和支出的详细统计信息，使您能够分析性能和趋势。',
-            totalPulls: '总抽卡次数',
-            totalExpense: '总支出',
-            averageRareRate: '平均稀有度',
-            rareDropCount: '稀有掉落次数',
-            rareDropRate: '稀有掉落率',
+            stat1: {
+                title: '总抽卡次数',
+                value: '100'
+            },
+            stat2: {
+                title: '总支出',
+                value: '10,000 JPY'
+            },
+            stat3: {
+                title: '平均每次抽卡支出',
+                value: '5.0'
+            },
+            stat4: {
+                title: '稀有掉落次数',
+                value: '20'
+            },
+            stat5: {
+                title: '稀有掉落率',
+                value: '20%'
+            },
         },
         footer: {
             contactUs: '联系我们',

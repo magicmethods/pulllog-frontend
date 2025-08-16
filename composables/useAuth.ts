@@ -30,32 +30,7 @@ export function useAuth() {
                 data: { email, password, remember },
             })
 
-            if (!response || !response.state || response.state !== 'success') {
-                throw new Error(response?.message || t('auth.login.invalidResponse'))
-            }
-            if (!response.user || response.user.is_deleted || !response.user.is_verified) {
-                throw new Error(response?.message || t('auth.login.accountNotAvailable'))
-            }
-
-            userStore.setUser(
-                toUser(response.user),
-                toUserPlanLimits(response.user)
-            )
-
-            if (response.csrfToken) {
-                csrfStore.setToken(response.csrfToken)
-            }
-
-            console.log('Remember token in login:', response.rememberToken, response.rememberTokenExpires)
-            if (response.rememberToken && response.rememberTokenExpires) {
-                // RememberトークンをCookieにセット
-                document.cookie = `remember_token=${response.rememberToken}; expires=${new Date(response.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
-            } else {
-                // 既にあるRememberトークンのCookieを削除
-                document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
-            }
-
-            globalStore.setInitialized(true)
+            await afterLogin(response)
         } catch (err: unknown) {
             console.error('Login error:', err)
             error.value = err instanceof Error ? err.message : t('auth.login.error')
@@ -75,38 +50,35 @@ export function useAuth() {
                 method: 'POST', // Cookieはリクエストヘッダに付与され送信される
             })
 
-            if (!response || !response.state || response.state !== 'success') {
-                throw new Error(response?.message || t('auth.login.invalidResponse'))
-            }
-            if (!response.user || response.user.is_deleted || !response.user.is_verified) {
-                throw new Error(response?.message || t('auth.login.accountNotAvailable'))
-            }
-
-            userStore.setUser(
-                toUser(response.user),
-                toUserPlanLimits(response.user)
-            )
-
-            if (response.csrfToken) {
-                csrfStore.setToken(response.csrfToken)
-            }
-
-            console.log('Remember token in autoLogin:', response.rememberToken, response.rememberTokenExpires)
-            if (response.rememberToken && response.rememberTokenExpires) {
-                // RememberトークンをCookieにセット
-                document.cookie = `remember_token=${response.rememberToken}; expires=${new Date(response.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
-            } else {
-                // 既にあるRememberトークンのCookieを削除
-                document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
-            }
-
-            globalStore.setInitialized(true)
+            await afterLogin(response)
         } catch (err: unknown) {
             //console.error('Auto-login error:', err)
             error.value = err instanceof Error ? err.message : t('auth.login.error')
             throw err
         } finally {
             isLoading.value = false
+        }
+    }
+
+    async function demoLogin() {
+        isLoading.value = true
+        error.value = null
+
+        try {
+            const response: LoginResponse = await callApi({
+                endpoint: endpoints.auth.demoLogin(),
+                method: 'POST',
+            })
+
+            await afterLogin(response)
+
+            await navigateTo('/apps', { replace: true })
+        } catch (err: unknown) {
+            console.error('Demo login error:', err)
+            error.value = err instanceof Error ? err.message : t('auth.login.error')
+            throw err
+        } finally {
+            //isLoading.value = false
         }
     }
 
@@ -220,10 +192,41 @@ export function useAuth() {
     async function logout() {
         await userStore.logout()
     }
-    
+
+    // Private methods
+    async function afterLogin(response: LoginResponse): Promise<void> {
+        if (!response || !response.state || response.state !== 'success') {
+            throw new Error(response?.message || t('auth.login.invalidResponse'))
+        }
+        if (!response.user || response.user.is_deleted || !response.user.is_verified) {
+            throw new Error(response?.message || t('auth.login.accountNotAvailable'))
+        }
+
+        userStore.setUser(
+            toUser(response.user),
+            toUserPlanLimits(response.user)
+        )
+
+        if (response.csrfToken) {
+            csrfStore.setToken(response.csrfToken)
+        }
+
+        //console.log('Remember token in login:', response.rememberToken, response.rememberTokenExpires)
+        if (response.rememberToken && response.rememberTokenExpires) {
+            // RememberトークンをCookieにセット
+            document.cookie = `remember_token=${response.rememberToken}; expires=${new Date(response.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
+        } else {
+            // 既にあるRememberトークンのCookieを削除
+            document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
+        }
+
+        globalStore.setInitialized(true)
+    }
+
     return {
         login,
         autoLogin,
+        demoLogin,
         register,
         passwordReset,
         verifyToken,

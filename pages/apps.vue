@@ -4,7 +4,6 @@ import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
 import { useStatsStore } from '~/stores/useStatsStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useOptionStore } from '~/stores/useOptionStore'
 import { useI18n } from 'vue-i18n'
 import type { ToastMessageOptions } from 'primevue/toast'
 import { useToast } from "primevue/usetoast"
@@ -21,7 +20,6 @@ const appStore = useAppStore()
 const logStore = useLogStore()
 const statsStore = useStatsStore()
 const loaderStore = useLoaderStore()
-const optionStore = useOptionStore()
 const toast = useToast()
 
 // i18n
@@ -42,6 +40,7 @@ const modalDownloadVisible = ref<boolean>(false)
 const modalUploadVisible = ref<boolean>(false)
 const editTarget = ref<AppData | undefined>(undefined)
 const maxApps = computed(() => userStore.planLimits?.maxApps ?? 5) // ユーザーが登録できる最大アプリ数
+const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
 const menu = ref()
 const items = computed<MenuItem[]>(() => ([
     {
@@ -165,9 +164,24 @@ function addNewApp() {
     editTarget.value = undefined
     modalEditVisible.value = true
 }
+function abortDemo() {
+    // デモユーザーの場合は何もしない
+    showToast({
+        severity: 'warn',
+        summary: t('app.error.demoTitle'),
+        detail: t('app.error.demoDetail')
+    })
+    // モーダルを閉じる
+    modalEditVisible.value = false
+    modalDeleteVisible.value = false
+    modalDownloadVisible.value = false
+    modalUploadVisible.value = false
+    return
+}
 // アプリケーションの登録・変更処理
 async function handleAppSubmit(app: AppData | undefined) {
     if (!app) return
+    if (isDemoUser.value) return abortDemo()
 
     let loaderId: string | undefined = undefined
     let notice: Partial<ToastMessageOptions> = {}
@@ -195,9 +209,11 @@ async function handleAppSubmit(app: AppData | undefined) {
 // アプリケーションの削除処理
 async function handleAppDelete(app: AppData | undefined) {
     if (!app) return
+    if (isDemoUser.value) return abortDemo()
 
     let loaderId: string | undefined = undefined
     let notice: Partial<ToastMessageOptions> = {}
+
     deleting.value = true
     try {
         // API通信
@@ -221,6 +237,7 @@ async function handleAppDelete(app: AppData | undefined) {
 // 履歴ダウンロード処理
 async function handleAppDownload(settings: HistoryDownloadSettings) {
     if (!editTarget.value) return
+    if (isDemoUser.value) return abortDemo()
 
     let loaderId: string | undefined = undefined
     let notice: Partial<ToastMessageOptions> = {}
@@ -258,6 +275,7 @@ async function handleAppUpload(uploadData: UploadData) {
     if (!editTarget.value || !uploadData.format || !uploadData.file) return
     if (!['json', 'csv'].includes(uploadData.format) || uploadData.file.type.indexOf(uploadData.format) === -1) return
     if (!['overwrite', 'merge'].includes(uploadData.mode)) return
+    if (isDemoUser.value) return abortDemo()
 
     let loaderId: string | undefined = undefined
     let notice: Partial<ToastMessageOptions> = {}
@@ -303,7 +321,7 @@ function handleToHistory(app: AppData) {
 onMounted(async () => {
     // Initialize app store and load apps if not already loaded
     await initialize()
-    //console.log('apps.vue::onMounted:', apps.value, appStats.value)
+    //console.log('apps.vue::onMounted:', userStore.hasUserRole('demo'), userStore.planLimits)
 })
 
 // Watchers
@@ -347,9 +365,12 @@ const adConfig: Record<string, AdProps> = {
         ],
         adType: 'image',
         */
+        adHeight: 90,
+        /*
         adType: 'slot',
-        adClient: 'ca-pub-8602791446931111',
+        //adClient: 'ca-pub-8602791446931111',
         adSlotName: '8956575261',
+        */
     },
     bottom: {
         /*
@@ -359,11 +380,13 @@ const adConfig: Record<string, AdProps> = {
             { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: 'リーダーボード広告 (728x90)' },
         ],
         adType: 'carousel',
-        adHeight: 90,// must set carousel height
         */
+        adHeight: 90,// must set carousel height
+        /*
         adType: 'slot',
-        adClient: 'ca-pub-8602791446931111',
+        //adClient: 'ca-pub-8602791446931111',
         adSlotName: '5664134061',
+        */
     }
 }
 

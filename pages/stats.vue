@@ -5,7 +5,6 @@ import { useLogStore } from '~/stores/useLogStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
 import { useOptionStore } from '~/stores/useOptionStore'
 import { useI18n } from 'vue-i18n'
-import { getMaxApps } from '~/utils/user'
 import { formatDate } from '~/utils/date'
 
 // Types: in this page only
@@ -38,7 +37,7 @@ const selectedApps = ref<AppData[]>([]) // 選択されたアプリのリスト
 const period = ref<'all' | 'range'>('all')
 const startDate = ref<CalenderDate>(null)
 const endDate = ref<CalenderDate>(null)
-const maxSelection = computed(() => getMaxApps(userStore.user)) // 最大選択数=ユーザーの登録最大数
+const maxSelection = computed(() => userStore.planLimits?.maxApps ?? 5) // 最大選択数=ユーザーの登録最大数
 const selectedAppsLabel = computed(() => {
     const isSelectedMax = userApps.value.length <= maxSelection.value
         ? selectedApps.value.length === userApps.value.length
@@ -168,14 +167,20 @@ const clearButtonPT = {
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
+        adHeight: 90,
+        /*
         adType: 'slot',
-        adClient: 'ca-pub-8602791446931111',
+        //adClient: 'ca-pub-8602791446931111',
         adSlotName: '8956575261',
+        */
     },
     bottom: {
+        adHeight: 90,
+        /*
         adType: 'slot',
-        adClient: 'ca-pub-8602791446931111',
+        //adClient: 'ca-pub-8602791446931111',
         adSlotName: '5664134061',
+        */
     }
 }
 

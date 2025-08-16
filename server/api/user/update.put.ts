@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
         }
     })
     headers['content-type'] = 'application/json' // JSON形式で送信
-    console.log('APIProxy::user/update:', formDataObject)
+    //console.log('APIProxy::user/update:', formDataObject)
 
     // fetch&レスポンス返却
     return await proxyFetchAndReturn(event, url, headers, 'PUT', formDataObject)

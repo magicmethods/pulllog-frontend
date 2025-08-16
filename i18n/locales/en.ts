@@ -1,3 +1,5 @@
+import demoLoginPost from "~/server/api/auth/demoLogin.post";
+
 export default defineI18nLocale(async () => ({
     // Globals
     app: {
@@ -10,12 +12,22 @@ export default defineI18nLocale(async () => ({
         loggingIn: 'Now logging in...',
         back: 'Back',
         backToHome: 'Back to Home',
+        goToLogin: 'Go to Login',
         scrollToTop: 'Scroll to Top',
         termsTitle: 'PullLog Terms of Service',
         termsLabel: 'Terms of Service',
         error: {
-            errorOccurred: 'An error occurred.',
+            badRequestTitle: 'Bad Request',
+            badRequestMessage: 'The request was invalid. Please try again.',
+            unauthorizedTitle: 'Unauthorized',
+            unauthorizedMessage: 'Login is required to perform this action.',
+            forbiddenTitle: 'Forbidden',
+            forbiddenMessage: 'Access to this page is not allowed.',
             notFound: 'Page not found.',
+            notFoundMessage: 'The page you are looking for does not exist or has been removed.',
+            sessionExpiredTitle: 'Session Expired',
+            sessionExpiredMessage: 'Your session has expired. Please log in again.',
+            errorOccurred: 'An error occurred.',
             sorrySomethingWentWrong: 'Sorry, something went wrong.',
             unknownUser: 'Logged-in user is unknown.',
             userUpdateFailed: 'Failed to update user profile.',
@@ -25,6 +37,8 @@ export default defineI18nLocale(async () => ({
             logsNotFound: 'No history data found.',
             importFailed: 'Failed to import history.',
             statsNotFound: 'No statistics data found.',
+            demoTitle: 'Demo User Limitations',
+            demoDetail: 'This features are not available for demo users.',
         },
         ad: {
             advertisement: 'Advertisement',
@@ -32,6 +46,11 @@ export default defineI18nLocale(async () => ({
     },
     // Common Options
     options: {
+        exampleApp1: 'Genshin Impact',
+        exampleApp2: 'Puzzle & Dragons',
+        exampleApp3: 'Fate/Grand Order',
+        exampleApp4: 'Monster Strike',
+        exampleApp5: 'Uma Musume Pretty Derby',
         currency: {
             jpy: 'Japanese Yen',
             jpyDesc: 'JPY - Yen',
@@ -478,6 +497,7 @@ export default defineI18nLocale(async () => ({
             basicInfo: 'Basic Information',
             basicInfoDescription: 'Set the registration details for the application handled by PullLog.',
             appName: 'Application Name',
+            appNamePlaceholder: 'Example',
             appUrl: 'Website URL (optional)',
             appUrlPlaceholder: 'URL of the official site, etc.',
             appDescription: 'Application Description (optional)',
@@ -742,27 +762,53 @@ export default defineI18nLocale(async () => ({
         },
         steps: {
             title: 'How to Use PullLog',
+            description: 'Follow these simple steps to start using PullLog and manage your gacha history effectively.',
+            prev: 'Previous Step',
+            next: 'Next Step',
             step1: {
-                title: '1. Launch PullLog after drawing a gacha',
-                description: 'Log in to PullLog from your browser.',
+                title: 'Launch PullLog after drawing a gacha',
+                imageCaption: '',
+                description: 'After drawing a gacha, launch PullLog to record your gacha history.',
             },
             step2: {
-                title: '2. Record Your Gacha History',
-                description: 'You can easily record how to draw gacha and your history with just a few clicks.',
+                title: 'Select the Application',
+                imageCaption: '',
+                description: 'Select the application you want to manage from the list of registered applications.',
             },
             step3: {
-                title: '3. Automatically Reflect in History & Statistics',
+                title: 'Record Your Gacha History',
+                imageCaption: '',
+                description: 'You can easily record how to draw gacha and your history with just a few clicks.',
+            },
+            step4: {
+                title: 'Automatically Reflect in History & Statistics',
+                imageCaption: '',
                 description: 'Aggregated data and graphs are automatically generated and can be viewed at any time.',
             },
         },
         statistics: {
             title: 'What statistics are there?',
             description: 'PullLog provides detailed statistics on your gacha history and spending, allowing you to analyze your performance and trends.',
-            totalPulls: 'Total Pulls',
-            totalExpense: 'Total Expense',
-            averageRareRate: 'Average Rare Rate',
-            rareDropCount: 'Rare Drop Count',
-            rareDropRate: 'Rare Drop Rate',
+            stat1: {
+                title: 'Total Pulls',
+                value: '100'
+            },
+            stat2: {
+                title: 'Total Expense',
+                value: '10,000 JPY'
+            },
+            stat3: {
+                title: 'Average Rarity',
+                value: '5.0'
+            },
+            stat4: {
+                title: 'Rare Drop Count',
+                value: '20'
+            },
+            stat5: {
+                title: 'Rare Drop Rate',
+                value: '20%'
+            },
         },
         footer: {
             contactUs: 'Contact Us',

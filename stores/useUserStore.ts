@@ -26,21 +26,22 @@ export const useUserStore = defineStore('user', () => {
         user.value = u
         planLimits.value = limits ?? null
     }
-    // デバッグ用
-    function setDummyUser(
+    /*
+    // デモ用（未使用）
+    function setDemoUser(
         partialUserData?: Partial<User>,
         planLimitsData?: Partial<UserPlanLimits>
     ): void {
-        const nowDateStr = new Date().toISOString()
-        const baseDummyUser: Partial<User> = {
-            id: 1,
-            name: 'Ling Xiaoyu',
-            email: 'ling-xiaoyu@dev.pulllog.net',
-            avatarUrl: 'sample/ling-xiaoyu.png',
-            roles: ['user'],
-            //plan: 'standard',
-            plan: 'free',
-            planExpiration: '2025-12-31',
+        const now = DateTime.now()
+        const nowDateStr = now.toISO()
+        const baseDemoUser: Partial<User> = {
+            id: 2,
+            name: 'Demo',
+            email: 'demo@pulllog.net',
+            avatarUrl: null,
+            roles: ['user', 'demo'],
+            plan: 'Demo',
+            planExpiration: now.plus({ days: 1 }).toISODate(), // 1日間有効
             language: localStorage.getItem('language') ??  useConfig().defaultLocale,
             theme: localStorage.getItem('theme') || 'light',
             homePage: '/apps',
@@ -48,7 +49,7 @@ export const useUserStore = defineStore('user', () => {
             updatedAt: nowDateStr,
             lastLogin: nowDateStr,
         }
-        const baseDummyLimits: Partial<UserPlanLimits> = {
+        const baseDemoLimits: Partial<UserPlanLimits> = {
             maxApps: 5,
             maxAppNameLength: 30,
             maxAppDescriptionLength: 400,
@@ -59,9 +60,13 @@ export const useUserStore = defineStore('user', () => {
             maxLogSize: 1024 * 1024,
             maxStorage: 1024 * 1024 * 1024,
         }
-        const dummyUser = { ...baseDummyUser, ...partialUserData } as User
-        const dummyLimits = { ...baseDummyLimits, ...planLimitsData } as UserPlanLimits
-        setUser(dummyUser, dummyLimits)
+        const demoUser = { ...baseDemoUser, ...partialUserData } as User
+        const demoLimits = { ...baseDemoLimits, ...planLimitsData } as UserPlanLimits
+        setUser(demoUser, demoLimits)
+    }
+    */
+    function hasUserRole(role: string): boolean {
+        return user.value?.roles?.includes(role) ?? false
     }
     /**
      * ユーザーデータをクリア
@@ -121,6 +126,7 @@ export const useUserStore = defineStore('user', () => {
      * - アプリデータをクリア
      * - ログデータのキャッシュをクリア
      * - 統計データのキャッシュをクリア
+     * - Rememberトークンを削除
      */
     async function logout() {
         const global = useGlobalStore()
@@ -128,22 +134,29 @@ export const useUserStore = defineStore('user', () => {
         try {
             // バックエンドAPIコールでサーバー側セッション消去
             try {
-                await callApi({
+                const res = await callApi<VerifyResponse>({
                     endpoint: endpoints.auth.logout(),
                     method: 'POST',
                 })
-            } catch (apiErr: unknown) {
-                // サーバーセッション削除失敗時も、フロント側は続行
-                console.warn('Failed to remove server session:', apiErr)
+                if (!res || !res.success) {
+                    throw new Error(res?.message || t('app.error.logoutFailed'))
+                }
+            } catch (error: unknown) {
+                // ここでエラーを投げると、ログアウト後の処理が行われないため、ログは出すが続行
+                console.warn('Failed to remove server session:', error)
+            } finally {
+                // サーバーセッション削除の成否にかかわらずフロント側はログアウトさせる
+                // フロント側状態のクリア
+                clearUser()
+                useCsrfStore().clearToken()
+                const appStore = useAppStore()
+                appStore.clearApp()
+                appStore.clearAppList()
+                useLogStore().clearLogs()
+                useStatsStore().clearStatsCacheAll()
+                // 既にあるRememberトークンのCookieを削除して自動ログインを無効化
+                document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
             }
-            // フロント側状態のクリア
-            clearUser()
-            useCsrfStore().clearToken()
-            const appStore = useAppStore()
-            appStore.clearApp()
-            appStore.clearAppList()
-            useLogStore().clearLogs()
-            useStatsStore().clearStatsCacheAll()
         } finally {
             global.setLoading(false)
         }
@@ -194,7 +207,7 @@ export const useUserStore = defineStore('user', () => {
         planLimits,
         isLoggedIn,
         setUser,
-        setDummyUser,
+        hasUserRole,
         clearUser,
         updateUser,
         logout,

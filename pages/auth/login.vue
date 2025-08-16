@@ -101,7 +101,7 @@ async function handleLogin() {
     globalError.value = e instanceof Error ? e.message : t('auth.login.failed')
     isSubmitting.value = false
   } finally {
-    // 次ページへの遷移完了までローディング状態を維持するため
+    // 次ページへの遷移完了までローディング状態を維持するため isSubmitting.value は false にしない
     // isSubmitting.value = false
   }
 }
@@ -126,6 +126,8 @@ function handleBack() {
 // Lifecycle hooks
 onBeforeMount(async () => {
   if (import.meta.client) {
+    const rememberCookie = useCookie('remember_token')
+    if (!rememberCookie.value) return
     try {
       // 自動ログイン・Cookieの自動送信
       await autoLogin()
@@ -133,7 +135,7 @@ onBeforeMount(async () => {
       navigateTo({ path: userStore.user?.homePage ?? '/apps' })
     } catch (e: unknown) {
       // 失敗時は何もしない（ログイン画面を通常通り表示）
-      console.warn('Auto login failed:', e instanceof Error ? e.message : e)
+      // console.warn('Auto login failed:', e instanceof Error ? e.message : e)
     }
   }
 })

@@ -28,3 +28,4 @@ desktop.ini
 
 # Development temporary files
 public/sample/
+public/.well-known/

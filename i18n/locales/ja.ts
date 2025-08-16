@@ -12,12 +12,22 @@ export default defineI18nLocale(async () => ({
         loggingIn: 'ログイン中...',
         back: '戻る',
         backToHome: 'ホームへ戻る',
+        goToLogin: 'ログイン画面へ',
         scrollToTop: 'トップへ戻る',
         termsTitle: 'PullLog 利用規約',
         termsLabel: '利用規約',
         error: {
-            errorOccurred: 'エラーが発生しました',
+            badRequestTitle: '不正なリクエスト',
+            badRequestMessage: 'リクエストが不正です。もう一度お試しください。',
+            unauthorizedTitle: '認証エラー',
+            unauthorizedMessage: 'この操作を行うにはログインが必要です。',
+            forbiddenTitle: 'アクセス拒否',
+            forbiddenMessage: 'このページへのアクセスは許可されていません。',
             notFound: 'ページが見つかりません',
+            notFoundMessage: 'お探しのページは存在しないか、削除された可能性があります',
+            sessionExpiredTitle: 'セッションが期限切れです',
+            sessionExpiredMessage: 'セッションが期限切れになりました。再度ログインしてください。',
+            errorOccurred: 'エラーが発生しました',
             sorrySomethingWentWrong: '申し訳ありません。問題が発生しました',
             unknownUser: 'ログインユーザーが不明です',
             userUpdateFailed: 'ユーザー情報の更新に失敗しました',
@@ -27,6 +37,8 @@ export default defineI18nLocale(async () => ({
             logsNotFound: '履歴データが見つかりません',
             importFailed: '履歴のインポートに失敗しました',
             statsNotFound: '統計データが見つかりません',
+            demoTitle: 'デモユーザーの制限',
+            demoDetail: 'この機能はデモユーザーでは利用できません。',
         },
         ad: {
             advertisement: '広告',
@@ -34,6 +46,11 @@ export default defineI18nLocale(async () => ({
     },
     // Common Options
     options: {
+        exampleApp1: '原神',
+        exampleApp2: 'パズドラ',
+        exampleApp3: 'FGO',
+        exampleApp4: 'モンスト',
+        exampleApp5: 'ウマ娘',
         currency: {
             jpy: '日本円',
             jpyDesc: 'JPY - 円',
@@ -477,6 +494,7 @@ export default defineI18nLocale(async () => ({
             basicInfo: '基本情報',
             basicInfoDescription: 'PullLogで取り扱うアプリケーションの登録内容を設定します。',
             appName: 'アプリケーション名',
+            appNamePlaceholder: '例',
             appUrl: 'WEBサイトのURL（任意）',
             appUrlPlaceholder: '公式サイトなどのURL',
             appDescription: 'アプリケーションの説明（任意）',
@@ -741,27 +759,53 @@ export default defineI18nLocale(async () => ({
         },
         steps: {
             title: 'PullLogの使い方',
+            description: 'PullLogを使い始めるのは簡単です。以下のステップに従って、ガチャ履歴を管理し、統計を分析しましょう。',
+            prev: '前のステップ',
+            next: '次のステップ',
             step1: {
-                title: '1. ガチャを引いた後にPullLogを起動',
-                description: 'ガチャを引いた後にPullLogにログインするだけで、履歴の登録が可能です。',
+                title: 'ガチャを引いたらPullLogを起動',
+                imageCaption: '',
+                description: 'ガチャを引いた後にPullLogにログインするだけで、履歴の登録が可能です。Googleアカウントをお持ちの方は、面倒な登録処理をすることなくすぐにログインすることもできます。',
             },
             step2: {
-                title: '2. ガチャ履歴を記録',
-                description: 'ガチャの引き方や履歴を簡単に記録できます。',
+                title: 'アプリを登録しよう',
+                imageCaption: '',
+                description: 'まだアプリを登録していないなら、アプリの名前を入力して登録しましょう。アプリの詳しい設定は後からでも大丈夫です。アプリ登録が完了したらすぐに履歴の登録が可能です。',
             },
             step3: {
-                title: '3. 履歴と統計に自動反映',
-                description: '集計データとグラフが自動生成され、いつでも確認できます。',
+                title: 'ガチャ履歴を記録',
+                imageCaption: '',
+                description: 'ガチャを何回引いて最高レアリティのアイテムが何個排出されたのか、もし課金したならいくら支払ったのかなど、あなたのガチャ履歴を簡単に記録しておくことができます。',
+            },
+            step4: {
+                title: '履歴と統計に自動反映',
+                imageCaption: '',
+                description: 'ガチャ履歴を保存するとすぐに集計データとグラフが自動生成されます。詳しい統計・分析はワンクリックでいつでも確認できます。',
             },
         },
         statistics: {
-            title: 'どんな統計分析ができる？',
+            title: 'どんな統計分析ができるの？',
             description: 'PullLogは、ガチャ履歴と支出に関する詳細な統計情報を提供し、パフォーマンスや傾向を分析できるようにします。',
-            totalPulls: '総引き数',
-            totalExpense: '総支出',
-            averageRareRate: '平均レアリティ',
-            rareDropCount: 'レアドロップ数',
-            rareDropRate: 'レアドロップ率',
+            stat1: {
+                title: '総引き数',
+                value: '100'
+            },
+            stat2: {
+                title: '総支出',
+                value: '10,000円'
+            },
+            stat3: {
+                title: '平均レアリティ',
+                value: '5.0'
+            },
+            stat4: {
+                title: 'レアドロップ数',
+                value: '20'
+            },
+            stat5: {
+                title: 'レアドロップ率',
+                value: '20%'
+            },
         },
         footer: {
             contactUs: 'お問い合わせ',

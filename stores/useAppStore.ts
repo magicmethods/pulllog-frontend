@@ -94,7 +94,7 @@ export const useAppStore = defineStore('app', () => {
                 data: appData,
             })
             // ローカルappListも即時同期（返却された内容で上書き）
-            //console.log('saveApp response:', saved)
+            console.log('saveApp response:', saved, appData)
             if (saved) {
                 const idx = appList.value.findIndex(a => a.appId === saved.appId)
                 if (idx >= 0) {

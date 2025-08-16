@@ -25,7 +25,7 @@ declare global {
         email: string
         avatar_url?: string | null // アバター画像URL
         roles?: string[] // ユーザーの役割（admin, userなど）
-        plan?: string // ユーザープラン（free, proなど）
+        plan?: string // ユーザープラン名（free, proなど）
         plan_expiration?: string // プランの有効期限: YYYY-MM-DD形式の文字列
         plan_limits?: Record<string, number> // ユーザープランの制限情報（プラン管理テーブルからJOIN）
         language: string // ユーザーの言語設定

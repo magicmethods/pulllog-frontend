@@ -3,6 +3,13 @@ export const useOptionStore = defineStore('option', () => {
     const t = (key: string | number) => useNuxtApp().$i18n.t(key)
 
     // Options
+    const exampleApps = computed<string[]>(() => ([
+        t('options.exampleApp1'),
+        t('options.exampleApp2'),
+        t('options.exampleApp3'),
+        t('options.exampleApp4'),
+        t('options.exampleApp5'),
+    ]))
     const currencyOptions = computed<SymbolOption[]>(() => ([
         { label: t('options.currency.jpy'), value: 'JPY', desc: t('options.currency.jpyDesc'), symbol: '￥' },
         { label: t('options.currency.usd'), value: 'USD', desc: t('options.currency.usdDesc'), icon: 'pi-dollar' },
@@ -82,27 +89,9 @@ export const useOptionStore = defineStore('option', () => {
             case 'homepage': return homepageOptions.value
         }
     }
-    /*
-    function setOptionsFromAppConfig(appConfig: {
-        currencyOptions?: SymbolOption[]
-        rarityOptions?: SymbolOption[]
-        symbolOptions?: SymbolOption[]
-    }): void {
-        currencyOptions.value = appConfig.currencyOptions?.length
-            ? [...appConfig.currencyOptions]
-            : [...defaultCurrencyOptions]
-
-        rarityOptions.value = appConfig.rarityOptions?.length
-            ? [...appConfig.rarityOptions]
-            : [...defaultRarityOptions]
-
-        symbolOptions.value = appConfig.symbolOptions?.length
-            ? [...appConfig.symbolOptions]
-            : [...defaultSymbolOptions]
-    }
-    */
 
     return {
+        exampleApps,
         currencyOptions,
         rarityOptions,
         symbolOptions,

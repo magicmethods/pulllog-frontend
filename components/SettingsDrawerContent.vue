@@ -35,6 +35,7 @@ const lastLoginDate = computed(() => {
 })
 const storage = new StorageUtil()
 const currentPlan = ref<string>(capitalize(userStore.user?.plan ?? 'free'))
+const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
 // デバッグ用
 const showModal = ref<boolean>(false)
 const showPPModal = ref<boolean>(false)
@@ -49,8 +50,8 @@ async function handleEditProfile() {
 async function handleLogout() {
     const lid = loaderStore.show(t('settingsDrawer.loggingOut'))
     emit('close')
-    userStore.logout()
-    await navigateTo({ path: '/auth/login' })
+    await userStore.logout()
+    await navigateTo({ path: '/auth/login', replace: true })
     loaderStore.hide(lid)
 }
 const avatarProps = (size?: 'xlarge' | 'large' | 'normal') => {
@@ -103,7 +104,7 @@ watch(
             setLocale(userData.language as Language)
         }
         internalTheme.value = userData?.theme ?? 'light'
-        internalHomepage.value = userData?.homePage ?? '/history'
+        internalHomepage.value = userData?.homePage ?? '/apps'
     },
     { deep: true, immediate: true }
 )
@@ -161,7 +162,7 @@ watch(
             />
         </div>
         <div class="flex-grow h-full w-full flex flex-col justify-between">
-            <template v-if="appConfig.isDebug">
+            <template v-if="isDemoUser">
                 <Divider />
                 <p class="text-antialiasing mb-2">{{ t('settingsDrawer.others') }}</p>
                 <div class="flex items-center gap-2">
@@ -169,7 +170,7 @@ watch(
                     <Select
                         id="plan-select"
                         v-model="currentPlan"
-                        :options="[ 'Free', 'Standard', 'Premium' ]"
+                        :options="[ 'Free', 'Standard', 'Premium', 'Demo' ]"
                         :placeholder="t('settingsDrawer.planPlaceholder')"
                         :disabled="true"
                         class="w-40"
@@ -203,8 +204,17 @@ watch(
         <div class="w-full">
             <Divider />
             <div class="flex items-center gap-4 mb-4">
-                <Button :label="t('settingsDrawer.editProfile')" class="w-full btn btn-alt" @click="handleEditProfile" />
-                <Button :label="t('settingsDrawer.logout')" class="w-full btn btn-secondary" @click="handleLogout" />
+                <Button
+                    :label="t('settingsDrawer.editProfile')"
+                    class="w-full btn btn-alt"
+                    @click="handleEditProfile"
+                    :disabled="isDemoUser"
+                />
+                <Button
+                    :label="t('settingsDrawer.logout')"
+                    class="w-full btn btn-secondary"
+                    @click="handleLogout"
+                />
             </div>
         </div>
     </div>

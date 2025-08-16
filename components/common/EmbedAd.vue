@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
+
 // Types
 type AdItem = {
     image: string
@@ -28,11 +29,13 @@ type AdProps = {
 const props = defineProps<AdProps>()
 
 // Composables etc.
+const appConfig = useConfig()
 const { isShownAd } = useAdManager(props.disableForPlan)
 const { t } = useI18n()
 
 // Refs & Local state
 const insEl = ref<HTMLElement | null>(null)
+const adClientId = props.adClient || appConfig.adsenseAccount
 const adSize = {
     width: props.adWidth ? `${props.adWidth}px` : 'auto',
     height: props.adHeight ? `${props.adHeight}px` : 'auto',
@@ -81,7 +84,8 @@ function loadAdsense() {
 }
 
 onMounted(() => {
-    if (props.adType === 'slot' && props.adClient && props.adSlotName) {
+    //console.debug('EmbedAd mounted', isShownAd.value, adClientId)
+    if (props.adType === 'slot' && adClientId && props.adSlotName) {
         // adType="slot" の時だけpushする
         nextTick(() => loadAdsense())
     }
@@ -90,9 +94,18 @@ onMounted(() => {
 // Watchers
 watch(() => props.adType, (val) => {
     // SSRや動的切り替え対応：adTypeやslot切り替え時にもpushする
-    if (val === 'slot' && props.adClient && props.adSlotName) {
+    if (val === 'slot' && adClientId && props.adSlotName) {
         nextTick(() => loadAdsense())
     }
+})
+
+// Styles
+const adContainerClass = computed(() => {
+    return ['flex items-center justify-center text-center font-semibold text-lg', `
+        text-surface-700/50 dark:text-gray-400/60
+        border-2 border-dashed border-surface-600/50 dark:border-gray-400/30 rounded-sm py-3
+        bg-surface-200/30 dark:bg-gray-700/30
+    `].join(' ')
 })
 
 </script>
@@ -131,12 +144,12 @@ watch(() => props.adType, (val) => {
 
         <div v-else-if="adType === 'html' && adHtml" v-html="adHtml" :style="adSize" />
 
-        <div v-else-if="adType === 'slot'" :style="adSize">
+        <div v-else-if="adType === 'slot' && adClientId && adSlotName" :style="adSize">
             <ins
                 ref="insEl"
                 class="adsbygoogle"
                 :style="adStyle ?? 'display:block'"
-                :data-ad-client="adClient"
+                :data-ad-client="adClientId"
                 :data-ad-slot="adSlotName"
                 :data-ad-format="adFormat ?? 'auto'"
                 :data-full-width-responsive="adResponsive ?? 'true'"
@@ -144,8 +157,7 @@ watch(() => props.adType, (val) => {
         </div>
 
         <slot v-else name="ad">
-            <div class="bg-surface-200 dark:bg-gray-700 rounded flex items-center justify-center text-surface-400 dark:text-gray-500"
-                :style="adSize"
+            <div :class="adContainerClass" :style="`${adSize}`"
             >{{ adText || t('app.ad.advertisement') }}</div>
         </slot>
     </div>
