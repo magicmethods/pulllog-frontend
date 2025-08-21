@@ -757,7 +757,7 @@ export default defineI18nLocale(async () => ({
             prev: 'Previous Step',
             next: 'Next Step',
             step1: {
-                title: 'Launch PullLog after drawing a gacha',
+                title: 'Launch PullLog',
                 imageCaption: '',
                 description: 'After drawing a gacha, launch PullLog to record your gacha history.',
             },
@@ -772,7 +772,7 @@ export default defineI18nLocale(async () => ({
                 description: 'You can easily record how to draw gacha and your history with just a few clicks.',
             },
             step4: {
-                title: 'Automatically Reflect in History & Statistics',
+                title: 'Automatically Reflect in Stats',
                 imageCaption: '',
                 description: 'Aggregated data and graphs are automatically generated and can be viewed at any time.',
             },

@@ -70,8 +70,7 @@ onMounted(async () => {
 // PassThrough
 const cardPT = {
     root: {
-        class: 'w-full h-auto p-0! gap-4 rounded-xl shadow-lg overflow-hidden!',
-        style: 'width: calc(calc(100% / 3) - 4rem);',
+        class: 'w-full! sm:w-[calc(calc(100%_/_2)_-_2rem)]! md:w-[calc(calc(100%_/_3)_-_4rem)]! h-auto p-0! gap-4 rounded-xl shadow-lg overflow-hidden!',
     },
     header: 'w-full! p-0 border-b border-surface-400 dark:border-gray-700 bg-white',
     body: 'items-center! gap-0!',

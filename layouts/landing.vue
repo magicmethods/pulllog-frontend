@@ -108,25 +108,27 @@ watch(
             <Meta name="google-adsense-account" :content="appConfig.adsenseAccount" />
         </Head>
         <header
-            class="sticky top-0 flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-600 z-50"
+            class="sticky top-0 w-full flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-600 z-50"
             scrolled="border-b border-surface-500 dark:border-gray-900 bg-transparent"
         >
             <NuxtLink to="/" class="text-2xl font-bold flex items-center gap-2">
                 <img src="/images/pulllog-icon.svg" alt="PullLog" class="h-8 w-8 ld ld-swim" />
-                <span class="tracking-tight">{{ t('app.name') }}</span>
+                <span class="hidden sm:inline-block tracking-tight">{{ t('app.name') }}</span>
             </NuxtLink>
             <nav class="flex m-0 p-0 items-center gap-2">
                 <NuxtLink
                     to="/auth/register"
-                    class="btn btn-primary mb-0 w-24 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
+                    class="btn btn-primary mb-0 w-8 sm:w-24 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
                 >
-                    {{ t('auth.register.pageName') }}
+                    <span class="pi pi-user-edit inline-block sm:hidden mr-2"></span>
+                    <span class="hidden sm:inline-block">{{ t('auth.register.pageName') }}</span>
                 </NuxtLink>
                 <NuxtLink
                     to="/auth/login"
-                    class="btn btn-primary mb-0 w-24 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
+                    class="btn btn-primary mb-0 w-8 sm:w-24 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
                 >
-                    {{ t('auth.login.pageName') }}
+                    <span class="pi pi-sign-in inline-block sm:hidden mr-2"></span>
+                    <span class="hidden sm:inline-block">{{ t('auth.login.pageName') }}</span>
                 </NuxtLink>
                 <Button
                     label=""
@@ -156,13 +158,13 @@ watch(
             </nav>
         </header>
 
-        <main class="flex-1 flex flex-col items-center justify-start p-0 bg-gradient-to-b from-primary-500 to-primary-100 dark:from-primary-600 dark:to-gray-900">
+        <main class="flex-1 flex flex-col items-center justify-start p-4 md:p-0 bg-gradient-to-b from-primary-500 to-primary-100 dark:from-primary-600 dark:to-gray-900">
             <slot />
         </main>
 
         <div id="landing-footer" class="h-max w-full bg-primary-100 text-surface-600 dark:bg-gray-900 dark:text-gray-400 text-sm">
             <div class="mx-auto py-4 flex flex-col justify-center items-center">
-                <ul class="list-none m-0 p-0 flex flex-col sm:flex-row gap-4 mb-2">
+                <ul class="list-none m-0 p-0 flex gap-4 mb-2">
                     <li class="mb-2">
                         <NuxtLink
                             @click.prevent="showPolicy = true"
@@ -204,6 +206,22 @@ watch(
                     </template>
                 </ul>
                 <p>&copy; {{ new Date().getFullYear() }} {{ t('app.name') }} Project by MAGIC METHODS</p>
+                <div class="flex items-center gap-6 mt-4 mb-0">
+                    <NuxtLink
+                        to="https://x.com/PullLog"
+                        class="text-surface-400"
+                    ><span class="pi pi-twitter"></span></NuxtLink>
+                    <NuxtLink
+                        v-if="appConfig.isDebug"
+                        to="https://www.reddit.com/user/pulllog"
+                        class="text-surface-400"
+                    ><span class="pi pi-reddit"></span></NuxtLink>
+                    <NuxtLink
+                        v-if="appConfig.isDebug"
+                        to="https://discord.com/invite/pulllog"
+                        class="text-surface-400"
+                    ><span class="pi pi-discord"></span></NuxtLink>
+                </div>
             </div>
         </div>
 

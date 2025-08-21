@@ -25,11 +25,11 @@ onMounted(async () => {
 // PassThrough
 const imagePT = (rootSizeClass?: string | null) => ({
   root: rootSizeClass ?? 'w-full h-auto',
-  image: 'w-full h-auto rounded-lg shadow-md',
+  image: 'w-auto h-auto rounded-lg shadow-md',
   previewIcon: 'text-primary-500 hover:text-primary-400',
   zoomInButton: 'hidden',
   zoomOutButton: 'hidden',
-  originalContainer: 'rounded-lg shadow-lg overflow-hidden',
+  originalContainer: 'mx-4 md:mx-auto rounded-lg shadow-lg overflow-hidden',
 })
 
 </script>
