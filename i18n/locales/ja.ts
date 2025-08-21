@@ -37,8 +37,16 @@ export default defineI18nLocale(async () => ({
             logsNotFound: '履歴データが見つかりません',
             importFailed: '履歴のインポートに失敗しました',
             statsNotFound: '統計データが見つかりません',
+            loadCurrencyFailed: '通貨データの読み込みに失敗しました',
             demoTitle: 'デモユーザーの制限',
             demoDetail: 'この機能はデモユーザーでは利用できません。',
+        },
+        word: {
+            pickup: 'ピックアップ',
+            lose: 'すり抜け',
+            target: '狙い',
+            guaranteed: '確定枠',
+            other: 'その他',
         },
         ad: {
             advertisement: '広告',
@@ -51,16 +59,6 @@ export default defineI18nLocale(async () => ({
         exampleApp3: 'FGO',
         exampleApp4: 'モンスト',
         exampleApp5: 'ウマ娘',
-        currency: {
-            jpy: '日本円',
-            jpyDesc: 'JPY - 円',
-            usd: '米ドル',
-            usdDesc: 'USD - ドル',
-            eur: 'ユーロ',
-            eurDesc: 'EUR - ユーロ',
-            cny: '人民元',
-            cnyDesc: 'CNY - 人民元',
-        },
         rarity: {
             ssr: 'SSR',
             sr: 'SR',
@@ -380,7 +378,8 @@ export default defineI18nLocale(async () => ({
                 expenseLabel: '課金額',
                 ratioLabel: 'の割合',
                 totalLabel: '合計',
-                currencyNote: '※ 課金額の通貨単位は最初に選択されたアプリに統一されます。',
+                currencyNote: '合計は通貨ごとに集計しています。為替換算は行いません。円グラフの割合は記録金額（expense_decimal）をそのまま用いています。',
+                currencyNoteLong: '複数通貨が含まれる場合、合計は通貨ごとに表示します。為替換算は行わず、円グラフの割合は記録金額（expense_decimal）を基に算出します。厳密な比較が必要な場合は単一通貨に絞るか、外部で換算してください。',
             },
             monthlyExpenseStack: {
                 titlePrefix: 'アプリの',
@@ -403,14 +402,10 @@ export default defineI18nLocale(async () => ({
                 titlePrefix: '{name}の',
                 titleLabel: '排出レア',
                 titleSuffix: '内訳比率',
-                pickup: 'ピックアップ',
-                lose: 'すり抜け',
-                target: '狙い',
-                guaranteed: '確定枠',
-                other: 'その他',
                 value: '{value}回 ({rate}%)',
                 total: 'レア排出数合計',
-                notice: '※ 内訳はアプリ設定の初期マーカー定義のみ有効です。',
+                notice: 'この内訳はプリセットのマーカーのみを対象としています。',
+                noticeLong: '内訳はプリセットで定義されているマーカー（例：ピックアップ、すり抜け、狙い、確定枠）のみ分類対象です。ユーザーが独自に定義したマーカーは認識されず、統計には反映されません。',
             },
             rareDropRanking: {
                 title: '{appName} のレア排出ランキング',
@@ -418,12 +413,8 @@ export default defineI18nLocale(async () => ({
                 itemName: 'アイテム名',
                 count: '排出数',
                 totalCount: '総排出数',
-                pickup: 'ピックアップ',
-                lose: 'すり抜け',
-                target: '狙い',
-                guaranteed: '確定枠',
-                other: 'その他',
-                note: '※ ランキングの内訳はアプリ設定の初期マーカー定義のみ集計されます。',
+                notice: 'ランキングの内訳はプリセットのマーカーのみを対象としています。',
+                noticeLong: 'ランキングはプリセットで定義されているマーカー（例：ピックアップ、すり抜け、狙い、確定枠）のみ分類対象です。ユーザーが独自に定義したマーカーは認識されず、すべて「その他」に分類されます。',
             },
         },
         loading: {
@@ -784,27 +775,35 @@ export default defineI18nLocale(async () => ({
             },
         },
         statistics: {
-            title: 'どんな統計分析ができるの？',
-            description: 'PullLogは、ガチャ履歴と支出に関する詳細な統計情報を提供し、パフォーマンスや傾向を分析できるようにします。',
+            title: 'どんな統計が見られるの？',
+            description: 'PullLogではガチャの履歴や課金額をグラフでわかりやすくチェックできます。自分の運や傾向を気軽に振り返ろう！',
             stat1: {
-                title: '総引き数',
-                value: '100'
+                title: '課金割合',
+                describe: 'どのアプリにどれだけ使ったかをひと目で確認。'
             },
             stat2: {
-                title: '総支出',
-                value: '10,000円'
+                title: '月ごとの課金',
+                describe: '毎月の課金額をグラフで表示。使いすぎ防止にも。'
             },
             stat3: {
-                title: '平均レアリティ',
-                value: '5.0'
+                title: '運の流れ',
+                describe: 'レアが出やすい時期や出にくい時期をチェック！'
             },
             stat4: {
-                title: 'レアドロップ数',
-                value: '20'
+                title: 'ガチャ回数と排出率',
+                describe: '回数やレアの出現率を実際の数値で比較できる。'
             },
             stat5: {
-                title: 'レアドロップ率',
-                value: '20%'
+                title: 'レア排出の内訳',
+                describe: '狙いのレアとすり抜けのどちらが多いのかなど、どう出たかを分析。'
+            },
+            stat6: {
+                title: 'レアドロップランキング',
+                describe: 'よく当たるキャラやアイテムをランキング形式で表示。'
+            },
+            stat7: {
+                title: '履歴の推移',
+                describe: 'これまでのガチャの歩みをまとめて振り返ろう。'
             },
         },
         footer: {

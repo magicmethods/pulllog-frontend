@@ -239,7 +239,7 @@ export const ptPreset = {
 
     // --- Avatar --- (Header.vue, settings.vue)
     Avatar: {
-        root: 'bg-surface-200 text-primary-600 dark:bg-gray-700 dark:text-primary-400 font-bold',
+        root: 'bg-surface-200 dark:bg-gray-700 surface-200 text-primary-600 dark:text-primary-400 font-bold',
     },
 
     // --- Drawer --- (default.vue)

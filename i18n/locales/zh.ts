@@ -37,8 +37,16 @@ export default defineI18nLocale(async () => ({
             logsNotFound: '未找到历史数据。',
             importFailed: '导入失败。',
             statsNotFound: '未找到统计数据。',
+            loadCurrencyFailed: '未能加载货币数据。',
             demoTitle: '演示用户限制',
             demoDetail: '此功能不适用于演示用户。',
+        },
+        word: {
+            pickup: '捡起',
+            lose: '歪了（非捡起）',
+            target: '目标',
+            guaranteed: '保底',
+            other: '其他',
         },
         ad: {
             advertisement: '广告',
@@ -51,16 +59,6 @@ export default defineI18nLocale(async () => ({
         exampleApp3: 'FGO',
         exampleApp4: '怪物弹珠',
         exampleApp5: '赛马娘',
-        currency: {
-            jpy: '日元',
-            jpyDesc: 'JPY - 日元',
-            usd: '美元',
-            usdDesc: 'USD - 美元',
-            eur: '欧元',
-            eurDesc: 'EUR - 欧元',
-            cny: '人民币',
-            cnyDesc: 'CNY - 人民币',
-        },
         rarity: {
             ssr: 'SSR',
             sr: 'SR',
@@ -68,8 +66,8 @@ export default defineI18nLocale(async () => ({
             threeStars: '⭐3',
         },
         symbol: {
-            pickup: '🏆限定UP',
-            lose: '💔歪了（非UP）',
+            pickup: '🏆捡起',
+            lose: '💔歪了（非捡起）',
             target: '🎯目标',
             guaranteed: '💖保底',
         },
@@ -383,7 +381,8 @@ export default defineI18nLocale(async () => ({
                 expenseLabel: '消费金额',
                 ratioLabel: '占比',
                 totalLabel: '总计',
-                currencyNote: '※ 所有应用的消费金额单位将以最先选择的应用为准。',
+                currencyNote: '总额按货币分别汇总，不进行汇率换算。饼图比例基于记录金额（expense_decimal）原值计算。',
+                currencyNoteLong: '含有多种货币时，总额按货币分别显示。不做汇率换算，饼图比例基于记录金额（expense_decimal）。若需严格比较，请筛选为单一货币或在外部换算。',
             },
             monthlyExpenseStack: {
                 titlePrefix: '应用',
@@ -406,14 +405,10 @@ export default defineI18nLocale(async () => ({
                 titlePrefix: '{name}',
                 titleLabel: '稀有掉落',
                 titleSuffix: '细分占比',
-                pickup: '捡起',
-                lose: '歪了（非捡起）',
-                target: '目标',
-                guaranteed: '保底',
-                other: '其他',
                 value: '{value}次 ({rate}%)',
                 total: '稀有掉落总数',
-                notice: '※ 仅统计应用设置中的初始标记定义。',
+                notice: '此分类仅包含预设的标记。',
+                noticeLong: '此分类只会统计符合预设标记定义的掉落（例如：捡起、歪了、目标、保底）。用户自定义的标记不会被识别，也不会显示在统计中。',
             },
             rareDropRanking: {
                 title: '{appName} 稀有掉落排行',
@@ -421,12 +416,8 @@ export default defineI18nLocale(async () => ({
                 itemName: '名称',
                 count: '数量',
                 totalCount: '总数',
-                pickup: '限定UP',
-                lose: '歪了（非UP）',
-                target: '目标',
-                guaranteed: '保底',
-                other: '其他',
-                note: '※ 排行细分仅统计应用设置的初始标记定义。',
+                notice: "排行榜的分类仅包含预设的标记。",
+                noticeLong: "排行榜只会按照预设的标记定义（例如：捡起、歪了、目标、保底）进行分类。用户自定义的标记不会被识别，将全部归入“其他”。",
             },
         },
         loading: {
@@ -782,27 +773,35 @@ export default defineI18nLocale(async () => ({
             },
         },
         statistics: {
-            title: '有哪些统计数据？',
-            description: 'PullLog提供有关您的抽卡历史和支出的详细统计信息，使您能够分析性能和趋势。',
+            title: '有哪些统计功能？',
+            description: 'PullLog 为您的抽卡记录和消费提供详细的洞察，帮助您跟踪习惯、发现趋势，并更好地理解自己的运气变化。',
             stat1: {
-                title: '总抽卡次数',
-                value: '100'
+                title: '消费比例',
+                describe: '查看不同游戏和应用的支出占比。'
             },
             stat2: {
-                title: '总支出',
-                value: '10,000 JPY'
+                title: '月度消费',
+                describe: '直观展示每月消费，一眼发现支出模式。'
             },
             stat3: {
-                title: '平均每次抽卡支出',
-                value: '5.0'
+                title: '运气趋势',
+                describe: '跟踪长期的稀有掉落率，了解运气随时间的变化。'
             },
             stat4: {
-                title: '稀有掉落次数',
-                value: '20'
+                title: '抽卡次数与稀有率',
+                describe: '对比总抽卡次数、稀有掉落数量与期望概率。'
             },
             stat5: {
-                title: '稀有掉落率',
-                value: '20%'
+                title: '稀有掉落内部分布',
+                describe: '按类别（如限定、保底等）分析稀有掉落情况。'
+            },
+            stat6: {
+                title: '稀有掉落排行',
+                describe: '以排行榜形式展示您最常获得的稀有角色或物品。'
+            },
+            stat7: {
+                title: '历史趋势',
+                describe: '回顾完整的抽卡历史，了解长期规律和重要节点。'
             },
         },
         footer: {

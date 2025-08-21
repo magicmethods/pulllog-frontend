@@ -18,11 +18,11 @@ const { t } = useI18n()
 
 // Refs & Local State
 const labelList = computed<string[]>(() => ([
-    t('stats.chart.rareDropBreakdown.pickup'),
-    t('stats.chart.rareDropBreakdown.lose'),
-    t('stats.chart.rareDropBreakdown.target'),
-    t('stats.chart.rareDropBreakdown.guaranteed'),
-    t('stats.chart.rareDropBreakdown.other'),
+    t('app.word.pickup'),
+    t('app.word.lose'),
+    t('app.word.target'),
+    t('app.word.guaranteed'),
+    t('app.word.other'),
 ]))
 const breakdownData = computed(() => {
     const app = props.data.find(item => item.appId === props.appId)
@@ -145,6 +145,19 @@ const chartOptions = computed(() => ({
     }
 }))
 
+// ツールチップを表示する
+function showTooltip() {
+    return {
+        value: t('stats.chart.rareDropBreakdown.noticeLong'),
+        escape: false,
+        pt: {
+            root: 'pt-1',
+            text: 'w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs',
+            arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
+        }
+    }
+}
+
 </script>
 
 <template>
@@ -186,8 +199,12 @@ const chartOptions = computed(() => ({
                 <span class="font-semibold mr-2">{{ t('stats.chart.rareDropBreakdown.total') }}:</span>
                 <span class="font-semibold text-primary-600 dark:text-primary-400">{{ breakdownData.total.toLocaleString() }}</span>
             </div>
-            <div class="md:max-w-[440px] text-xs text-gray-500 dark:text-gray-400 break-all">
-                {{ t('stats.chart.rareDropBreakdown.notice') }}
+
+            <div class="flex items-center gap-1 mt-4 max-w-full md:max-w-[440px]" v-tooltip.bottom="showTooltip()">
+                <i class="pi pi-info-circle text-sm text-blue-600 dark:text-blue-500"></i>
+                <div class="text-xs text-blue-600 dark:text-blue-500">
+                    {{ t('stats.chart.rareDropBreakdown.notice') }}
+                </div>
             </div>
         </template>
     </Card>

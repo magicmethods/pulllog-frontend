@@ -94,7 +94,7 @@ const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded tex
             <Avatar
                 v-bind="avatarProps()"
                 @click="$emit('open-settings')"
-                class="-my-2 cursor-pointer hover:opacity-80 transition-opacity duration-200 ease-in-out"
+                class="-my-2 bg-surface-200/60 dark:bg-gray-800/50 cursor-pointer hover:opacity-80 transition-opacity duration-200 ease-in-out"
             />
         </div>
     </header>

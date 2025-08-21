@@ -4,6 +4,7 @@ import { DateTime } from 'luxon'
 import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
+import { useToast } from "primevue/usetoast"
 
 // Props & Emits
 const props = defineProps<{
@@ -12,11 +13,15 @@ const props = defineProps<{
     /** 変更可能なチャート範囲の定義 */
     ranges?: RangeOption[] // 未指定時はデフォルト範囲 DEFAULT_RANGES
 }>()
+const emit = defineEmits<
+    (e: 'select-date', date: string) => void
+>()
 
 // Stores etc.
 const userStore = useUserStore()
 const appStore = useAppStore()
 const logStore = useLogStore()
+const toast = useToast()
 const { t } = useI18n()
 
 // Refs & Local variables
@@ -43,6 +48,7 @@ const guaranteeCount = computed<number | undefined>(() => {
         ? appData.guarantee_count
         : undefined
 })
+const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
 
 // Methods
 async function loadChartData() {
@@ -60,14 +66,29 @@ async function loadChartData() {
         date: log.date,
         total_pulls: log.total_pulls,
         rare_pulls: log.discharge_items,
-        expense: log.expense
+        expense: log.expense_decimal ?? 0, // expense_decimalを使用
     }))
     chartReloadKey.value++
     console.log('HistoryChart::loadChartData:', chartData.value)
 }
 function changeRange(range: string) {
+    if (isDemoUser.value) return abortDemo()
     const found = internalRanges.value.find(r => r.value === range)
     if (found) currentRange.value = found
+}
+function abortDemo() {
+    // デモユーザーの場合は何もしない
+    toast.add({
+        severity: 'warn',
+        summary: t('app.error.demoTitle'),
+        detail: t('app.error.demoDetail'),
+        group: 'notices',
+        life: 2500,
+    })
+    return
+}
+function onBarClick(date: string) {
+  emit('select-date', date) // 親（history.vue）へ
 }
 
 // Watchers
@@ -118,6 +139,7 @@ watch(
                 :guaranteeCount="guaranteeCount"
                 :key="chartReloadKey"
                 class="w-full h-64"
+                @bar-click="onBarClick"
             />
             <div v-else class="text-center text-muted text-antialiasing">
                 <span v-if="!internalAppId">{{ $t('history.historyChart.selectApp') }}</span>

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 import { useI18n } from 'vue-i18n'
+import { DateTime } from 'luxon'
 import { useChartPalette } from '~/composables/useChart'
 import { getLabelsAndMap } from '~/utils/date'
-import { getCurrencyData, getExpenseStepSize, getExpenseYAxisMax } from '~/utils/currency'
+import type { Chart as ChartJS, ChartEvent, ActiveElement } from 'chart.js'
 
 // Props & Emits
 const props = defineProps<{
@@ -11,17 +13,40 @@ const props = defineProps<{
     currencyCode: string // アプリごとの通貨コード
     guaranteeCount?: number // 天井回数（オプション、指定があれば表示）
 }>()
+const emit = defineEmits<
+  (e: 'bar-click', date: string) => void
+>()
 
-// i18n
+// Stores & i18n
+const currencyStore = useCurrencyStore()
 const { t } = useI18n()
 
 // Composables
 const { palette } = useChartPalette()
 
 // X軸ラベル・グラフ用データ配列
-const { labels, points } = getLabelsAndMap(props.chartData, props.range)
+//const { labels, points } = getLabelsAndMap(props.chartData, props.range)
+// ラベルとプロット点は props 依存で再計算
+const mapped = computed(() => getLabelsAndMap(props.chartData, props.range))
+const labels = computed(() => mapped.value.labels)
+const points = computed(() => mapped.value.points)
+
+// ChartJS インスタンス
+const chartIns = ref<ChartJS | null>(null)
+function onChartReady(chart: ChartJS) {
+  chartIns.value = chart
+  const canvas = chart.canvas
+  if (canvas) {
+    canvas.addEventListener('mouseleave', () => {
+      canvas.style.cursor = 'default'
+    })
+  }
+}
+// ホバー中のインデックス（tooltip.externalで更新）
+const hoverIndex = ref<number | null>(null)
+
 const currencySymbol = computed(() => {
-    const cd = getCurrencyData(props.currencyCode)
+    const cd = currencyStore.get(props.currencyCode)
     return cd ? cd.symbol_native : ''
 })
 // グラフデータ
@@ -30,7 +55,7 @@ const datasets = computed(() => [
         type: 'line' as const,
         label: t('history.historyChart.expense', { currency: currencySymbol.value }),
         yAxisID: 'y1',
-        data: points.map(d => Number(d.expense || 0)),
+        data: points.value.map(d => Number(d.expense || 0)),
         borderColor: palette.value.expense,
         backgroundColor: palette.value.expense,
         tension: 0.1,
@@ -41,14 +66,14 @@ const datasets = computed(() => [
         type: 'bar' as const,
         label: t('history.historyChart.other'),
         stack: 'pulls',
-        data: points.map(d => Number(d.total_pulls || 0) - Number(d.rare_pulls || 0)),
+        data: points.value.map(d => Number(d.total_pulls || 0) - Number(d.rare_pulls || 0)),
         backgroundColor: palette.value.other,
     },
     {
         type: 'bar' as const,
         label: t('history.historyChart.rare'),
         stack: 'pulls',
-        data: points.map(d => Number(d.rare_pulls || 0)),
+        data: points.value.map(d => Number(d.rare_pulls || 0)),
         backgroundColor: palette.value.rare,
     },
 ])
@@ -57,7 +82,7 @@ const datasets = computed(() => [
 const pityAnnotations = computed(() => {
     if (!props.guaranteeCount) return {}
     // y軸最大値の計算
-    const yMax = calcYAxisMax(points, 'total_pulls', 20)
+    const yMax = calcYAxisMax(points.value, 'total_pulls', 20)
     const interval = props.guaranteeCount
     // biome-ignore lint:/suspicious/noExplicitAny chartjs-plugin-annotation用の型
     const annotations: Record<string, any> = {}
@@ -83,10 +108,69 @@ const pityAnnotations = computed(() => {
     return annotations
 })
 
+// クリック/ホバー制御
+function emitIsoDateByIndex(idx: number) {
+  // 1) points[idx].date があれば最優先（サーバ由来のISO日付）
+  const p = points.value[idx] as { date?: string } | undefined
+  if (p && typeof p.date === 'string' && p.date.length > 0) {
+    emit('bar-click', p.date)
+    return
+  }
+  // 2) インデックス→今日を終端に逆算（年跨ぎも確実）
+  const end = DateTime.now().startOf('day') // 局所タイムゾーン
+  const offset = labels.value.length - 1 - idx
+  if (offset >= 0) {
+    const iso = end.minus({ days: offset }).toISODate()
+    if (iso) {
+      emit('bar-click', iso)
+      return
+    }
+  }
+  // 3) ラベル M/D をパースし、今日より大きければ前年扱い
+  const lbl = labels.value[idx]
+  const byLabel = parseMonthDayToISO(lbl, end)
+  if (byLabel) {
+    emit('bar-click', byLabel)
+  }
+}
+/*
+function handleChartClick(evt: ChartEvent, active: ActiveElement[], chart?: ChartJS) {
+    //console.log('HistoryChart::handleChartClick:', evt, active, chart)
+    if (!active || active.length === 0) return
+    const first = active[0]
+    const idx = typeof first.index === 'number' ? first.index : -1
+    //console.log('HistoryChart::handleChartClick[2]:', first, idx)
+    if (idx < 0) return
+    const allLabels = (chart?.data?.labels ?? []) as string[]
+    const date = allLabels[idx]
+    console.log('HistoryChart::handleChartClick[3]:', date, DateTime.fromISO(date).toFormat('yyyy-MM-dd'))
+    if (typeof date === 'string' && date.length > 0) {
+        emit('bar-click', date) // YYYY-MM-DD を親へ
+    }
+}*/
+function handleChartClick(evt: ChartEvent, active: ActiveElement[], chart?: ChartJS) {
+    // active が無いケースは最後に hoverIndex を使う
+    let idx = (active && active.length > 0) ? active[0].index : null
+    if (idx === null || typeof idx !== 'number') {
+        idx = hoverIndex.value
+    }
+    if (typeof idx === 'number' && idx >= 0 && idx < labels.value.length) {
+        emitIsoDateByIndex(idx)
+    }
+    if (chart?.canvas) chart.canvas.style.cursor = 'default'
+}
+function handleChartHover(evt: ChartEvent, active: ActiveElement[], chart?: ChartJS) {
+    const canvas = chart?.canvas
+    if (!canvas) return
+    canvas.style.cursor = active && active.length > 0 ? 'pointer' : 'default'
+}
+
 const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
     interaction: { mode: 'index' as const, intersect: false },
+    onClick: handleChartClick,
+    //onHover: handleChartHover,
     plugins: {
         legend: {
             position: 'bottom', // 凡例は下部
@@ -118,6 +202,21 @@ const chartOptions = computed(() => ({
                 // biome-ignore lint:/suspicious/noExplicitAny
                 a: any, b: any
             ) => b.datasetIndex - a.datasetIndex, // 項目を逆順に
+            // biome-ignore lint:/suspicious/noExplicitAny
+            external: (ctx: any) => {
+                // ctx.tooltip.title -> ['8/9'] のような配列
+                const chart: ChartJS | undefined = ctx?.chart
+                const tip = ctx?.tooltip
+                const canvas = chart?.canvas
+                if (canvas && tip) {
+                    // tooltip が出ている間だけ pointer、消えたら default
+                    const visible = !(tip.opacity === 0) // typeof tip.opacity === 'number' ? tip.opacity > 0 : false
+                    canvas.style.cursor = visible ? 'pointer' : 'default'
+                    // ホバー中の index を保持（クリックのフォールバック用）
+                    const dp = Array.isArray(tip.dataPoints) && tip.dataPoints.length > 0 ? tip.dataPoints[0] : undefined
+                    hoverIndex.value = typeof dp?.dataIndex === 'number' ? dp.dataIndex : null
+                }
+            }
         },
         annotation: {
             annotations: {
@@ -130,7 +229,7 @@ const chartOptions = computed(() => ({
             beginAtZero: true,
             stacked: true,
             position: 'left' as const,
-            max: calcYAxisMax(points, 'total_pulls', 20), // 最大値自動計算
+            max: calcYAxisMax(points.value, 'total_pulls', 20), // 最大値自動計算
             ticks: {
                 stepSize: 10,
                 color: palette.value.text,
@@ -143,9 +242,9 @@ const chartOptions = computed(() => ({
         y1: {
             beginAtZero: true,
             position: 'right' as const,
-            max: getExpenseYAxisMax(calcYAxisMax(points, 'expense'), props.currencyCode),
+            max: currencyStore.getYAxisMax(calcYAxisMax(points.value, 'expense'), props.currencyCode),
             ticks: {
-                stepSize: getExpenseStepSize(props.currencyCode),
+                stepSize: currencyStore.getStepSize(props.currencyCode),
                 color: palette.value.text,
                 font: { size: 12 },
                 callback: (v: string | number) => v.toLocaleString(),
@@ -158,7 +257,7 @@ const chartOptions = computed(() => ({
             stacked: true,
             ticks: {
                 autoSkip: true,
-                maxTicksLimit: labels.length > 12 ? 12 : labels.length,
+                maxTicksLimit: labels.value.length > 12 ? 12 : labels.value.length,
                 maxRotation: 90,
                 minRotation: 30,
                 color: palette.value.text,
@@ -171,7 +270,7 @@ const chartOptions = computed(() => ({
     }
 }))
 const chartData = computed(() => ({
-    labels,
+    labels: labels.value,
     datasets: datasets.value
 }))
 
@@ -206,6 +305,19 @@ function calcYAxisMax(
     }
     return yMax
 }
+/** 'M/D' → 'YYYY-MM-DD'（今日より大きい月日は前年扱い） */
+function parseMonthDayToISO(md: string, today: DateTime): string | null {
+    const m = md.match(/^(\d{1,2})\/(\d{1,2})$/)
+    if (!m) return null
+    const month = Number(m[1])
+    const day = Number(m[2])
+    if (Number.isNaN(month) || Number.isNaN(day)) return null
+    const mdVal = month * 100 + day
+    const todayVal = today.month * 100 + today.day
+    const year = mdVal > todayVal ? today.year - 1 : today.year
+    const dt = DateTime.local(year, month, day).startOf('day')
+    return dt.isValid ? dt.toISODate() : null
+}
 
 </script>
 
@@ -215,6 +327,14 @@ function calcYAxisMax(
             type="bar"
             :data="chartData"
             :options="chartOptions"
+            @chartReady="onChartReady"
         />
     </div>
 </template>
+
+<style lang="scss" scoped>
+/* 補助: Chart.js のキャンバスは onHover で cursor 切替済みだが、初期値だけ明示 */
+:deep(canvas) {
+    cursor: default;
+}
+</style>

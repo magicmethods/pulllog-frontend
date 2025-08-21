@@ -246,20 +246,8 @@ watch(
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        /*
-        adItems: [
-            { image: '/sample/ad_9.png',  link: 'https://example.com', alt: '広告9 (728x90)' },
-            { image: '/sample/ad_10.png', link: 'https://example.com', alt: '広告10 (728x90)' },
-            { image: '/sample/ad_11.png', link: 'https://example.com', alt: '広告11 (728x90)' }
-        ],
-        adType: 'carousel',
-        */
-        adHeight: 90,
-        /*
-        adType: 'slot',
-        adClient: 'ca-pub-8602791446931111',
-        adSlotName: '8956575261',
-        */
+        adType: 'none',
+        //adHeight: 90,
     },
 }
 

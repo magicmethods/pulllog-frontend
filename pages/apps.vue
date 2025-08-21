@@ -12,6 +12,8 @@ import type { MenuItem } from 'primevue/menuitem'
 import { downloadFile } from '~/utils/file'
 import { formatText } from '~/utils/string'
 
+definePageMeta({ requiresCurrency: true })
+
 type AppStats = Map<string, Partial<StatsData>> // キーはアプリID、値は統計データの一部
 
 // Stores
@@ -357,36 +359,12 @@ const tooltipPT = {
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        /*
-        adItems: [
-            { image: '/sample/ad_1.jpg',  link: 'https://example.com', alt: '広告1 (500x220)' },
-            { image: '/sample/ad_12.jpg', link: 'https://example.com', alt: '広告12 (1440x550)' },
-            { image: '/sample/ad_13.jpg', link: 'https://example.com', alt: '広告13 (1200x675)' },
-        ],
-        adType: 'image',
-        */
-        adHeight: 90,
-        /*
-        adType: 'slot',
-        //adClient: 'ca-pub-8602791446931111',
-        adSlotName: '8956575261',
-        */
+        adType: 'none',
+        //adHeight: 90,
     },
     bottom: {
-        /*
-        adItems: [
-            { image: '/sample/ad_9.png',  link: 'https://example.com/?ad=9',  alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: 'リーダーボード広告 (728x90)' },
-            { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: 'リーダーボード広告 (728x90)' },
-        ],
-        adType: 'carousel',
-        */
-        adHeight: 90,// must set carousel height
-        /*
-        adType: 'slot',
-        //adClient: 'ca-pub-8602791446931111',
-        adSlotName: '5664134061',
-        */
+        adType: 'none',
+        //adHeight: 90,
     }
 }
 
@@ -422,7 +400,7 @@ const adConfig: Record<string, AdProps> = {
                         >
                             <template #header>
                                 <div class="flex items-center gap-4">
-                                    <Avatar :image="fetchWebIcon(app.url ?? '')" size="large" shape="square" :pt="{ root:'min-w-[48px] rounded-lg overflow-hidden' }" />
+                                    <Avatar :image="fetchWebIcon(app.url ?? '')" size="large" shape="square" :pt="{ root:'min-w-[48px] bg-transparent dark:bg-transparent rounded-lg overflow-hidden' }" />
                                     <span class="font-bold">{{ app.name }}</span>
                                 </div>
                             </template>
@@ -482,7 +460,7 @@ const adConfig: Record<string, AdProps> = {
                     <Panel :pt="{ root: 'bg-transparent' }">
                         <template #header>
                             <div class="flex items-center gap-4">
-                                <Avatar icon="pi pi-plus" size="large" shape="square" :pt="{ root: 'text-surface-400 dark:text-gray-500!' }" />
+                                <Avatar icon="pi pi-plus" size="large" shape="square" :pt="{ root: 'bg-surface-200 dark:bg-gray-700 text-surface-400 dark:text-gray-500!' }" />
                                 <span class="font-semibold text-surface-500 dark:text-gray-400">{{ t('apps.addNew') }}</span>
                             </div>
                         </template>

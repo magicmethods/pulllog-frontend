@@ -3,9 +3,11 @@
 個人のガチャ履歴を記録・管理するWebアプリ「PullLog」のフロントエンドリポジトリです。  
 本アプリはNuxt.js 3 + PrimeVue 4 + Pinia 3 + TailwindCSS 4 + TypeScript + Luxon + Chart.jsを中心技術として構築されています。
 
-## デモ・スクリーンショット
+#### スクリーンショット
 
-（※適宜スクリーンショット画像を追加）
+| ![アプリ管理](./public/images/gallery-image1.png "アプリ管理") | ![履歴管理](./public/images/gallery-image2.png "履歴登録・管理") | ![統計・分析](./public/images/gallery-image3.png "統計・分析") |
+|:---:|:---:|:---:|
+| アプリ管理 | 履歴登録・管理  | 統計・分析 |
 
 ---
 
@@ -19,6 +21,7 @@
 - [ストア責務分離方針](#ストア責務分離方針)
 - [コーディング規約](#コーディング規約)
 - [開発・運用Tips](#開発運用tips)
+- [デプロイ・ホスティング](#デプロイ・ホスティング)
 - [ライセンス](#ライセンス)
 - [コントリビューション](#コントリビューション)
 - [関連リンク](#関連リンク)
@@ -35,6 +38,8 @@
 - Zodを使った型安全なフォームバリデーション
 - SCSSによる柔軟なカスタムスタイリング
 - テーマ切り替え（ダーク／ライト）機能
+- UIの言語切り替え（日本語／英語／中国語）機能（※ v1時点）
+- ソーシャルログイン対応（※ v1時点では Google OAuth のみ）
 - 認証付き・API連携（詳細はサーバーリポジトリ参照）
 
 ---
@@ -61,7 +66,7 @@
 
 ### 1. 必須環境
 
-- Node.js (v20推奨)
+- Node.js (v20以上推奨)
 - pnpm
 
 ### 2. .envファイルの作成
@@ -74,10 +79,18 @@
 APP_NAME=PullLog
 APP_VERSION=0.9.0
 COPYRIGHT=© 2025 MAGIC METHODS
+DEFAULT_LOCALE=en
 
 API_BASE_URL=http://localhost:3000/api
 API_PROXY=/api
 SECRET_API_KEY=foo-bar-1234
+
+GA_ID=G-xxxxxxxxxx
+GOOGLE_ADSENSE_ACCOUNT=ca-pub-xxxxxxxxxxxxxxxx
+GOOGLE_CLIENT_ID=xxxxxxxxxx-xxxxxxxxxx.apps.googleusercontent.com
+
+DEMO_EMAIL=
+DEMO_PASSWORD=
 
 IS_DEBUG=true
 MOCK_MODE=false
@@ -102,6 +115,7 @@ pnpm run dev
 - APIバックエンド（pullog-api等）も別途起動しておいてください
 - **APIエンドポイント（例： `/api/` など）へのリクエストは、フロントエンドからバックエンドサーバへプロキシ経由（ `nuxt.config.ts` で設定）で自動ルーティングされます。**  
 ローカル開発時は `API_BASE_URL` の設定やCORS制御の心配なく利用できます。本番ビルド時は実サーバ用のAPI URLを `app.config.ts` で指定してください。
+- VHOST設定等で localhost 以外のホストを利用すると Google OAuth が失敗するため、ソーシャル連携ログインをする場合のホスト名は localhost 固定化が必須です。
 
 ### 5. 本番ビルド
 
@@ -119,28 +133,39 @@ pnpm run preview
 ```plaintext
 /
 ├── components/         # Vueコンポーネント群
-│    ├── common/       # 共通コンポーネント群
 │    ├── chart/        # 個別グラフコンポーネント群
+│    ├── common/       # 共通コンポーネント群
 │    └── ***.vue       # 各種コンポーネント
 ├── composables/        # カスタムフック・共通ロジック
+│    ├── useAdManager.ts
 │    ├── useAPI.ts     # API制御コンポーザブル
 │    ├── useAuth.ts    # 認証制御コンポーザブル
 │    ├── useChart.ts   # グラフ制御コンポーザブル
+│    ├── useConfig.ts
+│    ├── useConsent.ts
+│    ├── useGoogleAuth.ts
+│    ├── useMarkdownContent.ts
+│    ├── usePkce.ts
+│    ├── useStats.ts
 │    └── useWebIcon.ts # Webアイコン制御コンポーザブル
 ├── config/             # アプリ設定（リポジトリ管理下からは除外）
 ├── directives/         # Vueディレクティブ拡張
+├── i18n/               # ロケール定義
+│    └── locales/      # 言語ファイル群
 ├── layouts/            # レイアウトファイル
 │    ├── auth.vue      # 認証画面系レイアウト
 │    ├── default.vue   # アプリ画面レイアウト
 │    ├── error.vue     # エラー画面レイアウト
 │    └── landing.vue   # ランディングページレイアウト
 ├── middleware/         # ミドルウェア（認証ガード等）
-├── pages/              # ルーティング単位Vue
-│    ├── auth/         # 認証系ルーティング
+├── pages/              # ルーティング単位ページテンプレート
+│    ├── auth/         # 非認証系ルーティングページ
+│    ├── error/        # エラー系ルーティングページ
 │    ├── index.vue     # ランディングページ
-│    └── ***.vue       # 認証後ルーティング（アプリ本体）
+│    └── ***.vue       # 認証済みルーティングページ
+├── plugins/            # 各種プラグイン
 ├── public/             # 静的ファイル
-│    ├── docs/         # 各種文書Markdown群
+│    ├── docs/         # 各種文書Markdown群（利用規約など）
 │    └── images/       # 公開用画像群
 ├── stores/             # Piniaストア定義
 │    ├── globalStore.ts    # グローバルストア
@@ -156,15 +181,15 @@ pnpm run preview
 │    └── ptPreset.ts   # 各コンポーネントPassThrough定義
 ├── types/              # 型定義
 ├── utils/              # 共通ユーティリティ
-├── assets/             # SCSS/画像
+├── assets/styles/      # ビルトインスタイル群
 │    ├── index.scss    # オーバーライドスタイルインポータ―
 │    ├── _***.scss     # 各種オーバーライドスタイル定義
 │    ├── tailwind_v4.scss # TailwindCSS拡張スタイルインポータ―
 │    └── _twe-***.scss # 各種TailwindCSS拡張スタイル定義
 ├── api/                # API定義
-│    ├── endpoints.ts  # RESTエンドポイント定義
+│    ├── endpoints.ts  # RESTエンドポイント定義（APIプロキシまで）
 │    └── index.ts      # サービスレイヤー用ラッパーメソッド（未使用）
-├── server/             # サーバーサイド処理
+├── server/             # サーバーサイド処理（Nitro用）
 │    ├── api/          # APIプロキシ（RESTエンドポイント準拠）
 │    │    ├─ apps/
 │    │    ├─ auth/
@@ -173,6 +198,7 @@ pnpm run preview
 │    │    ├─ user/
 │    │    └─ [...path].ts # APIプロキシ・フォールバック
 │    └── utils/        # APIプロキシ用ユーティリティ
+├── .env                # 環境設定
 ├── app.vue             # アプリケーションコンテナ
 ├── app.config.ts       # Nuxtアプリ設定
 ├── tailwind.config.ts  # TailwindCSS設定
@@ -196,15 +222,18 @@ pnpm run preview
   - `useLoaderStore`: グローバルローディング状態管理
   - `globalStore`: 他で使わないグローバルな値の一時保持
 - **型安全**  
-すべてTypeScriptで実装、`any` や非nullアサーション（`!`）は（原則）禁止。型定義は `types/` へ集約。
+すべて TypeScript で実装、`any` や非nullアサーション（`!`）は（原則）禁止。型定義は `types/` へ集約し、 `declare global {...}` でオートインポートに対応させる。
 - **日付管理**  
-Luxonを利用し、全てISO8601文字列またはDate型で厳密管理。
+Luxon を利用し、全て ISO8601 文字列または Date 型で厳密管理。
 - **グラフ**  
-Chart.jsを直接ラップした共通コンポーネントを用意し、テーマ切り替え時もリアルタイム反映。
+Chart.js を直接ラップした共通コンポーネントを用意し、テーマ切り替え時もリアルタイム反映。
 - **フォームバリデーション**  
-PrimeVueのFormは使用せず、Zodによるバリデーションのみ使用。
+PrimeVue の Form は使用せず、 Zod によるバリデーションのみ使用。
 - **SCSSスタイル**  
-`assets/styles` 配下にSCSSで記述。TailwindCSSで基本設計し、細かい上書きはSCSSで。
+`assets/styles` 配下にSCSSで記述。TailwindCSSで基本設計し、細かい上書きはSCSSで。  
+原則コンポーネント側にスタイルタグ（scoped）は埋め込まず、必要に応じて PrimeVue の PassThrough や `computed` で対応する。
+- **ロケール**
+i18n によるロケール管理を行い、View側のコードは原則として `t()` メソッドでの翻訳テキスト引き当て方式で記述する。
 
 ---
 
@@ -213,9 +242,9 @@ PrimeVueのFormは使用せず、Zodによるバリデーションのみ使用�
 - **状態管理の粒度：**  
 1つのストアに複数の責務を持たせず、担当範囲を限定
 - **キャッシュ制御：**  
-不要なキャッシュは必ず破棄。エラー時や未取得データはキャッシュしない（特に空配列キャッシュに注意）。
+不要なキャッシュは必ず破棄。エラー時や未取得データはキャッシュしない（特に空配列キャッシュに注意）
 - **再利用性・テスタビリティ：**  
-ロジックはPiniaストアかcomposablesに集約し、VueコンポーネントはUIに専念させる
+ロジックは Pinia ストアか composables に集約し、Vueコンポーネントは出来る限りUIに専念させる
 
 ---
 
@@ -252,6 +281,18 @@ PrimeVueのFormは使用せず、Zodによるバリデーションのみ使用�
 
 ---
 
+## デプロイ・ホスティング
+
+mainブランチへのpush時に本番ビルドが行われ、ホスト先である Cloudflare に自動でデプロイされます。  
+
+- 以下、コマンドラインからの手動デプロイの方法を記載予定  
+
+- さらに Cloudflare でのホスティングの設定等を追記予定  
+
+なお、NitroのNodeサーバでAPIプロキシを動かす必要があるため、 Cloudflare Workers でのホスティング必須です。  
+
+---
+
 ## ライセンス
 
 MAGIC METHODS に帰属します。
@@ -260,7 +301,7 @@ MAGIC METHODS に帰属します。
 
 ## コントリビューション
 
-関係各位のPull Request・Issue歓迎です。
+関係各位のPull Request・Issue歓迎です。  
 設計や方針の議論はDiscussionsまたはIssueで行ってください。
 
 ---
@@ -272,8 +313,10 @@ MAGIC METHODS に帰属します。
 - ドキュメント
   - [利用規約（日本語）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_ja.md)
   - [利用規約（English）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_en.md)
+  - [利用規約（中国語・簡体字）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_zh.md)
   - [プライバシーポリシー（日本語）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/privacy_policy_ja.md)
   - [プライバシーポリシー（English）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/privacy_policy_en.md)
+  - [プライバシーポリシー（中国語・簡体字）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/privacy_policy_zh.md)
 
 ---
 

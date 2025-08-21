@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useUserStore } from '~/stores/useUserStore'
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 import { useChartPalette } from '~/composables/useChart'
-import { formatCurrency } from '~/utils/currency'
 import { strBytesTruncate } from '~/utils/string'
 
 // Props
@@ -14,7 +13,7 @@ const props = defineProps<{
 }>()
 
 // Stores etc.
-const userStore = useUserStore()
+const currencyStore = useCurrencyStore()
 const { t, locale } = useI18n()
 
 // Composables
@@ -39,6 +38,25 @@ const colorMap = computed<ColorMap>(() => {
 const totalExpense = computed(() => props.data.reduce((sum, item) => sum + (item.value ?? 0), 0))
 const isNoData = computed(() => totalExpense.value === 0)
 
+// 通貨コードごとに合算
+const totalsByCurrency = computed<Map<string, number>>(() => {
+  const m = new Map<string, number>()
+  for (const it of props.data) {
+    const code = (it.currency ?? '').toUpperCase()
+    if (!code) continue
+    m.set(code, (m.get(code) ?? 0) + (it.value ?? 0))
+  }
+  return m
+})
+const totalChips = computed(() =>
+  Array.from(totalsByCurrency.value.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([code, total]) => ({
+      code,
+      label: currencyStore.formatDecimal(total, code, locale.value),
+    }))
+)
+
 // グラフデータ
 const chartData = computed(() => {
     if (isNoData.value) {
@@ -46,7 +64,7 @@ const chartData = computed(() => {
             labels: [t('stats.chart.expenseRatio.noData')],
             datasets: [{
                 label: t('stats.chart.expenseRatio.noData'),
-                currency: props.data.map(item => item.currency),
+                currency: [], // props.data.map(item => item.currency),
                 data: [1],
                 backgroundColor: [palette.value.grid],
                 hoverBackgroundColor: [palette.value.grid],
@@ -90,7 +108,10 @@ const chartOptions = computed(() => ({
                     const maxWidth = (props.width ?? 160) * 0.5
                     return strBytesTruncate(titleString, 7, maxWidth)
                 },
-                label: (ctx: ContextModel) => formatCurrency(ctx.parsed, ctx.dataset.currency[ctx.dataIndex], locale.value),
+                label: (ctx: ContextModel) => {
+                    const code = ctx.dataset.currency[ctx.dataIndex]
+                    return currencyStore.formatDecimal(ctx.parsed, code, locale.value)
+                },
             } : {}
         }
     },
@@ -98,13 +119,34 @@ const chartOptions = computed(() => ({
     maintainAspectRatio: false
 }))
 
+const decimalValue = computed(() => {
+    return isNoData.value
+        ? currencyStore.formatDecimal(0, chartData.value.datasets[0].currency[0], locale.value)
+        : currencyStore.formatDecimal(chartData.value.datasets[0].data.reduce((sum, value) => sum + value, 0), chartData.value.datasets[0].currency[0], locale.value)
+})
+
+// ツールチップを表示する
+function showTooltip() {
+    return {
+        value: t('stats.chart.expenseRatio.currencyNoteLong'),
+        escape: false,
+        pt: {
+            root: 'pt-1',
+            text: 'w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs',
+            arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
+        }
+    }
+}
+
 </script>
 
 <template>
     <Card class="min-h-[20rem]">
         <template #title>
             <h3 class="text-base">
-                <span class="text-primary-800 dark:text-primary-400 mr-0.5">{{ t('stats.chart.expenseRatio.expenseLabel') }}</span>
+                <span class="text-primary-800 dark:text-primary-400 mr-0.5">
+                    {{ t('stats.chart.expenseRatio.expenseLabel') }}
+                </span>
                 {{ t('stats.chart.expenseRatio.ratioLabel') }}
             </h3>
         </template>
@@ -127,20 +169,45 @@ const chartOptions = computed(() => ({
                             {{ data.find(item => item.appId === appId)?.appName }}
                         </span>
                         <span class="ml-2 text-sm font-medium text-primary-600 dark:text-primary-400">
-                            {{ formatCurrency(data.find(item => item.appId === appId)?.value || 0, data.find(item => item.appId === appId)?.currency ?? '', locale) }}
+                            {{
+                                currencyStore.formatDecimal(
+                                    data.find(item => item.appId === appId)?.value || 0,
+                                    data.find(item => item.appId === appId)?.currency ?? '',
+                                    locale
+                                )
+                            }}
                         </span>
                     </div>
                 </div>
             </div>
         </template>
+
         <template #footer>
             <div class="text-sm text-gray-500 dark:text-gray-400 mt-4">
                 <span class="font-semibold mr-2">{{ t('stats.chart.expenseRatio.totalLabel') }}:</span>
-                <span class="font-semibold text-primary-600 dark:text-primary-400">{{ isNoData ? formatCurrency(0, chartData.datasets[0].currency[0], locale) : formatCurrency(chartData.datasets[0].data.reduce((sum, value) => sum + value, 0), chartData.datasets[0].currency[0], locale) }}</span>
+                <template v-if="!isNoData && totalChips.length">
+                    <ul class="inline-flex flex-wrap gap-2 align-middle">
+                        <li
+                            v-for="c in totalChips"
+                            :key="c.code"
+                            class="px-2 py-0.5 rounded bg-surface-100 dark:bg-[#111827]"
+                        >
+                            <span class="font-semibold text-primary-600 dark:text-primary-400">{{ c.label }}</span>
+                            <span class="ml-1 text-[11px] text-gray-500">({{ c.code }})</span>
+                        </li>
+                    </ul>                    
+                </template>
+                <template v-else>
+                    <span class="font-semibold text-primary-600 dark:text-primary-400">{{ decimalValue }}</span>
+                </template>
             </div>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ t('stats.chart.expenseRatio.currencyNote') }}
-            </span>
+
+            <div class="flex items-center gap-1 mt-4 max-w-full md:max-w-[518px]" v-tooltip.bottom="showTooltip()">
+                <i class="pi pi-info-circle text-sm text-blue-600 dark:text-blue-500"></i>
+                <div class="text-xs text-blue-600 dark:text-blue-500">
+                    {{ t('stats.chart.expenseRatio.currencyNote') }}
+                </div>
+            </div>
         </template>
     </Card>
 </template>

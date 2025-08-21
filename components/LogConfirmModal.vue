@@ -101,9 +101,9 @@ const isSuccessfullySaved = ref<boolean>(false)
                         <tr>
                             <th>{{ t('modal.logConfirm.expense') }}</th>
                             <td><div class="diff-table">
-                                <div class="text-em text-muted">{{ prevData?.expense ?? 0 }}</div>
+                                <div class="text-em text-muted">{{ prevData?.expense_decimal ?? 0 }}</div>
                                 <div><i class="pi pi-arrow-right"></i></div>
-                                <div class="text-em">{{ logData?.expense }}</div>
+                                <div class="text-em">{{ logData?.expense_decimal ?? 0 }}</div>
                             </div></td>
                         </tr>
                         <tr>

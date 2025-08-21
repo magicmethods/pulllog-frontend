@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 import { useChartPalette } from '~/composables/useChart'
-import { formatCurrency } from '~/utils/currency'
 import { strBytesTruncate } from '~/utils/string'
 
 // Props
@@ -13,8 +12,8 @@ const props = defineProps<{
 }>()
 
 // Stores etc.
-const userStore = useUserStore()
 const appStore = useAppStore()
+const currencyStore = useCurrencyStore()
 const { t, locale } = useI18n()
 
 // Composables
@@ -42,7 +41,7 @@ const fixCurrency = computed<string>(() => {
     const appCurrencyCodes = appIds.value.map(appId => {
         const app = appStore.appList.find(app => app.appId === appId)
         if (!app || !app.currency_unit) return defaultCurrency
-        const currencyData = getCurrencyData(app.currency_unit)
+        const currencyData = currencyStore.get(app.currency_unit)
         return currencyData ? currencyData.code : defaultCurrency
     })
     console.log('MonthlyExpenseStack::fixCurrency(List):', appCurrencyCodes, locale.value)
@@ -98,7 +97,7 @@ const yAxisConfig = computed(() => {
     // すべて0なら
     if (maxExpense.value === 0) {
         // JPYなら1000円
-        //const appCurrency = getCurrencyData(appStore.app?.currency_unit || 'JPY')?.code
+        //const appCurrency = currencyStore.get(appStore.app?.currency_unit || 'JPY')?.code
         if (fixCurrency.value === 'JPY') {
             max = 1000
             step = 500
@@ -154,7 +153,7 @@ const chartOptions = computed(() => ({
                     // ctx.dataset.label（アプリ名）, ctx.parsed.y（値）
                     const appLabel = ctx.dataset.label
                     const value = ctx.parsed.y
-                    return `${appLabel}: ${formatCurrency(value, fixCurrency.value, locale.value)}`
+                    return `${appLabel}: ${currencyStore.formatDecimal(value, fixCurrency.value, locale.value)}`
                 },
             }
         },
@@ -169,7 +168,7 @@ const chartOptions = computed(() => ({
                     borderDash: [4, 4],
                     label: {
                         display: averageExpense.value > 0,
-                        content: t('stats.chart.monthlyExpenseStack.average', { value: formatCurrency(averageExpense.value, fixCurrency.value, locale.value) }),
+                        content: t('stats.chart.monthlyExpenseStack.average', { value: currencyStore.formatDecimal(averageExpense.value, fixCurrency.value, locale.value) }),
                         position: 'start',
                         color: palette.value.annotationText,
                         backgroundColor: palette.value.annotationBg,
@@ -196,7 +195,7 @@ const chartOptions = computed(() => ({
             ticks: {
                 color: palette.value.text,
                 stepSize: maxExpense.value === 0 ? yAxisConfig.value.step: undefined,
-                callback: (val: number) => formatCurrency(Number(val), fixCurrency.value, locale.value)
+                callback: (val: number) => currencyStore.formatDecimal(Number(val), fixCurrency.value, locale.value)
             },
             border: { color: palette.value.axis }
         }

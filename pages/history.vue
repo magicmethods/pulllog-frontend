@@ -7,16 +7,39 @@ import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useLogStore } from '~/stores/useLogStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
-import { getCurrencyData } from '~/utils/currency'
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 import { formatDate } from '~/utils/date'
+
+definePageMeta({ requiresCurrency: true })
 
 // Stores & Plugins
 const userStore = useUserStore()
 const appStore = useAppStore()
 const logStore = useLogStore()
 const loader = useLoaderStore()
+const currencyStore = useCurrencyStore()
 const toast = useToast()
-const { t } = useI18n()
+const { t, locale } = useI18n()
+
+// Helpers
+/** 選択アプリの通貨データ */
+const currencyData = computed(() => {
+  const code = appStore.app?.currency_code
+  return code ? currencyStore.get(code) : undefined
+})
+/** 小数桁（minor_unit） */
+const minorUnit = computed<number>(() => currencyData.value?.minor_unit ?? 0)
+/** UI上の小数 → 最小単位整数へ */
+const toAmount = (decimal: number) => {
+  const pow = minorUnit.value > 0 ? 10 ** minorUnit.value : 1
+  // 0 未満は 0 に丸め
+  return Math.max(0, Math.round((Number(decimal) || 0) * pow))
+}
+/** 最小単位整数 → UI表示用小数へ */
+const toDecimal = (amount?: number | null) => {
+  const pow = minorUnit.value > 0 ? 10 ** minorUnit.value : 1
+  return (Number(amount) || 0) / pow
+}
 
 // Validation Schema
 const logSchema = computed(() => z.object({
@@ -27,9 +50,9 @@ const logSchema = computed(() => z.object({
   drop_details: z.array(z.object({
     rarity: z.string().nullable().optional(),
     name: z.string().nullable().optional(),
-    symbol: z.string().nullable().optional(),
+    marker: z.string().nullable().optional(),
   })).optional(),
-  expense: z.number().min(0),
+  expense_decimal: z.number().min(0),
   tags: z.array(z.string()).optional(),
   free_text: z.string().max(userStore.planLimits?.maxLogTextLength ?? 250).optional(),
 }))
@@ -41,7 +64,7 @@ const targetDate = ref<CalenderDate>(null) // 確定した対象日付
 const totalPullCount = ref<number>(0) // ガチャ回数
 const dischargedItems = ref<number>(0) // 最高レア排出数
 const dropDetails = ref<DropDetail[]>([]) // 排出内容の詳細（任意）
-const expense = ref<number>(0) // 課金額
+const expenseDecimal = ref<number>(0) // 課金額（小数許可）
 const tags = ref<string[]>([]) // タグ（任意）
 const freeText = ref<string>('') // メモ（任意）
 const textLength = ref<number>(0) // メモの文字数
@@ -50,7 +73,7 @@ const today = computed(() => getTodayByApp(selectedApp.value))
 const todayString = computed(() => formatDate(today.value))
 const maxTextLength = computed(() => userStore.planLimits?.maxLogTextLength ?? 250) // メモの最大文字数
 const confirmModalVisible = ref<boolean>(false) // 確認モーダルの表示状態
-const pendingLogData = ref<DateLog | null>(null) // 確認モーダルに渡すログデータ
+const pendingLogData = ref<Partial<DateLog> | null>(null) // 確認モーダルに渡すログデータ
 const pendingValidationErrors = ref<Record<string, string[]> | null>(null) // 確認モーダルに渡すバリデーションエラー
 const historyChartReloadKey = ref<number>(0) // 履歴グラフの再読み込みキー（強制更新用）
 const historyStatsReloadKey = ref<number>(0) // 履歴統計の再読み込みキー（強制更新用）
@@ -64,10 +87,12 @@ const selectedApp = computed<AppData | null>({
 })
 // 通貨表示（選択アプリに依存）
 const currencyUnit = computed(() => {
-  if (!selectedApp.value || !selectedApp.value.currency_unit) return 'JPY' // デフォルトは JPY
-  const currencyData = getCurrencyData(selectedApp.value.currency_unit)
-  if (!currencyData) return selectedApp.value.currency_unit // 通貨データが見つからない場合は登録値
-  return currencyData.code // or symbol_native
+  const code = selectedApp.value?.currency_code
+  if (!code) {
+    // アプリが選択されていない場合はデフォルト通貨コードを使用
+    return currencyStore.defaultCurrencyCode(locale.value)
+  }
+  return currencyStore.get(code)?.code ?? code
 })
 
 // Methods
@@ -118,7 +143,18 @@ async function handleDateCommit(date: CalenderDate): Promise<void> {
   totalPullCount.value = log.total_pulls || 0
   dischargedItems.value = log.discharge_items || 0
   dropDetails.value = log.drop_details || []
-  expense.value = log.expense || 0
+  // サーバは expense_decimal を返す（DailyLogController で対応）
+  // 念のため expense_amount が来ても復元
+  if (typeof log.expense_decimal === 'number') {
+    expenseDecimal.value = log.expense_decimal
+  } else if (typeof log.expense_amount === 'number') {
+    expenseDecimal.value = toDecimal(log.expense_amount)
+  } else if (typeof log.expense === 'number') {
+    // 古いレスポンス互換
+    expenseDecimal.value = toDecimal(log.expense)
+  } else {
+    expenseDecimal.value = 0
+  }
   tags.value = log.tags || []
   freeText.value = log.free_text || ''
   textLength.value = freeText.value.length
@@ -129,54 +165,72 @@ const openCalculator = () => {
 }
 // 計算機からの結果受取（加算）
 const handleCommitAdd = (addValue: number) => {
-  expense.value += addValue
+  expenseDecimal.value += addValue
   showCalculator.value = false
 }
 // 計算機からの結果受取（置き換え）
 const handleCommitOverwrite = (newValue: number) => {
-  expense.value = newValue
+  expenseDecimal.value = newValue
   showCalculator.value = false
 }
-// 履歴保存処理（送信用 DateLog の構築）
+// 履歴保存処理（送信前に DateLog を構築（UIは小数、送信は整数））
 function submitLog() {
   if (!selectedApp.value || !targetDate.value) return
 
-  const log: DateLog = {
+  const dateStr = formatDate(targetDate.value)
+  const uiLog: Partial<DateLog> = {
     appId: selectedApp.value.appId,
-    date: formatDate(targetDate.value),
+    date: dateStr,
     total_pulls: totalPullCount.value,
     discharge_items: dischargedItems.value,
     drop_details: [...dropDetails.value].filter(d => d.rarity || d.name || d.marker),
-    expense: expense.value,
+    expense_decimal: Number(expenseDecimal.value) || 0, // 検証は小数で
     tags: tags.value,
     free_text: freeText.value,
-    images: [],
-    tasks: [],
-    last_updated: new Date().toISOString(),
   }
 
   // Zodによる検証
-  const result = logSchema.value.safeParse(log)
+  const result = logSchema.value.safeParse(uiLog)
   if (!result.success) {
     // 検証エラーがある場合
     validationErrors.value = result.error.flatten().fieldErrors
     pendingValidationErrors.value = result.error.flatten().fieldErrors
-    pendingLogData.value = log
+    pendingLogData.value = uiLog
     confirmModalVisible.value = true
     return
   }
   // 検証成功時
   validationErrors.value = {}
   pendingValidationErrors.value = null
-  pendingLogData.value = log
+
+  // API ペイロード生成（整数へ変換した expense_amount を付与）
+  const payload: DateLog = {
+    appId: uiLog.appId ?? '',
+    date: uiLog.date ?? '',
+    total_pulls: uiLog.total_pulls ?? 0,
+    discharge_items: uiLog.discharge_items ?? 0,
+    drop_details: uiLog.drop_details ?? [],
+    expense_decimal: uiLog.expense_decimal ?? 0, // 確認モーダル表示用
+    expense_amount: toAmount(uiLog.expense_decimal ?? 0),
+    tags: uiLog.tags ?? [],
+    free_text: uiLog.free_text ?? '',
+    images: [],
+    tasks: [],
+    last_updated: new Date().toISOString(),
+  }
+
+  pendingLogData.value = payload
   confirmModalVisible.value = true
 }
 // 確認モーダルで「保存する」確定時
 async function handleConfirmSave() {
+  if (isDemoUser.value) return abortDemo()
   if (!pendingLogData.value) return
   try {
     // API送信処理
-    const saved = await logStore.saveLog(pendingLogData.value)
+    // biome-ignore lint:/performance/noDelete リクエストに小数値は不要
+    delete pendingLogData.value.expense_decimal
+    const saved = await logStore.saveLog(pendingLogData.value as DateLog)
     if (!saved) {
       throw new Error(t('history.notice.saveFailed'))
     }
@@ -198,17 +252,44 @@ async function handleConfirmSave() {
     historyListReloadKey.value++ // 履歴リストの再読み込みトリガー
     confirmModalVisible.value = false
   } catch (e: unknown) {
-    const errorMessage = e instanceof Error ? e.message : t('history.notice.saveFailed')
+    const msg = e instanceof Error ? e.message : t('history.notice.saveFailed')
     //console.error('Failed to save history log:', e)
     confirmModalVisible.value = false
     toast.add({
       severity: 'error',
       summary: t('history.notice.saveFailedTitle'),
-      detail: errorMessage,
+      detail: msg,
       group: 'notices',
       life: 4000,
     })
   }
+}
+function abortDemo() {
+    // デモユーザーの場合は何もしない
+    toast.add({
+      severity: 'warn',
+      summary: t('app.error.demoTitle'),
+      detail: t('app.error.demoDetail'),
+      group: 'notices',
+      life: 2500,
+    })
+    // 確認モーダルを閉じる
+    confirmModalVisible.value = false
+    return
+}
+// 履歴推移グラフのクリック日を受け取る
+function handleHistoryChartSelect(dateStr: string) {
+  const dt = DateTime.fromISO(dateStr, { zone: 'local' })
+  if (!dt.isValid) return
+  const jsDate = dt.startOf('day').toJSDate()
+  calendarDraftDate.value = jsDate
+  handleDateCommit(jsDate) // 受け取った日付でコミット
+}
+// 履歴一覧からタグをクローン
+function handleAddTag(tagText: string) {
+  if (!selectedApp.value || !targetDate.value) return
+  if (!tagText || tags.value.includes(tagText) || tags.value.length >= (userStore.planLimits?.maxLogTags ?? 5)) return
+  tags.value.push(tagText)
 }
 // 確認モーダルで「キャンセル」 or 閉じる
 function handleCloseModal() {
@@ -219,7 +300,7 @@ function resetForm() {
     totalPullCount.value = 0
     dischargedItems.value = 0
     dropDetails.value = []
-    expense.value = 0
+    expenseDecimal.value = 0
     tags.value = []
     freeText.value = ''
     textLength.value = 0
@@ -247,48 +328,13 @@ watch(
 
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
-  // 上部バナー広告
-  banner: {
-    /*
-    adType: 'carousel',
-    adItems: [
-      { image: '/sample/ad_2.jpg',  link: 'https://example.com/?ad=2',  alt: '1020x160' },
-      { image: '/sample/ad_3.jpg',  link: 'https://example.com/?ad=3',  alt: '724x145' },
-      { image: '/sample/ad_4.jpg',  link: 'https://example.com/?ad=4',  alt: '940x140' },
-      { image: '/sample/ad_9.png',  link: 'https://example.com/?ad=9',  alt: '728x90' },
-      { image: '/sample/ad_10.png', link: 'https://example.com/?ad=10', alt: '728x90' },
-      { image: '/sample/ad_11.png', link: 'https://example.com/?ad=11', alt: '728x90' },
-    ],
-    adWidth: 1020, // カルーセル画像の最大幅を指定
-    */
-    adHeight: 90,
-    /*
-    adType: 'slot',
-    //adClient: 'ca-pub-8602791446931111',
-    adSlotName: '8956575261',
-    */
+  banner: { // 上部バナー広告
+    adType: 'none',
+    //adHeight: 90,
   },
-  // インライン広告
-  inline: {
-    /*
-    adType: 'image',
-    adItems: [
-      { image: '/sample/ad_5.jpg',  link: 'https://example.com/?ad=5',  alt: '広告バナー 5 (616x353)' },
-      { image: '/sample/ad_6.jpg',  link: 'https://example.com/?ad=6',  alt: '広告バナー 6 (1200x652)' },
-      { image: '/sample/ad_7.jpg',  link: 'https://example.com/?ad=7',  alt: '広告バナー 7 (1200x675)' },
-      { image: '/sample/ad_8.jpg',  link: 'https://example.com/?ad=8',  alt: '広告バナー 8 (616x353)' },
-      { image: '/sample/ad_14.jpg', link: 'https://example.com/?ad=14', alt: '広告バナー 14 (800x800)' },
-      { image: '/sample/ad_15.jpg', link: 'https://example.com/?ad=15', alt: '広告バナー 15 (1080x1080)' },
-      { image: '/sample/ad_16.jpg', link: 'https://example.com/?ad=16', alt: '広告バナー 16 (300x250)' },
-      { image: '/sample/ad_17.jpg', link: 'https://example.com/?ad=17', alt: '広告バナー 17 (600x338)' },
-    ],
-    */
-    adHeight: 250,
-    /*
-    adType: 'slot',
-    //adClient: 'ca-pub-8602791446931111',
-    adSlotName: '5664134061',
-    */
+  inline: { // インライン広告
+    adType: 'none',
+    //adHeight: 250,
   }
 }
 
@@ -428,15 +474,15 @@ const adConfig: Record<string, AdProps> = {
                     <label for="expense" class="input-group-label">{{ t('history.expense') }}</label>
                     <div class="input-group-control">
                       <InputNumber
-                        v-model="expense"
+                        v-model="expenseDecimal"
                         inputId="expense"
                         :placeholder="t('history.expensePlaceholder')"
                         showButtons
                         :minFractionDigits="0"
-                        :maxFractionDigits="2"
+                        :maxFractionDigits="minorUnit"
                         :useGrouping="true"
                         :min="0"
-                        :max="9999999"
+                        :max="999999999"
                         :disabled="!targetDate"
                         class="input-number-md"
                       />
@@ -455,8 +501,8 @@ const adConfig: Record<string, AdProps> = {
                         icon="pi pi-eraser"
                         label="0"
                         class="btn btn-alternative p-2! text-base m-0"
-                        :disabled="!targetDate || expense === 0"
-                        @click="expense = 0"
+                        :disabled="!targetDate || expenseDecimal === 0"
+                        @click="expenseDecimal = 0"
                         v-blur-on-click
                       />
                     </div>
@@ -464,7 +510,7 @@ const adConfig: Record<string, AdProps> = {
                   <!-- モーダル: 計算機 -->
                   <CalculatorModal
                     v-if="showCalculator"
-                    :modelValue="expense"
+                    :modelValue="expenseDecimal"
                     @commit-add="handleCommitAdd"
                     @commit-overwrite="handleCommitOverwrite"
                     @close="showCalculator = false"
@@ -536,6 +582,7 @@ const adConfig: Record<string, AdProps> = {
               <HistoryChart
                 :label="t('history.historyTrend')"
                 :key="historyChartReloadKey"
+                @select-date="handleHistoryChartSelect"
               />
 
               <!-- 対象アプリの履歴統計 -->
@@ -550,6 +597,7 @@ const adConfig: Record<string, AdProps> = {
                 :limit="7"
                 :highlightDate="formatDate(targetDate)"
                 :key="historyListReloadKey"
+                @clone-tag="handleAddTag"
               />
 
           </section>
@@ -558,7 +606,7 @@ const adConfig: Record<string, AdProps> = {
       <!-- 確認モーダル -->
       <LogConfirmModal
         :visible="confirmModalVisible"
-        :logData="pendingLogData"
+        :logData="(pendingLogData as DateLog | null)"
         :validationErrors="pendingValidationErrors"
         @update:visible="confirmModalVisible = $event"
         @close="handleCloseModal"

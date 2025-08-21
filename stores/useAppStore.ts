@@ -1,9 +1,9 @@
 import { useUserStore } from '~/stores/useUserStore'
 import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 //import { useI18n } from 'vue-i18n'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
-import { getCurrencyData } from '~/utils/currency'
 
 export const useAppStore = defineStore('app', () => {
     // composables
@@ -39,7 +39,7 @@ export const useAppStore = defineStore('app', () => {
     }
     function getAppCurrencyCode(): string {
         // アプリケーションの通貨単位を取得
-        const cd = getCurrencyData(app.value?.currency_unit ?? '')
+        const cd = useCurrencyStore().get(app.value?.currency_code ?? '')
         return cd?.code || 'JPY' // デフォルトはJPY
     }
 

@@ -3,18 +3,21 @@
  */
 declare global {
     type AppData = {
-        name: string // アプリ名
         appId: string // ULID 形式の文字列（ユーザー毎に一意な値） フロントエンドで発行処理を行う
-        url: string | null // アプリURL
-        description: string | null // アプリ説明テキスト（maxLength: 400）
-        date_update_time: string | null // HH:mm形式の時刻文字列
+        name: string // アプリ名
+        url: string // アプリURL
+        description: string // アプリ説明テキスト（maxLength: 400）
+        date_update_time: string // HH:mm形式の時刻文字列
         sync_update_time: boolean // true の場合、UI側の日付切替時刻を当日の date_update_time に変更する
-        currency_unit: string | null // 通貨単位の文字列: optionStore.currencyOptions から選択された要素の label の文字列
-        pity_system?: boolean // レア排出保証システム（天井）の有無 c.f. "guaranteed gacha" とも呼ばれる
-        guarantee_count?: number // レア排出保証回数（ガチャ天井の回数）※ pity_system が true の場合のみ有効
-        rarity_defs?: SymbolOption[] // レアリティ定義の配列: optionStore.rarityOptions をそのまま使用
-        marker_defs?: SymbolOption[] // マーキング定義の配列: optionStore.symbolOptions をそのまま使用
-        task_defs?: SymbolOption[] // タスク定義の配列: optionStore.taskOptions をそのまま使用（将来的な機能）
+        currency_unit?: string | null // 通貨単位の文字列（旧バージョンの型）
+        currency_code: string | null // 通貨単位の文字列
+        pity_system: boolean // レア排出保証システム（天井）の有無 c.f. "guaranteed gacha" とも呼ばれる
+        guarantee_count: number // レア排出保証回数（ガチャ天井の回数）※ pity_system が true の場合のみ有効
+        rarity_defs: SymbolOption[] // レアリティ定義の配列: optionStore.rarityOptions をそのまま使用
+        marker_defs: SymbolOption[] // マーキング定義の配列: optionStore.symbolOptions をそのまま使用
+        task_defs: SymbolOption[] // タスク定義の配列: optionStore.taskOptions をそのまま使用（将来的な機能）
+        created_at?: string // アプリ作成日時: ISO 8601形式の文字列
+        updated_at?: string // アプリ更新日時: ISO 8601形式の文字列
     }
     type ValidateAppData = AppData & { raw_date_update_time: Date | null }
     /** 各種オプション定義型（通貨単位・レアリティ・マーキング等） */

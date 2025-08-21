@@ -6,6 +6,7 @@ import { useChartPalette } from '~/composables/useChart'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import type { ChartDataset } from 'chart.js'
 import { stripEmoji } from '~/utils/string'
+import { classifyMarkerText } from '~/utils/markerMatcher'
 
 // Stores etc.
 const userStore = useUserStore()
@@ -28,15 +29,24 @@ const props = defineProps<{
 const { theme, presetColors, palette } = useChartPalette()
 
 // Refs & Local State
+// 1 行あたりの高さ(px)。視認性重視で 28〜32px が目安
+const ROW_HEIGHT_PX = 32
+// 追加: 行ギャップの比率（0～0.6目安）
+const ROW_GAP_RATIO = 0.5
+// 実バー厚（px）＝ 行高 × (1 - ギャップ比率)
+// スタックでも各セグメントは同じ厚みで描かれます
+const EFFECTIVE_BAR_THICKNESS = Math.floor(ROW_HEIGHT_PX * (1 - ROW_GAP_RATIO))
+// 少数でも小さすぎないよう最低高さを持たせる（行数 6 分＝168px 程度）
+const MIN_ROWS = 6
 // ラベルマップ
 const labelMap = computed<Record<MarkerKey, string>>(() => ({
-    pickup: t('stats.chart.rareDropRanking.pickup'),
-    lose: t('stats.chart.rareDropRanking.lose'),
-    target: t('stats.chart.rareDropRanking.target'),
-    guaranteed: t('stats.chart.rareDropRanking.guaranteed'),
-    other: t('stats.chart.rareDropRanking.other')
+    pickup: t('app.word.pickup'),
+    lose: t('app.word.lose'),
+    target: t('app.word.target'),
+    guaranteed: t('app.word.guaranteed'),
+    other: t('app.word.other')
 }))
-const otherLabel = computed(() => t('stats.chart.rareDropRanking.other'))
+const otherLabel = computed(() => t('app.word.other'))
 // 色マップ
 const colorMap = computed<ColorMap>(() => {
     const map: ColorMap = {}
@@ -122,21 +132,23 @@ const raritySummary = computed(() => {
     return summary
 })
 
+type Marker = 'pickup' | 'lose' | 'target' | 'guaranteed'
+
 // マーカー・パース＋合計
 const markerKeys = computed(() => {
     if (!ranking.value) return {}
     // markerName: { "name|marker": count }
     const map: Record<string, Partial<Record<MarkerKey, number>>> = {}
     for (const [key, value] of Object.entries(ranking.value.items.markerName)) {
-        let [name, marker] = key.split('|')
+        let [name, markerText] = key.split('|')
         name = stripEmoji(name).trim()
-        marker = stripEmoji(marker).trim()
-        let label: MarkerKey = 'other'
-        if (/(ピックアップ|pickup)/g.test(marker)) label = 'pickup'
-        else if (/(すり(抜|ぬ)け|lose\s?(the\s?)?(50(\/|\-)50))/g.test(marker)) label = 'lose'
-        else if (/((狙|ねら)い|target)/g.test(marker)) label = 'target'
-        else if (/((確定|かくてい)(枠|)|guaranteed)/g.test(marker)) label = 'guaranteed'
-        // それ以外はother
+        markerText = stripEmoji(markerText).trim()
+
+        const cls = classifyMarkerText(markerText)
+        const label: MarkerKey = (['pickup','lose','target','guaranteed'] as const).includes(cls as Marker)
+            ? (cls as MarkerKey)
+            : 'other'
+
         map[name] = map[name] || {}
         map[name][label] = (map[name][label] ?? 0) + value
     }
@@ -239,6 +251,15 @@ const chartOptions = computed(() => ({
             }
         }
     },
+    datasets: {
+        bar: {
+            barThickness: EFFECTIVE_BAR_THICKNESS, // 1本の棒の太さを固定
+            maxBarThickness: EFFECTIVE_BAR_THICKNESS,
+            categoryPercentage: Math.max(0.3, 1 - ROW_GAP_RATIO), // カテゴリーの占有率（行の中の棒群の幅）
+            barPercentage: 0.9, // 同一カテゴリー内での棒の占有率
+            borderWidth: 1
+        }
+    },
     scales: {
         x: {
             position: 'top',
@@ -257,9 +278,13 @@ const chartOptions = computed(() => ({
             border: { color: palette.value.axis }
         },
         y: {
+            offset: true, // Y軸のオフセットを有効にしてラベルを中央に配置
             title: { display: false, text: t('stats.chart.rareDropRanking.itemName') },
             grid: { color: palette.value.grid },
-            ticks: { color: palette.value.text },
+            ticks: {
+                color: palette.value.text,
+                autoSkip: false, // ラベルを間引かない（スクロール前提）
+            },
             border: { color: palette.value.axis },
         }
     },
@@ -267,6 +292,18 @@ const chartOptions = computed(() => ({
     maintainAspectRatio: false
 }))
 
+// ツールチップを表示する
+function showTooltip() {
+    return {
+        value: t('stats.chart.rareDropRanking.noticeLong'),
+        escape: false,
+        pt: {
+            root: 'pt-1',
+            text: 'w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs',
+            arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
+        }
+    }
+}
 
 </script>
 
@@ -281,7 +318,13 @@ const chartOptions = computed(() => ({
         </template>
         <template #content>
             <div class="h-[12rem] overflow-y-auto">
-                <div class="relative min-h-max w-full" :style="{ height: sortedNames.length * 2 + 'rem' }">
+                <div
+                    class="relative min-h-max w-full"
+                    :style="{
+                        // 行数×行高（少数時は MIN_ROWS を下限）
+                        height: Math.max(sortedNames.length, MIN_ROWS) * ROW_HEIGHT_PX + 'px'
+                    }"
+                >
                     <CommonChart
                         type="bar"
                         :data="chartData"
@@ -302,9 +345,13 @@ const chartOptions = computed(() => ({
                     </li>
                 </ul>
             </div>
-            <span class="text-xs text-gray-500 dark:text-gray-400">
-                {{ t('stats.chart.rareDropRanking.note') }}
-            </span>
+
+            <div class="flex items-center gap-1 mt-4 max-w-full md:max-w-[440px]" v-tooltip.bottom="showTooltip()">
+                <i class="pi pi-info-circle text-sm text-blue-600 dark:text-blue-500"></i>
+                <div class="text-xs text-blue-600 dark:text-blue-500">
+                    {{ t('stats.chart.rareDropRanking.notice') }}
+                </div>
+            </div>
         </template>
     </Card>
 </template>

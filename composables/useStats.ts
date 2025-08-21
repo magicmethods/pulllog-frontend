@@ -1,9 +1,12 @@
 import { useOptionStore } from '~/stores/useOptionStore'
 import { DateTime } from 'luxon'
+import { useI18n } from 'vue-i18n'
 import { stripEmoji } from '~/utils/string'
+import { countMarkerInLog } from '~/utils/markerMatcher'
 
 export function useStats() {
     const SYSTEM_OTHER_KEY = computed(() => useOptionStore().otherPlaceholder)
+    const { locale } = useI18n()
 
     /**
      * 複数アプリ合計課金額に占める各アプリの割合（Pieチャート用）
@@ -20,14 +23,14 @@ export function useStats() {
         const sumByApp: Record<string, number> = {}
         for (const appId in logs) {
             for (const log of logs[appId]) {
-                sumByApp[appId] = (sumByApp[appId] ?? 0) + log.expense
+                sumByApp[appId] = (sumByApp[appId] ?? 0) + (log.expense_decimal ?? 0)
             }
         }
         const total = Object.values(sumByApp).reduce((a, b) => a + b, 0)
         return apps.map(app => ({
             appId: app.appId,
             appName: app.name,
-            currency: app.currency_unit ?? '',
+            currency: app.currency_code ?? '',
             value: total > 0 ? sumByApp[app.appId] ?? 0 : 0
         }))
     }
@@ -49,7 +52,7 @@ export function useStats() {
             for (const log of logs[appId]) {
                 const month = log.date.slice(0, 7)
                 byMonth[month] = byMonth[month] ?? {}
-                byMonth[month][appId] = (byMonth[month][appId] ?? 0) + log.expense
+                byMonth[month][appId] = (byMonth[month][appId] ?? 0) + (log.expense_decimal ?? 0)
             }
         }
         const months = Object.keys(byMonth).sort()
@@ -326,7 +329,8 @@ export function useStats() {
         marker: 'lose' | 'pickup' | 'target' | 'guaranteed',
         log: DateLog
     ): number {
-        if (!log.drop_details || log.drop_details.length === 0) return 0
+        return countMarkerInLog(marker, log)
+        /*
         // ドロップ詳細から指定マーカーの数をカウント
         let pattern: RegExp
         switch (marker) {
@@ -348,6 +352,7 @@ export function useStats() {
         return log.drop_details.reduce((count, detail: DropDetail) => {
             return count + (detail.marker?.match(pattern) ? 1 : 0)
         }, 0)
+        */
     }
 
     /**

@@ -49,6 +49,7 @@ declare module 'vue' {
     ToggleSwitch: typeof import('primevue/toggleswitch')['default']
   }
   export interface GlobalDirectives {
+    AnimateOnScroll: typeof import('primevue/animateonscroll')['default']
     Tooltip: typeof import('primevue/tooltip')['default']
   }
 }

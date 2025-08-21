@@ -1,15 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 
-
-// Types
-type AdItem = {
-    image: string
-    link?: string
-    alt?: string
-    text?: string // テキストバナー対応も可
-    // 追加情報あればここに
-}
 type AdProps = {
     adWidth?: number
     adHeight?: number
@@ -18,10 +9,10 @@ type AdProps = {
     adHtml?: string
     adSlotName?: string
     adClient?: string
-    adFormat?: string // 'auto' | 'horizontal' | 'vertical' など
-    adResponsive?: 'true' | 'false'
-    adStyle?: string // 追加のスタイル指定
-    adType?: 'image' | 'carousel' | 'html' | 'slot'
+    adType?: 'image' | 'carousel' | 'html' | 'slot' | 'none'
+    adFormat?: string
+    adResponsive?: string
+    adStyle?: string
     disableForPlan?: string
 }
 
@@ -61,6 +52,10 @@ const carouselPT = computed(() => {
         }
     }
     return undefined
+})
+const hideAd = computed(() => {
+    // adTypeがnoneの場合は広告を表示しない
+    return props.adType === 'none'
 })
 
 // Methods
@@ -111,7 +106,7 @@ const adContainerClass = computed(() => {
 </script>
 
 <template>
-    <div v-if="isShownAd" class="relative w-full h-max mt-0 md:mt-2 mb-2 p-0">
+    <div v-if="isShownAd && !hideAd" class="relative w-full h-max mt-0 md:mt-2 mb-2 p-0">
         <div v-if="adType === 'image' && adImage"
             class="flex items-center justify-center mx-auto max-w-full"
             :style="adSize"

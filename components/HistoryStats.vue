@@ -4,7 +4,7 @@ import { useUserStore } from '~/stores/useUserStore'
 import { useAppStore } from '~/stores/useAppStore'
 import { useStatsStore } from '~/stores/useStatsStore'
 import { useOptionStore } from '~/stores/useOptionStore'
-import { getCurrencyData } from '~/utils/currency'
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 
 // Props & Emits
 const props = defineProps<{
@@ -17,6 +17,7 @@ const userStore = useUserStore()
 const appStore = useAppStore()
 const statsStore = useStatsStore()
 const optionStore = useOptionStore()
+const currencyStore = useCurrencyStore()
 const { t } = useI18n()
 
 // Refs & Local variables
@@ -32,7 +33,7 @@ const displayLabel = computed<string>(() => {
 })
 const statsData = ref<StatsData | null>(null)
 const currencyUnit = computed<string>(() => {
-    return getCurrencyData(appStore.app?.currency_unit ?? 'JPY')?.symbol_native ?? '¥'
+    return currencyStore.get(appStore.app?.currency_code ?? 'JPY')?.symbol_native ?? '¥'
 })
 const reloadStatsChartKey = ref<number>(0)
 

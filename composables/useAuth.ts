@@ -1,6 +1,7 @@
 import { useUserStore } from '~/stores/useUserStore'
 import { useCsrfStore } from '~/stores/useCsrfStore'
 import { useGlobalStore } from '~/stores/globalStore'
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 import { useI18n } from 'vue-i18n'
 import { useAPI } from '~/composables/useAPI'
 import { endpoints } from '~/api/endpoints'
@@ -219,6 +220,10 @@ export function useAuth() {
             // 既にあるRememberトークンのCookieを削除
             document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
         }
+
+        // 通貨データをロード
+        const currencyStore = useCurrencyStore()
+        currencyStore.ensureLoaded().catch(() => {}) // ノンブロッキング
 
         globalStore.setInitialized(true)
     }

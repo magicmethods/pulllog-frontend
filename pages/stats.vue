@@ -7,6 +7,8 @@ import { useOptionStore } from '~/stores/useOptionStore'
 import { useI18n } from 'vue-i18n'
 import { formatDate } from '~/utils/date'
 
+definePageMeta({ requiresCurrency: true })
+
 // Types: in this page only
 type StatsPageData = {
     filteredLogs: Record<string, DateLog[]>
@@ -22,7 +24,6 @@ type StatsPageData = {
 // Stores etc.
 const userStore = useUserStore()
 const appStore = useAppStore()
-const logStore = useLogStore()
 const loaderStore = useLoaderStore()
 const optionStore = useOptionStore()
 const { t } = useI18n()
@@ -158,6 +159,21 @@ watch(
     },
     { deep: true }
 )
+watch(
+  () => userApps.value,
+  (list) => {
+    if (list.length === 0) {
+      clearSelectedApps()
+      return
+    }
+    const byId = new Map(list.map(a => [a.appId, a]))
+    // 既存選択を新しい参照に差し替え（見つからないものは除外）
+    selectedApps.value = selectedApps.value
+      .map(a => byId.get(a.appId))
+      .filter((a): a is AppData => !!a)
+  },
+  { deep: true }
+)
 
 const clearButtonPT = {
     root: 'h-6 w-6 p-0 rounded-full text-surface-400 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-500 hover:bg-surface-100 dark:hover:bg-gray-800',
@@ -167,20 +183,12 @@ const clearButtonPT = {
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        adHeight: 90,
-        /*
-        adType: 'slot',
-        //adClient: 'ca-pub-8602791446931111',
-        adSlotName: '8956575261',
-        */
+        adType: 'none',
+        //adHeight: 90,
     },
     bottom: {
-        adHeight: 90,
-        /*
-        adType: 'slot',
-        //adClient: 'ca-pub-8602791446931111',
-        adSlotName: '5664134061',
-        */
+        adType: 'none',
+        //adHeight: 90,
     }
 }
 
@@ -200,6 +208,7 @@ const adConfig: Record<string, AdProps> = {
             <MultiSelect
                 v-model="selectedApps"
                 :options="userApps"
+                dataKey="appId"
                 display="chip"
                 optionLabel="name"
                 :placeholder="t('stats.targetApps')"

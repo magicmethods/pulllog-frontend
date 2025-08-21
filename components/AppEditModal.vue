@@ -2,8 +2,8 @@
 import { z } from 'zod'
 import { useUserStore } from '~/stores/useUserStore'
 import { useOptionStore } from '~/stores/useOptionStore'
+import { useCurrencyStore } from '~/stores/useCurrencyStore'
 import { useI18n } from 'vue-i18n'
-import { getCurrencyData } from '~/utils/currency'
 
 // Props/Emits
 const props = defineProps<{
@@ -18,7 +18,8 @@ const emit = defineEmits<{
 // Stores etc.
 const userStore = useUserStore()
 const optionStore = useOptionStore()
-const { t } = useI18n()
+const currencyStore = useCurrencyStore()
+const { t, locale } = useI18n()
 
 // Refs & Local variables
 const rawDateUpdateTime = ref<Date | null>(null)
@@ -44,9 +45,9 @@ const schema = computed(() => z.object({
     name: z.string().min(1, t('validation.appNameRequired')).max(maxAppNameLength.value, t('validation.appNameLengthExceeded', { maxLength: maxAppNameLength.value })),
     url: z.string().url(t('validation.invalidURL')).optional().or(z.literal('')).nullable(),
     description: z.string().max(maxDescLength.value, t('validation.textLengthExceeded', { maxLength: maxDescLength.value })).optional().or(z.literal('')).nullable(),
-    currency_unit: z.string().max(8, t('validation.textLengthExceeded', { maxLength: 8 })).optional().or(z.literal('')).nullable(),
+    //currency_code: z.string().max(8, t('validation.textLengthExceeded', { maxLength: 8 })).optional().or(z.literal('')).nullable(),
+    currency_code: z.string().regex(/^[A-Z]{3}$/, t('validation.invalidCurrencyCode')),
     date_update_time: z.string().regex(timeRegex, t('validation.invalidTime')).optional().or(z.literal('')).nullable(),
-    //raw_date_update_time: z.any().optional(), // 時刻の入力値は内部で処理されるため検証は不要
     sync_update_time: z.boolean().optional(),
     pity_system: z.boolean().optional(),
     guarantee_count: z.number().int().min(0, t('validation.guaranteeCountMin')).optional(),
@@ -54,8 +55,7 @@ const schema = computed(() => z.object({
     marker_defs: z.any().optional(), // 入力検証スキップ
     task_defs: z.any().optional(), // 未実装
 }))
-// biome-ignore lint:/suspicious/noExplicitAny
-const errors = ref<any>(null)
+
 // Computed
 const isShown = computed(() => props.visible ?? false)
 const isEditMode = computed(() => props.app?.appId && props.app?.appId !== '')
@@ -68,14 +68,17 @@ const exampleAppName = computed(() => {
     const exampleApps = optionStore.exampleApps
     return `${t('modal.appEdit.appNamePlaceholder')}: ${exampleApps[Math.floor(Math.random() * exampleApps.length)]}`
 })
-const currencyOptions = computed(() => optionStore.currencyLabels)
+//const currencyOptions = computed(() => optionStore.currencyLabels)
+const currencyOptions = ref<CurrencyOption[]>([])
+const currenciesReady = computed(() => currencyOptions.value.length > 0)
 
 // Methods
 // 初期化用ファクトリ
+async function initCurrencies() {
+    await currencyStore.ensureLoaded()
+    currencyOptions.value = currencyStore.optionsForSelect(locale.value)
+}
 function createAppDataFromApp(app?: AppData): AppData {
-    // 通貨単位の初期値を設定
-    const matchCurrencyUnit = optionStore.currencyOptions.filter(o => o.value === app?.currency_unit).map(o => o.desc ? o.desc : o.label)
-    const currencyUnit = matchCurrencyUnit.length > 0 ? matchCurrencyUnit[0] : app?.currency_unit ?? null
     // 日付更新時間の初期値を設定
     if (app?.date_update_time) {
         const [hour, minute] = app.date_update_time.split(':').map(Number)
@@ -83,19 +86,20 @@ function createAppDataFromApp(app?: AppData): AppData {
     } else {
         rawDateUpdateTime.value = new Date(new Date().setHours(0, 0, 0, 0)) as Date | null
     }
+
+    const defaultCode = currencyStore.defaultCurrencyCode(locale.value)
+    const code = (app?.currency_code && currencyStore.get(app.currency_code)?.code) || defaultCode
+
     // 新規登録（引数 app がない）時は InputOptions の初期値を設定
-    let defaultRarityDefs = app?.rarity_defs ?? []
-    let defaultMarkerDefs = app?.marker_defs ?? []
-    if (!app) {
-        defaultRarityDefs = [...optionStore.rarityOptions]
-        defaultMarkerDefs = [...optionStore.symbolOptions]
-    }
+    const defaultRarityDefs = app?.rarity_defs ?? [...optionStore.rarityOptions]
+    const defaultMarkerDefs = app?.marker_defs ?? [...optionStore.symbolOptions]
+
     const defaultAppData: AppData = {
         appId: app?.appId ?? '',
         name: app?.name ?? '',
         url: app?.url ?? '',
         description: app?.description ?? '',
-        currency_unit: currencyUnit,
+        currency_code: code,
         date_update_time: app?.date_update_time ?? '',
         sync_update_time: app?.sync_update_time ?? false,
         pity_system: app?.pity_system ?? false,
@@ -127,47 +131,41 @@ function toTimeString(d: CalenderDate): string {
     return `${hours}:${minutes}`
 }
 // フォームの値を検証
+const errors = ref<Record<string, string[]> | null>(null)
 function validateForm(): boolean {
-    if (formData.value.currency_unit) {
-        const inputCurrency = formData.value.currency_unit
-        const currencyData = getCurrencyData(inputCurrency)
-        if (currencyData) {
-            formData.value.currency_unit = currencyData.code
-        }
-        //console.log('validateForm::currency_unit:', inputCurrency, currencyData?.code, formData.value.currency_unit)
+    const code = formData.value.currency_code
+    if (!code || !currencyStore.get(code)) {
+        errors.value = { ...(errors.value ?? {}), currency_code: [t('validation.currencyCodeInvalid')] }
+        return false
     }
 
     const result = schema.value.safeParse(formData.value)
-    if (!result.success) {
-        const { error } = result
-        //console.warn('Validation Error:', error.issues, error.format(), error.flatten())
-        errors.value = error.flatten().fieldErrors
-    } else {
-        errors.value = null
-    }
+    errors.value = result.success ? null : result.error.flatten().fieldErrors
     return result.success
 }
 // Submit ハンドラ
 function handleSubmit() {
     if (!validateForm()) return
-
     // フォームの値が有効な場合、親コンポーネントの submit イベントを発火
     emit('submit', { ...formData.value })
     emit('update:visible', false)
 }
 
 // Watchers
-watch(() => props.visible, (val) => {
+watch(() => props.visible, async (val) => {
     // モーダルの表示状態を監視
     if (val) {
         // モーダルが表示されたときに初期値を設定
+        await initCurrencies()
         formData.value = {...createAppDataFromApp(props.app)}
         descLength.value = formData.value.description?.length ?? 0
+        /*
         if (!isEditMode.value) {
             // 新規登録モードの場合は、初期値を設定
             formData.value.rarity_defs = [...optionStore.rarityOptions]
             formData.value.marker_defs = [...optionStore.symbolOptions]
         }
+        */
     } else {
         // モーダルが非表示になったときに初期値をリセット
         formData.value = {...createAppDataFromApp()}
@@ -175,10 +173,12 @@ watch(() => props.visible, (val) => {
     }
     //console.log(`AppEditModal: ${val ? 'shown' : 'hidden'} / mode: ${isEditMode.value ? 'edit' : 'register'}`, formData.value)
 }, { immediate: true })
+/*
 watch(() => formData.value, (val) => {
     // フォーム値が変更されたらバリデーション実行
     validateForm()
 }, { deep: true })
+*/
 watch(() => rawDateUpdateTime.value, (val) => {
     // 日付更新時間が変更されたら、rawDateUpdateTime を更新
     formData.value.date_update_time = val ? toTimeString(val) : ''
@@ -259,21 +259,34 @@ watch(() => rawDateUpdateTime.value, (val) => {
                     </div>
 
                     <div class="mb-4">
-                        <label for="currency_unit" class="label-flex text-sm">
+                        <label for="currency_code" class="label-flex text-sm">
                             <span>{{ t('modal.appEdit.currencyUnit') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('currencyUnit')"></i>
                         </label>
-                        <ComboBox
-                            inputId="currency_unit"
-                            :modelValue="formData.currency_unit"
-                            @update:modelValue="val => formData.currency_unit = val ?? null"
+                        <Select
+                            labelId="currency_code"
+                            :modelValue="formData.currency_code"
+                            @update:modelValue="(val: string) => formData.currency_code = val"
                             :options="currencyOptions"
+                            optionLabel="label"
+                            optionValue="value"
+                            :filter="true"
+                            :editable="false"
+                            :forceSelection="true"
                             :placeholder="t('modal.appEdit.currencyUnitPlaceholder')"
                             :emptyMessage="t('modal.appEdit.currencyUnitEmptyMessage')"
-                            class="max-w-max"
+                            highlightOnSelect
+                            class="min-w-max max-w-full md:max-w-3/4"
+                            :disabled="!currenciesReady"
+                            :pt="{
+                                pcFilterContainer: { root: 'py-2 px-4' },
+                                pcFilter: { root: 'w-full text-sm' },
+                                pcFilterIconContainer: { root: '-mt-1 mr-4' },
+                                filterIcon: '-mt-1',
+                            }"
                         />
-                        <Message v-if="errors?.currency_unit" severity="error" size="small" variant="simple" class="mt-1">
-                            {{ errors?.currency_unit.join(', ') }}
+                        <Message v-if="errors?.currency_code" severity="error" size="small" variant="simple" class="mt-1">
+                            {{ errors?.currency_code.join(', ') }}
                         </Message>
                     </div>
 

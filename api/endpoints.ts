@@ -66,5 +66,8 @@ export const endpoints = {
             const base = `${useConfig().apiProxy}/stats/${appId}`
             return query.toString() ? `${base}?${query.toString()}` : base
         }, // GET
-    }
+    },
+    currency: {
+        list: () => `${useConfig().apiProxy}/currencies`, // GET
+    },
 }

@@ -10,12 +10,6 @@ export const useOptionStore = defineStore('option', () => {
         t('options.exampleApp4'),
         t('options.exampleApp5'),
     ]))
-    const currencyOptions = computed<SymbolOption[]>(() => ([
-        { label: t('options.currency.jpy'), value: 'JPY', desc: t('options.currency.jpyDesc'), symbol: '￥' },
-        { label: t('options.currency.usd'), value: 'USD', desc: t('options.currency.usdDesc'), icon: 'pi-dollar' },
-        { label: t('options.currency.eur'), value: 'EUR', desc: t('options.currency.eurDesc'), icon: 'pi-euro' },
-        { label: t('options.currency.cny'), value: 'CNY', desc: t('options.currency.cnyDesc'), symbol: '￥' },
-    ]))
     const rarityOptions = computed<SymbolOption[]>(() => ([
         { symbol: '', label: t('options.rarity.ssr'), value: 'ssr' },
         { symbol: '', label: t('options.rarity.sr'),  value: 'sr' },
@@ -46,9 +40,6 @@ export const useOptionStore = defineStore('option', () => {
     const otherPlaceholder = ref<string>('<:other:>') // 「その他」プレースホルダー
 
     // Computed labels (UI表示用)
-    const currencyLabels = computed(() =>
-        currencyOptions.value.map(opt => opt.desc && opt.desc !== '' ? opt.desc : opt.label)
-    )
     const rarityLabels = computed(() =>
         rarityOptions.value.map(opt => opt.label)
     )
@@ -68,11 +59,10 @@ export const useOptionStore = defineStore('option', () => {
     // Actions
     function getOptionsAs(
         type: 'array' | 'object',
-        target: 'currency' | 'rarity' | 'symbol' | 'language' | 'theme' | 'homepage'
+        target: 'rarity' | 'symbol' | 'language' | 'theme' | 'homepage'
     ): string[] | SymbolOption[] | BasicOption[] {
         if (type === 'array') {
             switch (target) {
-                case 'currency': return currencyLabels.value
                 case 'rarity':   return rarityLabels.value
                 case 'symbol':   return markerLabels.value
                 case 'language': return languageLabels.value
@@ -81,7 +71,6 @@ export const useOptionStore = defineStore('option', () => {
             }
         }
         switch (target) {
-            case 'currency': return currencyOptions.value
             case 'rarity':   return rarityOptions.value
             case 'symbol':   return symbolOptions.value
             case 'language': return languageOptions.value
@@ -92,7 +81,6 @@ export const useOptionStore = defineStore('option', () => {
 
     return {
         exampleApps,
-        currencyOptions,
         rarityOptions,
         symbolOptions,
         languageOptions,
@@ -100,10 +88,8 @@ export const useOptionStore = defineStore('option', () => {
         homepageOptions,
         rangeSeparator,
         otherPlaceholder,
-        currencyLabels,
         rarityLabels,
         markerLabels,
         getOptionsAs,
-        //setOptionsFromAppConfig,
     }
 })

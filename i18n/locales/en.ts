@@ -37,8 +37,16 @@ export default defineI18nLocale(async () => ({
             logsNotFound: 'No history data found.',
             importFailed: 'Failed to import history.',
             statsNotFound: 'No statistics data found.',
+            loadCurrencyFailed: 'Failed to load currency data.',
             demoTitle: 'Demo User Limitations',
             demoDetail: 'This features are not available for demo users.',
+        },
+        word: {
+            pickup: 'Pickup',
+            lose: 'Lose the 50/50',
+            target: 'Target',
+            guaranteed: 'Guaranteed',
+            other: 'Other',
         },
         ad: {
             advertisement: 'Advertisement',
@@ -51,16 +59,6 @@ export default defineI18nLocale(async () => ({
         exampleApp3: 'Fate/Grand Order',
         exampleApp4: 'Monster Strike',
         exampleApp5: 'Uma Musume Pretty Derby',
-        currency: {
-            jpy: 'Japanese Yen',
-            jpyDesc: 'JPY - Yen',
-            usd: 'US Dollar',
-            usdDesc: 'USD - Dollar',
-            eur: 'Euro',
-            eurDesc: 'EUR - Euro',
-            cny: 'Chinese Yuan',
-            cnyDesc: 'CNY - Yuan',
-        },
         rarity: {
             ssr: 'SSR',
             sr: 'SR',
@@ -383,7 +381,8 @@ export default defineI18nLocale(async () => ({
                 expenseLabel: 'Expense',
                 ratioLabel: 'Ratio',
                 totalLabel: 'Total',
-                currencyNote: 'note: The currency unit for expenses will be unified to the first selected app.',
+                currencyNote: 'Totals are grouped by currency. No FX conversion; pie shares use the recorded amounts as-is.',
+                currencyNoteLong: 'When multiple currencies are present, totals are shown per currency. Exchange rates are not applied, and pie chart percentages are computed from the recorded amounts (expense_decimal). For like-for-like comparison, filter to a single currency or convert externally.',
             },
             monthlyExpenseStack: {
                 titlePrefix: 'Applications',
@@ -406,14 +405,10 @@ export default defineI18nLocale(async () => ({
                 titlePrefix: '{name}',
                 titleLabel: 'Rare Drops',
                 titleSuffix: 'Breakdown Ratio',
-                pickup: 'Pickup',
-                lose: 'Lose the 50/50',
-                target: 'Target',
-                guaranteed: 'Guaranteed',
-                other: 'Other',
                 value: '{value} ({rate}%)',
                 total: 'Total Rare Drops',
-                notice: 'note: The breakdown is only valid for the initial marker definitions in the app settings.',
+                notice: 'Only preset markers are included in this breakdown.',
+                noticeLong: 'This breakdown only categorizes drops that match the preset marker definitions (e.g., Pickup, Lose the 50/50, Target, Guaranteed). Any custom markers defined by users are not recognized and will not appear in the statistics.',
             },
             rareDropRanking: {
                 title: '{appName} Rare Drop Ranking',
@@ -421,12 +416,8 @@ export default defineI18nLocale(async () => ({
                 itemName: 'Item Name',
                 count: 'Count',
                 totalCount: 'Total Count',
-                pickup: 'Pickup',
-                lose: 'Lose the 50/50',
-                target: 'Target',
-                guaranteed: 'Guaranteed',
-                other: 'Other',
-                note: 'note: The breakdown of ranking is only valid for the initial marker definitions in the app settings.',
+                notice: "The ranking breakdown only includes preset markers.",
+                noticeLong: "The ranking categorizes drops only by the preset marker definitions (e.g., Pickup, Lose the 50/50, Target, Guaranteed). Any custom markers defined by users are not recognized and will be grouped under 'Other'.",
             },
         },
         loading: {
@@ -787,27 +778,44 @@ export default defineI18nLocale(async () => ({
             },
         },
         statistics: {
-            title: 'What statistics are there?',
-            description: 'PullLog provides detailed statistics on your gacha history and spending, allowing you to analyze your performance and trends.',
+            //title: 'What statistics are there?',
+            title: 'What kind of statistics are provided?',
+            //description: 'PullLog provides detailed insights into your gacha pulls and spending. Track your habits, discover trends, and better understand your luck over time.',
+            description: 'PullLog offers detailed analysis of your gacha history and spending, enabling you to objectively understand your trends and probability outcomes.',
             stat1: {
-                title: 'Total Pulls',
-                value: '100'
+                title: 'Expense Ratio',
+                //describe: 'See how your total spending is distributed across different games and apps.'
+                describe: 'Aggregate spending by app and visualize its proportion of the total.'
             },
             stat2: {
-                title: 'Total Expense',
-                value: '10,000 JPY'
+                title: 'Monthly Spending',
+                //describe: 'Visualize your monthly expenses and spot spending patterns at a glance.'
+                describe: 'Display monthly expenditures in chronological order to review spending trends.'
             },
             stat3: {
-                title: 'Average Rarity',
-                value: '5.0'
+                title: 'Luck Trend',
+                //describe: 'Track your luck over time and see how your rare drop rate changes across pulls.'
+                describe: 'Calculate rare drop rates over time and objectively track fluctuations in luck.'
             },
             stat4: {
-                title: 'Rare Drop Count',
-                value: '20'
+                title: 'Pull Counts & Rare Rates',
+                //describe: 'Check total pulls, rarity counts, and the actual probability compared with expected rates.'
+                describe: 'Compare total pulls and actual rare rates against expected probabilities.'
             },
             stat5: {
-                title: 'Rare Drop Rate',
-                value: '20%'
+                title: 'Rare Drop Breakdown Ratio',
+                //describe: 'Analyze rare drops by categories such as pickups, guaranteed slots, and more.'
+                describe: 'Classify rare drops into categories such as pickups and guaranteed slots.'
+            },
+            stat6: {
+                title: 'Rare Drop Ranking',
+                //describe: 'Rank your rarest acquisitions to see which items or characters you’ve pulled most often.'
+                describe: 'Display frequently pulled rare items in a ranking format.'
+            },
+            stat7: {
+                title: 'History Trend',
+                //describe: 'Review your entire gacha history to understand long-term patterns and milestones.'
+                describe: 'Review long-term patterns and key milestones across your entire gacha history.'
             },
         },
         footer: {

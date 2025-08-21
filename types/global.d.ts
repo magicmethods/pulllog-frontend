@@ -29,7 +29,17 @@ type SearchableView = {
     searchLabel: string // 例: "あぷりめい（えん）"
 }
 type BasicOption = { label: string; value: string }
-// 通貨データ（通貨定義 utils/currency.ts で使用）
+// 通貨データの型
+type CurrencyData = {
+    code: string
+    name: string
+    symbol?: string
+    symbol_native?: string
+    minor_unit: number
+    rounding: number
+    name_plural?: string
+}
+/* 通貨データ（旧 utils/currency.ts の型）※破棄予定
 type CurrencyData = {
     symbol: string; // 通貨記号
     name: string; // 通貨名
@@ -38,6 +48,16 @@ type CurrencyData = {
     rounding: number; // 四捨五入の単位
     code: string; // ISO通貨コード
     name_plural: string; // 複数形の通貨名
+}
+*/
+type CurrencyResponse = {
+    status: 'success' | 'error'
+    data?: CurrencyData[]
+    message?: string
+}
+type CurrencyOption = {
+    label: string // 表示用ラベル
+    value: string // 値（ISO通貨コード）
 }
 // ローダー表示用の情報型
 type LoaderInfo = {
@@ -60,6 +80,9 @@ type AdProps = {
     adHtml?: string
     adSlotName?: string
     adClient?: string
-    adType?: 'image' | 'carousel' | 'html' | 'slot'
+    adType?: 'image' | 'carousel' | 'html' | 'slot' | 'none'
+    adFormat?: string
+    adResponsive?: string
+    adStyle?: string
     disableForPlan?: string
 }

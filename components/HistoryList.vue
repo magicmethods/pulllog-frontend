@@ -34,6 +34,9 @@ const props = defineProps<{
     /** 強調表示する日付（YYYY-MM-DD） */
     highlightDate?: string
 }>()
+const emit = defineEmits<
+    (e: 'clone-tag', tagText: string) => void
+>()
 
 // Stores etc.
 const appStore = useAppStore()
@@ -142,6 +145,10 @@ async function handleSelectionCopy() {
         window.getSelection()?.removeAllRanges()
     }
 }
+function cloneToCurrentLog(tagText: string) {
+    // 親コンポーネントの history.vue へクローンするタグテキストをemitする
+    emit('clone-tag', tagText)
+}
 
 // Lifecycle hooks
 onMounted(() => {
@@ -198,7 +205,7 @@ const scrollPanelPT = {
                             <td v-if="showColumn('date')">{{ log.date }}</td>
                             <td v-if="showColumn('total_pulls')" class="text-center">{{ log.total_pulls }}</td>
                             <td v-if="showColumn('discharge_items')" class="text-center">{{ log.discharge_items }}</td>
-                            <td v-if="showColumn('expense')" class="text-right">{{ log.expense }}</td>
+                            <td v-if="showColumn('expense')" class="text-right">{{ log.expense_decimal ?? 0 }}</td>
                             <td v-if="showColumn('tags')">
                                 <template v-if="tagsMap.has(log.date)">
                                     <ScrollPanel
@@ -213,6 +220,7 @@ const scrollPanelPT = {
                                                 v-for="tag in tagsMap.get(log.date)"
                                                 :key="tag.text"
                                                 v-html="tag.html"
+                                                @click="cloneToCurrentLog(tag.text)"
                                             />
                                         </div>
                                     </ScrollPanel>

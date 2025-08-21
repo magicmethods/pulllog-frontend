@@ -114,7 +114,7 @@ watch(
 <template>
     <div class="h-full w-full px-4 py-6 flex flex-col justify-between items-start">
         <div class="flex items-center gap-4 mb-2">
-            <Avatar v-bind="avatarProps('large')" />
+            <Avatar v-bind="avatarProps('large')" :pt="{ root: 'bg-surface-200/50 dark:bg-gray-700/50' }" />
             <h3 class="text-lg font-semibold">{{ userStore.user?.name ?? t('settingsDrawer.unset') }}</h3>
         </div>
         <div class="flex items-center gap-4 text-sm text-surface-600 dark:text-gray-400 mb-2">

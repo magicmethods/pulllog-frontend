@@ -8,19 +8,24 @@ declare global {
         name: string | null // 排出アイテム名
         marker: string | null // マーキング: optionStore.symbolOptions の label
     }
-    /** 日付ログデータ */
+    /** 日付ログデータ（APIレスポンス準拠） */
     type DateLog = {
+        id?: number
         appId: string // アプリケーションID: ユーザー毎に一意な値
         date: string // 記録対象となる日付: YYYY-MM-DD形式の文字列
         total_pulls: number // 対象日のガチャ回数の合計値
         discharge_items: number // 対象日のレア排出数の合計値
         drop_details: DropDetail[] // 対象日のレア排出詳細の配列
-        expense: number // 対象日のガチャにかかった費用の合計値
+        expense?: number // 対象日のガチャにかかった費用の合計値（整数・旧仕様）
+        expense_amount?: number // 対象日のガチャにかかった費用の合計値（整数・新仕様・リクエスト時必須）
+        expense_decimal?: number // 対象日のガチャにかかった費用の合計値（小数点以下を含む）
         tags: string[] // 付与されたタグ文字列の配列（日次ログ毎に最大5つまで）
         free_text: string // フリーテキスト（maxLength: 250）
         images: string[] // 添付画像のファイルパスの配列（日次ログ毎に最大n個まで）（将来的な機能）
         tasks: string[] // 完了したタスク名の配列: タスク名は optionStore.taskOptions の label を想定 （将来的な機能）
-        last_updated: string | null // 最終更新日時: YYYY-MM-DDTHH:mm:ss形式の文字列（DB登録時に発行される DATETIME 文字列）
+        last_updated?: string | null // 最終更新日時: ISO 8601形式の文字列
+        created_at?: string // 作成日時: ISO 8601形式の文字列
+        updated_at?: string // 更新日時: ISO 8601形式の文字列
     }
     /** 推移グラフ・履歴一覧用データ */
     type HistoryData = Map<string, DateLog[]> // キーは appId で、値は日付ログの配列（アプリ毎に日付ログが管理される）

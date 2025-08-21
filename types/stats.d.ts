@@ -24,18 +24,21 @@ declare global {
     /** 新型・推奨 */
     interface StatsData {
         appId: string
+        currencyCode: string // 通貨コード（例: 'JPY', 'USD'）
+        minorUnit: number // 通貨の最小単位（例: JPYなら0, USDなら2）
         startDate: string // 集計開始日: YYYY-MM-DD形式の文字列
         endDate: string // 集計終了日: YYYY-MM-DD形式の文字列
+        totalLogs: number // 集計期間中の登録ログ数
+        monthsInPeriod: number // 集計期間中の月数
         totalPulls: number // ガチャ回数の合計値
         rareDropCount: number // レア排出数
         rareDropRate: number // レア排出率
         totalExpense: number // ガチャにかかった費用の合計値
         averageExpense: number // レア排出1回あたりの平均費用
+        averageMonthlyExpense: number // 月毎の平均費用
         averageRareDropRate: number // レア排出率の平均値（レア排出１回あたりのガチャ回数）
-        totalLogs?: number // 集計期間中の登録ログ数
-        monthsInPeriod?: number // 集計期間中の月数
-        averageMonthlyExpense?: number // 月毎の平均費用
-        // 追加項目: [今後拡張可能]
+        // 追加項目: [拡張可能]
+        // monthlyExpense?: Record<string, number> // 月ごとの費用（YYYY-MM形式のキー）
     }
     /** 統計キャッシュのMap型 */
     type StatsMap = Map<string, Map<string, StatsData>> // appId -> queryKey -> StatsData
