@@ -1,5 +1,3 @@
-import demoLoginPost from "~/server/api/auth/demoLogin.post";
-
 export default defineI18nLocale(async () => ({
     // Globals
     app: {

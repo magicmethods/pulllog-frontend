@@ -138,40 +138,45 @@ const onSaveSelection = () => {
     <!-- バナー（未選択時のみ） -->
     <div
         v-if="visibleBanner"
-        class="cookie-banner"
+        class="fixed inset-x-0 bottom-0 z-[60] bg-black/80 text-white p-4"
         role="dialog"
         aria-modal="false"
         aria-label="Cookie consent banner"
     >
-        <div class="cookie-banner__body">
-            <div class="cookie-banner__text text-sm">
-                <p class="cookie-title">{{ t('cookieConsent.title') }}</p>
-                <p class="cookie-desc">
+        <div class="max-w-[1080px] mx-auto grid grid-cols-1 gap-4 items-center md:grid-cols-[1fr_auto]">
+            <div class="text-sm">
+                <p class="font-bold leading-snug mb-1">{{ t('cookieConsent.title') }}</p>
+                <p class="m-0 leading-relaxed opacity-90">
                     {{ t('cookieConsent.description') }}
                     {{ t('cookieConsent.learnMorePrefix') }}
-                    <NuxtLink @click.prevent="showPolicy" class="cookie-link cursor-pointer">{{ t('cookieConsent.privacyPolicy') }}</NuxtLink>
+                    <NuxtLink
+                        @click.prevent="showPolicy"
+                        class="underline underline-offset-2 cursor-pointer"
+                    >
+                        {{ t('cookieConsent.privacyPolicy') }}
+                    </NuxtLink>
                     {{ t('cookieConsent.learnMoreSuffix') }}
                 </p>
             </div>
-            <div class="cookie-banner__actions">
+            <div class="flex flex-wrap items-center gap-2 justify-stretch md:justify-end">
                 <Button
                     :label="t('cookieConsent.decline')"
                     severity="secondary"
                     size="small"
-                    class="btn btn-secondary btn-sm"
+                    class="btn btn-secondary btn-sm w-full sm:w-auto"
                     @click="onDenyAll"
                 />
                 <Button
                     :label="t('cookieConsent.manage')"
                     severity="contrast"
                     size="small"
-                    class="btn btn-alt btn-sm"
+                    class="btn btn-alt btn-sm w-full sm:w-auto"
                     @click="visibleDialog = true"
                 />
                 <Button
                     :label="t('cookieConsent.acceptAll')"
                     size="small"
-                    class="btn btn-primary btn-sm"
+                    class="btn btn-primary btn-sm w-full sm:w-auto"
                     @click="onAcceptAll"
                 />
             </div>
@@ -194,36 +199,36 @@ const onSaveSelection = () => {
         :style="{ width: '560px', maxWidth: '92vw' }"
         :breakpoints="{ '768px': '92vw' }"
     >
-        <div class="cookie-dialog">
-            <section class="cookie-section">
-                <p class="cookie-section__title">{{ t('cookieConsent.requiredCookies') }}</p>
-                <p class="cookie-section__desc">
+        <div class="space-y-3">
+            <section class="my-2">
+                <p class="font-bold mb-1">{{ t('cookieConsent.requiredCookies') }}</p>
+                <p class="mt-1 leading-6 opacity-80">
                     {{ t('cookieConsent.requiredCookiesDesc') }}
                 </p>
             </section>
 
             <Divider />
 
-            <section class="cookie-section">
-                <div class="cookie-row">
+            <section class="my-2">
+                <div class="flex items-center gap-2">
                     <Checkbox
                         inputId="ck-analytics"
                         :binary="true"
                         v-model="prefs.analytics"
                     />
-                    <label for="ck-analytics" class="cookie-label">
+                    <label for="ck-analytics" class="font-semibold">
                         {{ t('cookieConsent.analytics') }}
                     </label>
                 </div>
-                <p class="cookie-section__desc">
+                <p class="mt-1 leading-6 opacity-80 ml-7">
                     {{ t('cookieConsent.analyticsDesc') }}
                 </p>
             </section>
 
             <Divider />
 
-            <section class="cookie-section">
-                <div class="cookie-row">
+            <section class="my-2">
+                <div class="flex items-center gap-2">
                     <Checkbox
                         inputId="ck-ads"
                         :binary="true"
@@ -233,7 +238,7 @@ const onSaveSelection = () => {
                         {{ t('cookieConsent.ads') }}
                     </label>
                 </div>
-                <p class="cookie-section__desc">
+                <p class="mt-1 leading-6 opacity-80 ml-7">
                     {{ t('cookieConsent.adsDesc') }}
                 </p>
             </section>
@@ -242,29 +247,34 @@ const onSaveSelection = () => {
 
             <p class="text-xs mt-2">
                 {{ t('cookieConsent.noticePrefix') }}
-                <NuxtLink @click.prevent="showPolicy" class="cookie-link cursor-pointer">{{ t('cookieConsent.privacyPolicy') }}</NuxtLink>
+                <NuxtLink
+                    @click.prevent="showPolicy"
+                    class="underline underline-offset-2 cursor-pointer cursor-pointer"
+                >
+                    {{ t('cookieConsent.privacyPolicy') }}
+                </NuxtLink>
                 {{ t('cookieConsent.noticeSuffix') }}
             </p>
         </div>
 
         <template #footer>
-            <div class="cookie-footer flex items-center justify-between">
-                <div class="cookie-footer__right flex items-center gap-2">
+            <div class="grid grid-cols-1 gap-3 items-center sm:grid-cols-[1fr_auto]">
+                <div class="flex items-center gap-2 flex-wrap justify-stretch sm:justify-end">
                     <Button
                         :label="t('cookieConsent.decline')"
                         severity="secondary"
-                        class="btn btn-secondary"
+                        class="btn btn-secondary w-full sm:w-auto"
                         @click="onDenyAll"
                     />
                     <Button
                         :label="t('cookieConsent.saveSelection')"
                         severity="contrast"
-                        class="btn btn-alt"
+                        class="btn btn-alt w-full sm:w-auto"
                         @click="onSaveSelection"
                     />
                     <Button
                         :label="t('cookieConsent.acceptAll')"
-                        class="btn btn-primary"
+                        class="btn btn-primary w-full sm:w-auto"
                         @click="onAcceptAll"
                     />
                 </div>
@@ -272,94 +282,3 @@ const onSaveSelection = () => {
         </template>
     </Dialog>
 </template>
-
-<style lang="scss" scoped>
-.cookie-banner {
-    position: fixed;
-    inset-inline: 0;
-    bottom: 0;
-    z-index: 60;
-    background: color-mix(in srgb, #111 88%, transparent);
-    color: #fff;
-    padding: 16px;
-
-    .cookie-banner__body {
-        margin: 0 auto;
-        max-width: 1080px;
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 16px;
-        align-items: center;
-    }
-
-    .cookie-banner__text {
-        .cookie-title {
-            font-weight: 700;
-            margin: 0 0 4px 0;
-            line-height: 1.4;
-        }
-        .cookie-desc {
-            margin: 0;
-            line-height: 1.6;
-            opacity: .9;
-        }
-    }
-
-    .cookie-banner__actions {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-        justify-content: end;
-    }
-
-    .cookie-link {
-        text-decoration: underline;
-        text-underline-offset: 2px;
-    }
-}
-
-.cookie-dialog {
-    .cookie-section {
-        margin: 8px 0 12px 0;
-
-        &__title {
-            font-weight: 700;
-            margin: 0 0 4px 0;
-        }
-        &__desc {
-            margin: 4px 0 0 28px;
-            opacity: .85;
-            line-height: 1.6;
-        }
-    }
-
-    .cookie-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .cookie-label {
-        font-weight: 600;
-    }
-
-    .cookie-footer {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 12px;
-        align-items: center;
-
-        &__right {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-    }
-
-    .cookie-link {
-        text-decoration: underline;
-        text-underline-offset: 2px;
-    }
-}
-</style>

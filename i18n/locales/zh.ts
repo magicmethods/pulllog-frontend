@@ -1,5 +1,3 @@
-import { CheckboxStyle } from "primevue";
-
 export default defineI18nLocale(async () => ({
     // Globals
     app: {
@@ -768,6 +766,11 @@ export default defineI18nLocale(async () => ({
             },
             step3: {
                 title: '历史和统计数据自动更新',
+                imageCaption: '',
+                description: '汇总的数据和图表会自动生成，您可以随时查看。',
+            },
+            step4: {
+                title: '自动反映在统计数据中',
                 imageCaption: '',
                 description: '汇总的数据和图表会自动生成，您可以随时查看。',
             },

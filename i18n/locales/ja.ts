@@ -1,5 +1,3 @@
-import { date } from "zod";
-
 export default defineI18nLocale(async () => ({
     // Globals
     app: {
