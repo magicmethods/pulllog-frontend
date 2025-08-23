@@ -9,7 +9,7 @@ const props = withDefaults(defineProps<{
     poster: ''
 })
 
-const srcMp4 = `${useConfig().assetBaseURL}/${props.fileName}`
+const srcMp4 = `${useConfig().assetBaseURL}/video/${props.fileName}`
 const srcWebm = srcMp4.replace(/\.mp4$/i, '.webm')
 </script>
 
