@@ -161,7 +161,7 @@ function showTooltip() {
 </script>
 
 <template>
-    <Card v-if="breakdownData && Object.keys(breakdownData).length > 0" class="min-h-[20rem] h-max min-w-max flex-grow">
+    <Card v-if="breakdownData && Object.keys(breakdownData).length > 0" class="chart-card">
         <template #title>
             <h3 class="text-base">
                 {{ t('stats.chart.rareDropBreakdown.titlePrefix', { name: breakdownData.dispName }) }}

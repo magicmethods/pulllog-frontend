@@ -107,8 +107,29 @@ watch(
             <Meta name="keywords" :content="t('app.keywords')" />
             <Meta name="google-adsense-account" :content="appConfig.adsenseAccount" />
         </Head>
+        <CommonDocumentModal
+            v-model:visible="showTerms"
+            :src="termSrc"
+            :title="t('app.termsTitle')"
+            width="80vw"
+            maxWidth="800px"
+        />
+        <CommonDocumentModal
+            v-model:visible="showPolicy"
+            :src="policySrc"
+            :title="t('settingsDrawer.privacyPolicyTitle')"
+            width="80vw"
+            maxWidth="800px"
+        />
+        <CommonDocumentModal
+            v-model:visible="showContact"
+            :src="contactSrc"
+            :title="t('landing.footer.contactUs')"
+            width="80vw"
+            maxWidth="800px"
+        />
         <header
-            class="sticky top-0 w-full flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-600 z-50"
+            class="sticky top-0 w-full max-w-screen flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-600 z-50"
             scrolled="border-b border-surface-500 dark:border-gray-900 bg-transparent"
         >
             <NuxtLink to="/" class="text-2xl font-bold flex items-center gap-2">
@@ -142,7 +163,7 @@ watch(
                     :label="`${currentLanguage}`"
                     icon="pi pi-language"
                     @click="handleLangToggle"
-                    class="btn btn-primary mb-0 w-20 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
+                    class="btn btn-primary mb-0 w-8 sm:w-20 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
                     v-blur-on-click
                 />
                 <Popover ref="langOpt" class="min-w-32">
@@ -180,14 +201,12 @@ watch(
                             class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400 cursor-pointer"
                         >{{ t('landing.footer.termsOfService') }}</NuxtLink>
                     </li>
-                    <template v-if="false">
-                        <li class="text-surface-400 select-none">|</li>
-                        <li>
-                            <NuxtLink to="https://github.com/magicmethods/pulllog" class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400">
-                                {{ t('landing.footer.github') }}
-                            </NuxtLink>
-                        </li>
-                    </template>
+                    <li class="hidden md:inline-block text-surface-400 select-none">|</li>
+                    <li class="hidden md:inline-block">
+                        <NuxtLink to="https://github.com/magicmethods/pulllog-docs" target="_blank" class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400">
+                            {{ t('landing.footer.github') }}
+                        </NuxtLink>
+                    </li>
                     <li class="text-surface-400 select-none">|</li>
                     <li>
                         <NuxtLink
@@ -199,7 +218,7 @@ watch(
                     <template v-if="false">
                         <li class="text-surface-400 select-none">|</li>
                         <li>
-                            <NuxtLink to="https://ka2.org/" class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400">
+                            <NuxtLink to="https://ka2.org/" target="_blank" class="text-surface-600 hover:text-primary-500 dark:hover:text-primary-400">
                                 {{ t('landing.footer.blog') }}
                             </NuxtLink>
                         </li>
@@ -209,43 +228,29 @@ watch(
                 <div class="flex items-center gap-6 mt-4 mb-0">
                     <NuxtLink
                         to="https://x.com/PullLog"
+                        target="_blank"
                         class="text-surface-400"
                     ><span class="pi pi-twitter"></span></NuxtLink>
                     <NuxtLink
-                        v-if="appConfig.isDebug"
+                        v-if="false"
                         to="https://www.reddit.com/user/pulllog"
+                        target="_blank"
                         class="text-surface-400"
                     ><span class="pi pi-reddit"></span></NuxtLink>
                     <NuxtLink
-                        v-if="appConfig.isDebug"
+                        v-if="false"
                         to="https://discord.com/invite/pulllog"
+                        target="_blank"
                         class="text-surface-400"
                     ><span class="pi pi-discord"></span></NuxtLink>
+                    <NuxtLink
+                        to="https://github.com/magicmethods/pulllog-docs"
+                        target="_blank"
+                        class="inline-block sm:hidden text-surface-400"
+                    ><span class="pi pi-github"></span></NuxtLink>
                 </div>
             </div>
         </div>
-
-        <CommonDocumentModal
-            v-model:visible="showTerms"
-            :src="termSrc"
-            :title="t('app.termsTitle')"
-            width="80vw"
-            maxWidth="800px"
-        />
-        <CommonDocumentModal
-            v-model:visible="showPolicy"
-            :src="policySrc"
-            :title="t('settingsDrawer.privacyPolicyTitle')"
-            width="80vw"
-            maxWidth="800px"
-        />
-        <CommonDocumentModal
-            v-model:visible="showContact"
-            :src="contactSrc"
-            :title="t('landing.footer.contactUs')"
-            width="80vw"
-            maxWidth="800px"
-        />
 
         <CommonScrollToTopButton />
     </div>

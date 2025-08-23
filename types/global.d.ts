@@ -11,7 +11,10 @@ interface AppConfig {
     defaultLocale: Language
     apiBaseURL: string
     apiProxy: string
+    assetBaseURL: string // 外部アセット用ベースURL（R2, S3など）
     adsenseAccount: string // Google AdSense アカウントID
+    gaId: string // Google Analytics ID
+    googleClientId: string // Google OAuth クライアントID
     isDebug: boolean
     mockMode: boolean
 }

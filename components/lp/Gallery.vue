@@ -41,8 +41,11 @@ const imagePT = (rootSizeClass?: string | null) => ({
                 <img src="/images/pulllog-icon.svg" alt="Pulllog Icon" class="w-8 h-8 inline-block mr-2 ld ld-tick" />
                 {{ t('landing.gallery.title') }}
             </h2>
-            <p class="py-4 text-xl text-primary-800 dark:text-white text-center">{{ t('landing.gallery.description') }}</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 my-4">
+            <p class="py-4 text-xl text-white dark:text-white text-center">{{ t('landing.gallery.description') }}</p>
+            <div class="w-full max-w-[800px] flex flex-col items-center sm:mb-4">
+                <LpDemoVideo />
+            </div>
+            <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 gap-4 sm:gap-6 mb-4">
                 <Image
                     :src="`/images/gallery-image1.webp${ver}`"
                     :alt="t('landing.gallery.image1Caption')"

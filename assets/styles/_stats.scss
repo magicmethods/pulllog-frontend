@@ -1,0 +1,31 @@
+.charts-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* モバイル：1列固定 */
+    gap: 1rem;
+
+    @media (min-width: 1024px) {
+        grid-template-columns: repeat(6, minmax(0, 1fr)); /* PC：最大6列 */
+        grid-auto-flow: row dense; /* スパン有りの再配置で隙間を詰める */
+    }
+}
+
+.chart-tile {
+    width: 100%;
+    min-width: 0;
+
+    /* PrimeVue Card のはみ出し対策 */
+    :deep(.p-card) {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* スパンユーティリティ（PC時のみ有効） */
+@media (min-width: 1024px) {
+    .span-1 { grid-column: span 1 / span 1; }
+    .span-2 { grid-column: span 2 / span 2; }
+    .span-3 { grid-column: span 3 / span 3; }
+    .span-4 { grid-column: span 4 / span 4; }
+    .span-5 { grid-column: span 5 / span 5; }
+    .span-6 { grid-column: 1 / -1; } /* 横フル(6) は 1行ぶち抜きが分かりやすい */
+}

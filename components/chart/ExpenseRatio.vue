@@ -141,7 +141,7 @@ function showTooltip() {
 </script>
 
 <template>
-    <Card class="min-h-[20rem]">
+    <Card class="chart-card">
         <template #title>
             <h3 class="text-base">
                 <span class="text-primary-800 dark:text-primary-400 mr-0.5">

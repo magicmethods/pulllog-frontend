@@ -308,7 +308,7 @@ function showTooltip() {
 </script>
 
 <template>
-    <Card class="max-h-[20rem] w-full md:max-w-2/3 md:flex-grow" style="width: stretch;">
+    <Card class="chart-card">
         <template #title>
             <h3 class="text-base">
                 <span class="text-primary-800 dark:text-primary-400 mx-0.5">

@@ -25,12 +25,13 @@ onMounted(async () => {
           <img src="/images/pulllog-icon.svg" alt="Pulllog Icon" class="w-8 h-8 inline-block mr-2 ld ld-swing" />
           {{ t('landing.about.title') }}
         </h2>
-        <p class="py-4 text-xl text-primary-800 dark:text-white text-center">{{ t('landing.about.description') }}</p>
+        <p class="py-4 text-xl text-white dark:text-white text-center">{{ t('landing.about.description') }}</p>
         <Fieldset
           :legend="t('landing.about.features')"
           class="text-primary-800 dark:text-white font-normal text-lg"
           :pt="{
-            root: 'border-solid! border-amber-400! dark:border-yellow-400! bg-gradient-to-b from-transparent to-primary-300 dark:to-primary-900/50',
+            root: 'border-solid! border-amber-400! dark:border-yellow-400! bg-gradient-to-b from-primary-400 md:from-primary-400/30 to-primary-300 dark:to-primary-900/50',
+            legend: 'pl-4 bg-transparent',
             legendLabel: 'text-amber-300 dark:text-yellow-500 font-semibold text-2xl',
             contentContainer: 'p-4',
           }"

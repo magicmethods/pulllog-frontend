@@ -765,12 +765,12 @@ export default defineI18nLocale(async () => ({
                 description: 'Select the application you want to manage from the list of registered applications.',
             },
             step3: {
-                title: 'Record Your Gacha History',
+                title: 'Record Gacha History',
                 imageCaption: '',
                 description: 'You can easily record how to draw gacha and your history with just a few clicks.',
             },
             step4: {
-                title: 'Automatically Reflect in Stats',
+                title: 'Stats Are Automatically',
                 imageCaption: '',
                 description: 'Aggregated data and graphs are automatically generated and can be viewed at any time.',
             },

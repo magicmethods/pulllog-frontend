@@ -70,12 +70,12 @@ onMounted(async () => {
 // PassThrough
 const cardPT = {
     root: {
-        class: 'w-full! sm:w-[calc(calc(100%_/_2)_-_2rem)]! md:w-[calc(calc(100%_/_3)_-_4rem)]! h-auto p-0! gap-4 rounded-xl shadow-lg overflow-hidden!',
+        class: 'w-full! md:w-[calc(calc(100%_/_2)_-_2rem)]! lg:w-[calc(calc(100%_/_3)_-_4rem)]! h-auto p-0! self-stretch gap-4 rounded-xl shadow-lg overflow-hidden!',
     },
     header: 'w-full! p-0 border-b border-surface-400 dark:border-gray-700 bg-white',
     body: 'items-center! gap-0!',
-    title: 'mx-auto! text-lg font-bold',
-    content: 'min-h-[8rem] p-4 text-base text-primary-900 dark:text-white',
+    title: 'mx-auto! text-lg font-bold text-center',
+    content: 'min-h-[10rem] p-4 text-base text-primary-900 dark:text-white',
 }
 const imagePT = {
     root: 'w-auto h-full',
@@ -89,14 +89,14 @@ const imagePT = {
 </script>
 
 <template>
-    <section id="statistics" ref="sectionRef" class="w-full mb-4">
+    <section id="statistics" ref="sectionRef" class="w-full mb-4 overflow-x-hidden">
         <div v-if="!isLoading" class="flex flex-col items-center justify-center gap-4">
             <h2 class="text-primary-800 dark:text-primary-300 font-bold text-3xl text-center">
                 <img src="/images/pulllog-icon.svg" alt="Pulllog Icon" class="w-8 h-8 inline-block mr-2 ld ld-jump" />
                 {{ t('landing.statistics.title') }}
             </h2>
             <p class="py-4 text-xl text-primary-800 dark:text-primary-300 text-center">{{ t('landing.statistics.description') }}</p>
-            <div class="flex flex-wrap justify-center gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-none md:flex md:flex-wrap md:justify-center md:items-stretch gap-6 md:gap-8">
                 <Card
                     v-for="(item, index) in statItems"
                     :key="index"

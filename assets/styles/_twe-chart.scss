@@ -19,3 +19,6 @@
         @apply h-24 flex items-center justify-center;
     }
 }
+.chart-card {
+    @apply w-full! min-h-[20rem] overflow-x-auto;
+}

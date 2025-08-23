@@ -141,7 +141,7 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <Card class="relative min-h-[22rem] w-full md:w-max md:max-w-1/3">
+    <Card class="chart-card">
         <template #title>
             <h3 class="text-base">
                 <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.appPullStats.title') }}</span>

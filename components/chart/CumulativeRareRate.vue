@@ -179,7 +179,7 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <Card class="min-h-[22rem] w-full md:w-auto flex-grow">
+    <Card class="chart-card">
         <template #title>
             <h3 class="text-base">
                 <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.cumulativeRareRate.titleLabel') }}</span>

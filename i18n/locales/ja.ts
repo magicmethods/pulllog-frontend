@@ -752,7 +752,7 @@ export default defineI18nLocale(async () => ({
             prev: '前のステップ',
             next: '次のステップ',
             step1: {
-                title: 'ガチャを引いたらPullLogを起動',
+                title: 'PullLogにログインしよう',
                 imageCaption: '',
                 description: 'ガチャを引いた後にPullLogにログインするだけで、履歴の登録が可能です。Googleアカウントをお持ちの方は、面倒な登録処理をすることなくすぐにログインすることもできます。',
             },

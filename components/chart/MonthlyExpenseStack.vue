@@ -205,7 +205,7 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <Card class="min-h-[20rem] flex-grow">
+    <Card class="chart-card">
         <template #title>
             <h3 class="text-base">
                 {{ t('stats.chart.monthlyExpenseStack.titlePrefix') }}

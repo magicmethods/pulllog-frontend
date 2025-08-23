@@ -55,7 +55,7 @@ const stepPanelFooter = 'pt-6 pb-2 px-2 flex gap-4'
                 <img src="/images/pulllog-icon.svg" alt="Pulllog Icon" class="w-8 h-8 inline-block mr-2 ld ld-measure" />
                 {{ t('landing.steps.title') }}
             </h2>
-            <p class="py-4 text-xl text-primary-800 dark:text-white text-center">{{ t('landing.steps.description') }}</p>
+            <p class="py-4 text-xl text-white dark:text-white text-center">{{ t('landing.steps.description') }}</p>
             <Stepper
                 value="1"
                 :pt="{ root: 'w-full md:max-w-2xl mx-auto my-4', separator: 'ml-0.5 bg-surface-500/40' }"

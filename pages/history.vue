@@ -396,7 +396,7 @@ const adConfig: Record<string, AdProps> = {
                         showButtons
                         :min="0"
                         :disabled="!targetDate"
-                        class="input-number-sm"
+                        class="input-number-sm flex-grow md:flex-grow-0"
                       />
                       <Button
                         icon="pi pi-plus"
@@ -435,7 +435,7 @@ const adConfig: Record<string, AdProps> = {
                         :min="0"
                         :max="totalPullCount"
                         :disabled="totalPullCount === 0"
-                        class="input-number-sm"
+                        class="input-number-sm flex-grow md:flex-grow-0"
                       />
                       <Button
                         icon="pi pi-plus"
@@ -484,7 +484,7 @@ const adConfig: Record<string, AdProps> = {
                         :min="0"
                         :max="999999999"
                         :disabled="!targetDate"
-                        class="input-number-md"
+                        class="input-number-md flex-grow md:flex-grow-0"
                       />
                       <div class="min-w-[3rem] px-1 text-md font-medium text-surface-500 truncate">
                         {{ currencyUnit }}

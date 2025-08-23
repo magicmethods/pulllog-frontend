@@ -25,6 +25,7 @@ const { t } = useI18n()
 const loading = ref<boolean>(false)
 const content = ref<string>('')
 const isMaximized = ref<boolean>(false)
+const containerRef = ref<HTMLElement | null>(null)
 
 const dialogStyle = computed(() => {
     // maximize中はstyleを空にしてPrimeVueのデフォルトに委譲
@@ -39,7 +40,8 @@ const dialogStyle = computed(() => {
 async function fetchMarkdown() {
     loading.value = true
     await nextTick()
-    const lid = loaderStore.show(t('modal.document.loading'), document.getElementById('document-loading-container') as HTMLElement)
+    const targetElm = containerRef.value ?? null
+    const lid = loaderStore.show(t('modal.document.loading'), targetElm)
     try {
         const res = await fetch(props.src)
         const md = await res.text()
@@ -93,7 +95,7 @@ watch(
         @unmaximize="onUnmaximize"
     >
         <div class="markdown-body" v-if="!loading" v-html="content" />
-        <div v-else id="document-loading-container"></div>
+        <div v-else ref="containerRef"></div>
         <template #footer>
             <Button :label="t('modal.document.close')" @click="emit('update:visible', false)" class="btn btn-alt" />
         </template>

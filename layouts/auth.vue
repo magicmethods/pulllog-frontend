@@ -37,7 +37,5 @@ onMounted(() => {
         <div class="w-full max-w-sm p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
             <slot />
         </div>
-        <!-- Loader -->
-        <Loader />
     </div>
 </template>

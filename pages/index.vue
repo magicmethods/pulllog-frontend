@@ -105,7 +105,7 @@ const alertClass = computed(() => {
       <div class="flex flex-col items-center justify-center gap-10">
         <h1 class="text-[#FFE936] dark:text-yellow-300 font-bold text-5xl text-center">{{ t('app.slogan') }}</h1>
         <h3 class="text-white font-semibold text-2xl text-center">{{ t('app.tagline') }}</h3>
-        <div class="flex gap-6">
+        <div class="flex flex-wrap sm:flex-nowrap gap-6">
           <Button
             :label="t('landing.hero.getStarted')"
             icon="pi pi-sign-in ld ld-breath"

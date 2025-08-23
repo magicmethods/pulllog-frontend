@@ -199,9 +199,9 @@ watch(() => rawDateUpdateTime.value, (val) => {
         appendTo="self"
         :style="{ width: '80vw', height: '80vh' }"
     >
-        <div class="flex flex-wrap md:flex-nowrap justify-between items-start gap-4">
+        <div class="flex flex-wrap lg:flex-nowrap justify-between items-start gap-4">
 
-            <div class="w-full md:w-1/2">
+            <div class="w-full lg:w-1/2">
                 <Fieldset :legend="t('modal.appEdit.basicInfo')">
                     <p v-if="false" class="lead">{{ t('modal.appEdit.basicInfoDescription') }}</p>
                     <div class="mb-4">
@@ -311,7 +311,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             <span>{{ t('modal.appEdit.dateUpdateTime') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('dateUpdateTime')"></i>
                         </label>
-                        <div class="flex justify-between items-center gap-2">
+                        <div class="flex flex-wrap md:flex-nowrap justify-between items-center gap-2">
                             <CalendarUI
                                 id="date_update_time"
                                 v-model="rawDateUpdateTime"
@@ -320,14 +320,16 @@ watch(() => rawDateUpdateTime.value, (val) => {
                                 customIcon="🕒"
                                 :pt="{ root: 'min-w-[8rem]! w-36' }"
                             />
-                            <div class="w-max flex items-center">
-                                <ToggleSwitch
-                                    inputId="sync_update_time"
-                                    v-model="formData.sync_update_time"
-                                    :disabled="!rawDateUpdateTime"
-                                />
+                            <div class="flex-grow flex items-center gap-2">
+                                <div class="w-max flex items-center">
+                                    <ToggleSwitch
+                                        inputId="sync_update_time"
+                                        v-model="formData.sync_update_time"
+                                        :disabled="!rawDateUpdateTime"
+                                    />
+                                </div>
+                                <label for="sync_update_time" class="flex-grow ml-1 pt-1 font-medium text-sm mb-0">{{ t('modal.appEdit.dateUpdateTimeSync') }}</label>
                             </div>
-                            <label for="sync_update_time" class="flex-grow ml-1 pt-1 font-medium text-sm mb-0">{{ t('modal.appEdit.dateUpdateTimeSync') }}</label>
                         </div>
                         <Message v-if="errors?.date_update_time" severity="error" size="small" variant="simple" class="mt-1">
                             {{ errors?.date_update_time.join(', ') }}
@@ -339,20 +341,22 @@ watch(() => rawDateUpdateTime.value, (val) => {
                             <span>{{ t('modal.appEdit.pitySystem') }}</span>
                             <i class="pi pi-question-circle helper-icon" v-tooltip.top="showTooltip('pitySystem')"></i>
                         </label>
-                        <div class="flex justify-between items-center gap-2">
-                            <div class="w-max flex items-center">
-                                <ToggleSwitch
-                                    inputId="pity_system"
-                                    v-model="formData.pity_system"
-                                    @change="() => formData.guarantee_count = 0"
-                                />
+                        <div class="flex flex-wrap md:flex-nowrap justify-between items-center gap-2">
+                            <div class="flex-grow flex items-center gap-2 pr-2">
+                                <div class="w-max flex items-center">
+                                    <ToggleSwitch
+                                        inputId="pity_system"
+                                        v-model="formData.pity_system"
+                                        @change="() => formData.guarantee_count = 0"
+                                    />
+                                </div>
+                                <label for="pity_system" class="w-max ml-1 pt-1 font-medium text-sm mb-0">
+                                    {{ t('modal.appEdit.pitySystemLabel') }}<strong :class="['ml-0.5',
+                                        formData.pity_system ? 'text-amber-500 dark:text-yellow-400' : '']"
+                                    >{{ formData.pity_system ? t('modal.appEdit.pitySystemEnabled') : t('modal.appEdit.pitySystemDisabled') }}</strong>
+                                </label>
                             </div>
-                            <label for="pity_system" class="w-max ml-1 pt-1 font-medium text-sm mb-0">
-                                {{ t('modal.appEdit.pitySystemLabel') }}<strong :class="['ml-0.5',
-                                    formData.pity_system ? 'text-amber-500 dark:text-yellow-400' : '']"
-                                >{{ formData.pity_system ? t('modal.appEdit.pitySystemEnabled') : t('modal.appEdit.pitySystemDisabled') }}</strong>
-                            </label>
-                            <div class="flex-grow w-max flex items-center pl-2 gap-3">
+                            <div class="flex-grow w-max flex items-center gap-3">
 
                                 <InputNumber
                                     v-model="formData.guarantee_count"
@@ -361,7 +365,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                                     showButtons
                                     :min="1"
                                     :disabled="!formData.pity_system"
-                                    class="input-number-sm"
+                                    class="input-number-sm flex-grow md:flex-grow-0"
                                 />
                                 <Button
                                     icon="pi pi-plus"
@@ -397,7 +401,7 @@ watch(() => rawDateUpdateTime.value, (val) => {
                 </Fieldset>
                 <pre v-if="false" class="text-xs whitespace-pre-wrap">{{ formData }}</pre>
             </div>
-            <div class="w-full md:w-1/2">
+            <div class="w-full lg:w-1/2">
                 <Fieldset :legend="t('modal.appEdit.loggingSettings')">
                     <p v-if="true" class="lead mb-4">{{ t('modal.appEdit.loggingSettingsDescription') }}</p>
 

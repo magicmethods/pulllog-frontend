@@ -129,8 +129,6 @@ watch(
         </main>
         <!-- Floating Action Button -->
         <CommonScrollToTopButton :target="mainContainer" :key="reloadFABKey" />
-        <!-- Loader -->
-        <Loader />
         <!-- Flush Notifications -->
         <Toast
             position="top-right"
