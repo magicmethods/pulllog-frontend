@@ -64,7 +64,7 @@ const stepPanelFooter = 'pt-6 pb-2 px-2 flex gap-4'
                     <Step :pt="stepPT">{{ t('landing.steps.step1.title') }}</Step>
                     <StepPanel v-slot="{ activateCallback }" :pt="stepPanelPT">
                         <div :class="stepPanelBody">
-                            <Image :src="`/images/step1-image.webp${ver}`" :alt="t('landing.steps.step1.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-auto')" />
+                            <Image :src="`/images/step1-image.webp${ver}`" :alt="t('landing.steps.step1.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-auto max-w-1/2')" />
                             <p :class="stepPanelPClass">{{ t('landing.steps.step1.description') }}</p>
                         </div>
                         <div :class="stepPanelFooter">
@@ -80,8 +80,8 @@ const stepPanelFooter = 'pt-6 pb-2 px-2 flex gap-4'
                 <StepItem value="2" :pt="stepItemPT">
                     <Step :pt="stepPT">{{ t('landing.steps.step2.title') }}</Step>
                     <StepPanel v-slot="{ activateCallback }" :pt="stepPanelPT">
-                        <div :class="stepPanelBody">
-                            <Image :src="`/images/step2-image.webp${ver}`" :alt="t('landing.steps.step2.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-auto')" />
+                        <div :class="[stepPanelBody, 'flex-wrap']">
+                            <Image :src="`/images/step2-image.webp${ver}`" :alt="t('landing.steps.step2.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-full sm:w-auto max-w-full')" />
                             <p :class="stepPanelPClass">{{ t('landing.steps.step2.description') }}</p>
                         </div>
                         <div :class="stepPanelFooter">
@@ -104,7 +104,7 @@ const stepPanelFooter = 'pt-6 pb-2 px-2 flex gap-4'
                     <Step :pt="stepPT">{{ t('landing.steps.step3.title') }}</Step>
                     <StepPanel v-slot="{ activateCallback }" :pt="stepPanelPT">
                         <div :class="stepPanelBody">
-                            <Image :src="`/images/step3-image.webp${ver}`" :alt="t('landing.steps.step3.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-auto')" />
+                            <Image :src="`/images/step3-image.webp${ver}`" :alt="t('landing.steps.step3.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-auto max-w-1/2')" />
                             <p :class="stepPanelPClass">{{ t('landing.steps.step3.description') }}</p>
                         </div>
                         <div :class="stepPanelFooter">
@@ -126,8 +126,8 @@ const stepPanelFooter = 'pt-6 pb-2 px-2 flex gap-4'
                 <StepItem value="4" :pt="stepItemPT">
                     <Step :pt="stepPT">{{ t('landing.steps.step4.title') }}</Step>
                     <StepPanel v-slot="{ activateCallback }" :pt="stepPanelPT">
-                        <div :class="stepPanelBody">
-                            <Image :src="`/images/step4-image.webp${ver}`" :alt="t('landing.steps.step4.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-auto')" />
+                        <div :class="[stepPanelBody, 'flex-wrap']">
+                            <Image :src="`/images/step4-image.webp${ver}`" :alt="t('landing.steps.step4.imageCaption')" preview zoomInDisabled zoomOutDisabled :pt="imagePT('h-auto max-h-full w-full sm:w-auto max-w-full')" />
                             <p :class="stepPanelPClass">{{ t('landing.steps.step4.description') }}</p>
                         </div>
                         <div :class="stepPanelFooter">

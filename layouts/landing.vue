@@ -97,10 +97,15 @@ watch(
     }
 )
 
+const buttonClass = (addClass = '') => {
+    const baseClass = 'btn btn-primary mb-0 hover:bg-primary-600/60 dark:hover:bg-primary-500/50 shrink-0'
+    return [baseClass, addClass].join(' ').trim()
+}
+
 </script>
 
 <template>
-    <div class="min-h-screen flex flex-col bg-primary-500 text-white dark:bg-primary-600 dark:text-white">
+    <div class="min-h-screen max-w-screen flex flex-col bg-primary-500 text-white dark:bg-primary-600 dark:text-white">
         <Head>
             <Title>{{ t('app.name') }}</Title>
             <Meta name="description" :content="t('app.description')" />
@@ -129,26 +134,26 @@ watch(
             maxWidth="800px"
         />
         <header
-            class="sticky top-0 w-full max-w-screen flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-600 z-50"
+            class="sticky top-0 w-full flex items-center justify-between p-4 bg-primary-500 dark:bg-primary-600 z-50 overflow-x-clip"
             scrolled="border-b border-surface-500 dark:border-gray-900 bg-transparent"
         >
             <NuxtLink to="/" class="text-2xl font-bold flex items-center gap-2">
                 <img src="/images/pulllog-icon.svg" alt="PullLog" class="h-8 w-8 ld ld-swim" />
-                <span class="hidden sm:inline-block tracking-tight">{{ t('app.name') }}</span>
+                <span class="hidden sm:inline-block ml-0 sm:ml-2 tracking-tight">{{ t('app.name') }}</span>
             </NuxtLink>
-            <nav class="flex m-0 p-0 items-center gap-2">
+            <nav class="flex m-0 p-0 items-center gap-1 sm:gap-2 min-w-0">
                 <NuxtLink
                     to="/auth/register"
-                    class="btn btn-primary mb-0 w-8 sm:w-24 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
+                    :class="buttonClass('w-8 sm:w-20 h-10')"
                 >
-                    <span class="pi pi-user-edit inline-block sm:hidden mr-2"></span>
+                    <span class="pi pi-user-edit inline-block sm:hidden!"></span>
                     <span class="hidden sm:inline-block">{{ t('auth.register.pageName') }}</span>
                 </NuxtLink>
                 <NuxtLink
                     to="/auth/login"
-                    class="btn btn-primary mb-0 w-8 sm:w-24 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
+                    :class="buttonClass('w-8 sm:w-20 h-10')"
                 >
-                    <span class="pi pi-sign-in inline-block sm:hidden mr-2"></span>
+                    <span class="pi pi-sign-in inline-block sm:hidden!"></span>
                     <span class="hidden sm:inline-block">{{ t('auth.login.pageName') }}</span>
                 </NuxtLink>
                 <Button
@@ -156,17 +161,18 @@ watch(
                     :icon="`pi pi-${isDarkMode ? 'sun' : 'moon'}`"
                     iconPos="right"
                     @click="handleThemeToggle(!isDarkMode)"
-                    class="btn btn-primary mb-0 w-12 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
+                    :class="buttonClass('w-8 sm:w-12 h-10')"
                     v-blur-on-click
                 />
                 <Button
-                    :label="`${currentLanguage}`"
-                    icon="pi pi-language"
                     @click="handleLangToggle"
-                    class="btn btn-primary mb-0 w-8 sm:w-20 hover:bg-primary-600/60 dark:hover:bg-primary-500/50"
+                    :class="buttonClass('btn-lang w-8 sm:w-auto h-10')"
                     v-blur-on-click
-                />
-                <Popover ref="langOpt" class="min-w-32">
+                >
+                    <span class="pi pi-language"></span>
+                    <span class="hidden sm:inline-block ml-0 sm:ml-0.5 font-semibold tracking-wide">{{ currentLanguage.toUpperCase() }}</span>
+                </Button>
+                <Popover ref="langOpt" class="min-w-32" appendTo="body">
                     <div class="w-full flex flex-col items-start">
                         <ul class="list-none w-full p-0 m-0 flex flex-col text-sm">
                             <li v-for="lang in optionStore.languageOptions" :key="lang.value"
