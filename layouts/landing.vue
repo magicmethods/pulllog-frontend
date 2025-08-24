@@ -170,20 +170,21 @@ const buttonClass = (addClass = '') => {
                     v-blur-on-click
                 >
                     <span class="pi pi-language"></span>
-                    <span class="hidden sm:inline-block ml-0 sm:ml-0.5 font-semibold tracking-wide">{{ currentLanguage.toUpperCase() }}</span>
+                    <span class="hidden sm:inline-block ml-0 sm:ml-0.5 font-semibold">{{ currentLanguage.toUpperCase() }}</span>
                 </Button>
-                <Popover ref="langOpt" class="min-w-32" appendTo="body">
-                    <div class="w-full flex flex-col items-start">
-                        <ul class="list-none w-full p-0 m-0 flex flex-col text-sm">
-                            <li v-for="lang in optionStore.languageOptions" :key="lang.value"
-                                @click="applyLocale(lang.value as Language)"
-                                class="flex items-center gap-2 px-2 py-3 hover:bg-emphasis cursor-pointer rounded-border"
-                            >{{ lang.label }}</li>
-                        </ul>
-                    </div>
-                </Popover>
             </nav>
         </header>
+
+        <Popover ref="langOpt" class="min-w-32" appendTo="body">
+            <div class="w-full flex flex-col items-start">
+                <ul class="list-none w-full p-0 m-0 flex flex-col text-sm">
+                    <li v-for="lang in optionStore.languageOptions" :key="lang.value"
+                        @click="applyLocale(lang.value as Language)"
+                        class="flex items-center gap-2 px-2 py-3 hover:bg-emphasis cursor-pointer rounded-border"
+                    >{{ lang.label }}</li>
+                </ul>
+            </div>
+        </Popover>
 
         <main class="flex-1 flex flex-col items-center justify-start p-4 md:p-0 bg-gradient-to-b from-primary-500 to-primary-100 dark:from-primary-600 dark:to-gray-900">
             <slot />

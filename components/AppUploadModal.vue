@@ -128,9 +128,9 @@ const fileUploadPT = {
                         <RadioButton v-model="mode" inputId="mode-overwrite" name="mode" value="overwrite" />
                         <label for="mode-overwrite" class="font-medium mb-0">{{ t('modal.import.overwrite') }}</label>
                     </div>
-                    <div class="flex items-center gap-2">
-                        <RadioButton v-model="mode" inputId="mode-merge" name="mode" value="merge" />
-                        <label for="mode-merge" class="font-medium mb-0">{{ t('modal.import.merge') }}</label>
+                    <div v-if="false" class="flex items-center gap-2">
+                        <RadioButton v-model="mode" inputId="mode-merge" name="mode" value="merge" disabled />
+                        <label for="mode-merge" class="font-medium mb-0 text-muted">{{ t('modal.import.merge') }}</label>
                     </div>
                 </div>
                 <Message v-if="mode" severity="info" variant="simple" size="small" class="w-auto mt-2">
