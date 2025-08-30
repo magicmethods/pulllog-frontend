@@ -53,6 +53,7 @@ export const useCurrencyStore = defineStore('currency', () => {
      * @returns Currencyオブジェクトまたはundefined
      */
     function get(codeLike: string): CurrencyData | undefined {
+        if (!codeLike) return undefined
         const code = codeLike.trim().toUpperCase().match(/[A-Z]{3}/)?.[0] ?? null
         return code ? map.value.get(code) : undefined
     }

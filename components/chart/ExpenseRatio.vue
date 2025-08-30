@@ -40,22 +40,22 @@ const isNoData = computed(() => totalExpense.value === 0)
 
 // 通貨コードごとに合算
 const totalsByCurrency = computed<Map<string, number>>(() => {
-  const m = new Map<string, number>()
-  for (const it of props.data) {
-    const code = (it.currency ?? '').toUpperCase()
-    if (!code) continue
-    m.set(code, (m.get(code) ?? 0) + (it.value ?? 0))
-  }
-  return m
+    const m = new Map<string, number>()
+    for (const it of props.data) {
+        const code = (it.currency ?? '').toUpperCase()
+        if (!code) continue
+        m.set(code, (m.get(code) ?? 0) + (it.value ?? 0))
+    }
+    return m
 })
-const totalChips = computed(() =>
-  Array.from(totalsByCurrency.value.entries())
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([code, total]) => ({
-      code,
-      label: currencyStore.formatDecimal(total, code, locale.value),
-    }))
-)
+const totalChips = computed(() => {
+    return Array.from(totalsByCurrency.value.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([code, total]) => ({
+            code,
+            label: currencyStore.formatDecimal(total, code, locale.value),
+        }))
+})
 
 // グラフデータ
 const chartData = computed(() => {
@@ -64,7 +64,7 @@ const chartData = computed(() => {
             labels: [t('stats.chart.expenseRatio.noData')],
             datasets: [{
                 label: t('stats.chart.expenseRatio.noData'),
-                currency: [], // props.data.map(item => item.currency),
+                currency: props.data.map(item => item.currency) ?? [''],
                 data: [1],
                 backgroundColor: [palette.value.grid],
                 hoverBackgroundColor: [palette.value.grid],

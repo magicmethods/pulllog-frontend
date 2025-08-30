@@ -40,11 +40,11 @@ const fixCurrency = computed<string>(() => {
     const defaultCurrency = locale.value === 'ja' ? 'JPY' : (locale.value === 'zh' ? 'CNY' : 'USD') // デフォルトの通過単位
     const appCurrencyCodes = appIds.value.map(appId => {
         const app = appStore.appList.find(app => app.appId === appId)
-        if (!app || !app.currency_unit) return defaultCurrency
-        const currencyData = currencyStore.get(app.currency_unit)
+        if (!app || !app.currency_code) return defaultCurrency
+        const currencyData = currencyStore.get(app.currency_code)
         return currencyData ? currencyData.code : defaultCurrency
     })
-    console.log('MonthlyExpenseStack::fixCurrency(List):', appCurrencyCodes, locale.value)
+    //console.log('MonthlyExpenseStack::fixCurrency(List):', appIds.value, appCurrencyCodes, locale.value)
     // 最初のアプリの通貨単位を基準にする
     return appCurrencyCodes[0]
 })
@@ -97,7 +97,7 @@ const yAxisConfig = computed(() => {
     // すべて0なら
     if (maxExpense.value === 0) {
         // JPYなら1000円
-        //const appCurrency = currencyStore.get(appStore.app?.currency_unit || 'JPY')?.code
+        //const appCurrency = currencyStore.get(appStore.app?.currency_code || 'JPY')?.code
         if (fixCurrency.value === 'JPY') {
             max = 1000
             step = 500
