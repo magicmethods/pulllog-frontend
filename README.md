@@ -5,7 +5,7 @@
 
 #### スクリーンショット
 
-| ![アプリ管理](./public/images/gallery-image1.png "アプリ管理") | ![履歴管理](./public/images/gallery-image2.png "履歴登録・管理") | ![統計・分析](./public/images/gallery-image3.png "統計・分析") |
+| ![アプリ管理](./public/images/gallery-image1.webp "アプリ管理") | ![履歴管理](./public/images/gallery-image2.webp "履歴登録・管理") | ![統計・分析](./public/images/gallery-image3.webp "統計・分析") |
 |:---:|:---:|:---:|
 | アプリ管理 | 履歴登録・管理  | 統計・分析 |
 
