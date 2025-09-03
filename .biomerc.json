@@ -1,0 +1,19 @@
+{
+	"linter": {
+		"rules": {
+			"style": {
+				"semi": "off",
+				"indent": {
+					"options": { "size": 4 }
+				}
+			},
+			"suspicious": {
+				"noConsoleLog": "error"
+			},
+			"correctness": {
+				"noExplicitAny": "error",
+				"noNonNullAssertion": "error"
+			}
+		}
+	}
+}

@@ -1,0 +1,2 @@
+# use npx to invoke local lint-staged without relying on pnpm in PATH
+npx --no-install lint-staged
