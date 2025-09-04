@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useCurrencyStore } from '~/stores/useCurrencyStore'
-import { useI18n } from 'vue-i18n'
-import { DateTime } from 'luxon'
-import { useChartPalette } from '~/composables/useChart'
-import { getLabelsAndMap } from '~/utils/date'
-import type { Chart as ChartJS, ChartEvent, ActiveElement } from 'chart.js'
+import type { ActiveElement, ChartEvent, Chart as ChartJS } from "chart.js"
+import { DateTime } from "luxon"
+import { useI18n } from "vue-i18n"
+import { useChartPalette } from "~/composables/useChart"
+import { useCurrencyStore } from "~/stores/useCurrencyStore"
+import { getLabelsAndMap } from "~/utils/date"
 
 // Props & Emits
 const props = defineProps<{
@@ -13,9 +13,7 @@ const props = defineProps<{
     currencyCode: string // アプリごとの通貨コード
     guaranteeCount?: number // 天井回数（オプション、指定があれば表示）
 }>()
-const emit = defineEmits<
-  (e: 'bar-click', date: string) => void
->()
+const emit = defineEmits<(e: "bar-click", date: string) => void>()
 
 // Stores & i18n
 const currencyStore = useCurrencyStore()
@@ -34,28 +32,30 @@ const points = computed(() => mapped.value.points)
 // ChartJS インスタンス
 const chartIns = ref<ChartJS | null>(null)
 function onChartReady(chart: ChartJS) {
-  chartIns.value = chart
-  const canvas = chart.canvas
-  if (canvas) {
-    canvas.addEventListener('mouseleave', () => {
-      canvas.style.cursor = 'default'
-    })
-  }
+    chartIns.value = chart
+    const canvas = chart.canvas
+    if (canvas) {
+        canvas.addEventListener("mouseleave", () => {
+            canvas.style.cursor = "default"
+        })
+    }
 }
 // ホバー中のインデックス（tooltip.externalで更新）
 const hoverIndex = ref<number | null>(null)
 
 const currencySymbol = computed(() => {
     const cd = currencyStore.get(props.currencyCode)
-    return cd ? cd.symbol_native : ''
+    return cd ? cd.symbol_native : ""
 })
 // グラフデータ
 const datasets = computed(() => [
     {
-        type: 'line' as const,
-        label: t('history.historyChart.expense', { currency: currencySymbol.value }),
-        yAxisID: 'y1',
-        data: points.value.map(d => Number(d.expense || 0)),
+        type: "line" as const,
+        label: t("history.historyChart.expense", {
+            currency: currencySymbol.value,
+        }),
+        yAxisID: "y1",
+        data: points.value.map((d) => Number(d.expense || 0)),
         borderColor: palette.value.expense,
         backgroundColor: palette.value.expense,
         tension: 0.1,
@@ -63,17 +63,19 @@ const datasets = computed(() => [
         pointRadius: 0, // ポイントサイズ（0: 非表示）
     },
     {
-        type: 'bar' as const,
-        label: t('history.historyChart.other'),
-        stack: 'pulls',
-        data: points.value.map(d => Number(d.total_pulls || 0) - Number(d.rare_pulls || 0)),
+        type: "bar" as const,
+        label: t("history.historyChart.other"),
+        stack: "pulls",
+        data: points.value.map(
+            (d) => Number(d.total_pulls || 0) - Number(d.rare_pulls || 0),
+        ),
         backgroundColor: palette.value.other,
     },
     {
-        type: 'bar' as const,
-        label: t('history.historyChart.rare'),
-        stack: 'pulls',
-        data: points.value.map(d => Number(d.rare_pulls || 0)),
+        type: "bar" as const,
+        label: t("history.historyChart.rare"),
+        stack: "pulls",
+        data: points.value.map((d) => Number(d.rare_pulls || 0)),
         backgroundColor: palette.value.rare,
     },
 ])
@@ -82,13 +84,13 @@ const datasets = computed(() => [
 const pityAnnotations = computed(() => {
     if (!props.guaranteeCount) return {}
     // y軸最大値の計算
-    const yMax = calcYAxisMax(points.value, 'total_pulls', 20)
+    const yMax = calcYAxisMax(points.value, "total_pulls", 20)
     const interval = props.guaranteeCount
     // biome-ignore lint:/suspicious/noExplicitAny chartjs-plugin-annotation用の型
     const annotations: Record<string, any> = {}
     for (let v = interval; v <= yMax; v += interval) {
         annotations[`pityLine${v}`] = {
-            type: 'line',
+            type: "line",
             yMin: v,
             yMax: v,
             borderColor: palette.value.annotationBorder,
@@ -96,13 +98,13 @@ const pityAnnotations = computed(() => {
             borderDash: [4, 4],
             label: {
                 enabled: true,
-                content: t('history.historyChart.pityLine', { count: v }),
-                position: 'start',
+                content: t("history.historyChart.pityLine", { count: v }),
+                position: "start",
                 backgroundColor: palette.value.annotationBg,
                 color: palette.value.annotationText,
-                font: { size: 11, weight: 'bold' },
-                yAdjust: -6
-            }
+                font: { size: 11, weight: "bold" },
+                yAdjust: -6,
+            },
         }
     }
     return annotations
@@ -110,28 +112,28 @@ const pityAnnotations = computed(() => {
 
 // クリック/ホバー制御
 function emitIsoDateByIndex(idx: number) {
-  // 1) points[idx].date があれば最優先（サーバ由来のISO日付）
-  const p = points.value[idx] as { date?: string } | undefined
-  if (p && typeof p.date === 'string' && p.date.length > 0) {
-    emit('bar-click', p.date)
-    return
-  }
-  // 2) インデックス→今日を終端に逆算（年跨ぎも確実）
-  const end = DateTime.now().startOf('day') // 局所タイムゾーン
-  const offset = labels.value.length - 1 - idx
-  if (offset >= 0) {
-    const iso = end.minus({ days: offset }).toISODate()
-    if (iso) {
-      emit('bar-click', iso)
-      return
+    // 1) points[idx].date があれば最優先（サーバ由来のISO日付）
+    const p = points.value[idx] as { date?: string } | undefined
+    if (p && typeof p.date === "string" && p.date.length > 0) {
+        emit("bar-click", p.date)
+        return
     }
-  }
-  // 3) ラベル M/D をパースし、今日より大きければ前年扱い
-  const lbl = labels.value[idx]
-  const byLabel = parseMonthDayToISO(lbl, end)
-  if (byLabel) {
-    emit('bar-click', byLabel)
-  }
+    // 2) インデックス→今日を終端に逆算（年跨ぎも確実）
+    const end = DateTime.now().startOf("day") // 局所タイムゾーン
+    const offset = labels.value.length - 1 - idx
+    if (offset >= 0) {
+        const iso = end.minus({ days: offset }).toISODate()
+        if (iso) {
+            emit("bar-click", iso)
+            return
+        }
+    }
+    // 3) ラベル M/D をパースし、今日より大きければ前年扱い
+    const lbl = labels.value[idx]
+    const byLabel = parseMonthDayToISO(lbl, end)
+    if (byLabel) {
+        emit("bar-click", byLabel)
+    }
 }
 /*
 function handleChartClick(evt: ChartEvent, active: ActiveElement[], chart?: ChartJS) {
@@ -148,50 +150,66 @@ function handleChartClick(evt: ChartEvent, active: ActiveElement[], chart?: Char
         emit('bar-click', date) // YYYY-MM-DD を親へ
     }
 }*/
-function handleChartClick(evt: ChartEvent, active: ActiveElement[], chart?: ChartJS) {
+function handleChartClick(
+    evt: ChartEvent,
+    active: ActiveElement[],
+    chart?: ChartJS,
+) {
     // active が無いケースは最後に hoverIndex を使う
-    let idx = (active && active.length > 0) ? active[0].index : null
-    if (idx === null || typeof idx !== 'number') {
+    let idx = active && active.length > 0 ? active[0].index : null
+    if (idx === null || typeof idx !== "number") {
         idx = hoverIndex.value
     }
-    if (typeof idx === 'number' && idx >= 0 && idx < labels.value.length) {
+    if (typeof idx === "number" && idx >= 0 && idx < labels.value.length) {
         emitIsoDateByIndex(idx)
     }
-    if (chart?.canvas) chart.canvas.style.cursor = 'default'
+    if (chart?.canvas) chart.canvas.style.cursor = "default"
 }
-function handleChartHover(evt: ChartEvent, active: ActiveElement[], chart?: ChartJS) {
+function handleChartHover(
+    evt: ChartEvent,
+    active: ActiveElement[],
+    chart?: ChartJS,
+) {
     const canvas = chart?.canvas
     if (!canvas) return
-    canvas.style.cursor = active && active.length > 0 ? 'pointer' : 'default'
+    canvas.style.cursor = active && active.length > 0 ? "pointer" : "default"
 }
 
 const chartOptions = computed(() => ({
     responsive: true,
     maintainAspectRatio: false,
-    interaction: { mode: 'index' as const, intersect: false },
+    interaction: { mode: "index" as const, intersect: false },
     onClick: handleChartClick,
     //onHover: handleChartHover,
     plugins: {
         legend: {
-            position: 'bottom', // 凡例は下部
+            position: "bottom", // 凡例は下部
             labels: {
                 color: palette.value.legend,
                 usePointStyle: true, // ポイントスタイルを使用
-                pointStyle: 'rectRounded', // ポイントの形状
+                pointStyle: "rectRounded", // ポイントの形状
                 pointStyleWidth: 12, // ポイントのサイズ
                 padding: 15,
                 boxHeight: 11,
                 font: { size: 12 },
                 sort: (
                     // biome-ignore lint:/suspicious/noExplicitAny
-                    a: any, b: any
+                    a: any,
+                    // biome-ignore lint:/suspicious/noExplicitAny
+                    b: any,
                 ) => {
-                    const ai = typeof a.datasetIndex === 'number' ? a.datasetIndex : Number.MAX_SAFE_INTEGER
-                    const bi = typeof b.datasetIndex === 'number' ? b.datasetIndex : Number.MAX_SAFE_INTEGER
+                    const ai =
+                        typeof a.datasetIndex === "number"
+                            ? a.datasetIndex
+                            : Number.MAX_SAFE_INTEGER
+                    const bi =
+                        typeof b.datasetIndex === "number"
+                            ? b.datasetIndex
+                            : Number.MAX_SAFE_INTEGER
                     return bi - ai // 項目を逆順に
                 },
-            }
-        }, 
+            },
+        },
         tooltip: {
             backgroundColor: palette.value.tooltipBg, // ツールチップ背景
             titleColor: palette.value.tooltipText, // タイトル文字色
@@ -200,7 +218,9 @@ const chartOptions = computed(() => ({
             borderWidth: 1,
             itemSort: (
                 // biome-ignore lint:/suspicious/noExplicitAny
-                a: any, b: any
+                a: any,
+                // biome-ignore lint:/suspicious/noExplicitAny
+                b: any,
             ) => b.datasetIndex - a.datasetIndex, // 項目を逆順に
             // biome-ignore lint:/suspicious/noExplicitAny
             external: (ctx: any) => {
@@ -211,68 +231,128 @@ const chartOptions = computed(() => ({
                 if (canvas && tip) {
                     // tooltip が出ている間だけ pointer、消えたら default
                     const visible = !(tip.opacity === 0) // typeof tip.opacity === 'number' ? tip.opacity > 0 : false
-                    canvas.style.cursor = visible ? 'pointer' : 'default'
+                    canvas.style.cursor = visible ? "pointer" : "default"
                     // ホバー中の index を保持（クリックのフォールバック用）
-                    const dp = Array.isArray(tip.dataPoints) && tip.dataPoints.length > 0 ? tip.dataPoints[0] : undefined
-                    hoverIndex.value = typeof dp?.dataIndex === 'number' ? dp.dataIndex : null
+                    const dp =
+                        Array.isArray(tip.dataPoints) &&
+                        tip.dataPoints.length > 0
+                            ? tip.dataPoints[0]
+                            : undefined
+                    hoverIndex.value =
+                        typeof dp?.dataIndex === "number" ? dp.dataIndex : null
                 }
-            }
+            },
         },
         annotation: {
             annotations: {
                 ...pityAnnotations.value, // 天井補助線
-            }
+            },
         },
     },
     scales: {
         y: {
             beginAtZero: true,
             stacked: true,
-            position: 'left' as const,
-            max: calcYAxisMax(points.value, 'total_pulls', 20), // 最大値自動計算
+            position: "left" as const,
+            max: calcYAxisMax(points.value, "total_pulls", 20), // 最大値自動計算
             ticks: {
                 stepSize: 10,
                 color: palette.value.text,
                 font: { size: 12 },
             },
-            grid:   { color: palette.value.grid },
-            title:  { color: palette.value.text, display: true, text: t('history.historyChart.pulls') },
-            border: { color: palette.value.axis }
+            grid: { color: palette.value.grid },
+            title: {
+                color: palette.value.text,
+                display: true,
+                text: t("history.historyChart.pulls"),
+            },
+            border: { color: palette.value.axis },
         },
         y1: {
             beginAtZero: true,
-            position: 'right' as const,
-            max: currencyStore.getYAxisMax(calcYAxisMax(points.value, 'expense'), props.currencyCode),
+            position: "right" as const,
+            max: currencyStore.getYAxisMax(
+                calcYAxisMax(points.value, "expense"),
+                props.currencyCode,
+            ),
             ticks: {
                 stepSize: currencyStore.getStepSize(props.currencyCode),
                 color: palette.value.text,
                 font: { size: 12 },
                 callback: (v: string | number) => v.toLocaleString(),
             },
-            grid:   { color: palette.value.grid, drawOnChartArea: false },
-            title:  { color: palette.value.text, display: true, text: t('history.historyChart.expense', { currency: currencySymbol.value }) },
-            border: { color: palette.value.axis }
+            grid: { color: palette.value.grid, drawOnChartArea: false },
+            title: {
+                color: palette.value.text,
+                display: true,
+                text: t("history.historyChart.expense", {
+                    currency: currencySymbol.value,
+                }),
+            },
+            border: { color: palette.value.axis },
         },
         x: {
             stacked: true,
             ticks: {
                 autoSkip: true,
-                maxTicksLimit: labels.value.length > 12 ? 12 : labels.value.length,
+                maxTicksLimit:
+                    labels.value.length > 12 ? 12 : labels.value.length,
                 maxRotation: 90,
                 minRotation: 30,
                 color: palette.value.text,
                 font: { size: 12 },
             },
-            grid:   { color: palette.value.grid },
-            title:  { color: palette.value.text, display: false, text: t('history.historyChart.date') },
-            border: { color: palette.value.axis }
-        }
-    }
+            grid: { color: palette.value.grid },
+            title: {
+                color: palette.value.text,
+                display: false,
+                text: t("history.historyChart.date"),
+            },
+            border: { color: palette.value.axis },
+        },
+    },
 }))
 const chartData = computed(() => ({
     labels: labels.value,
-    datasets: datasets.value
+    datasets: datasets.value,
 }))
+
+/**
+ * 現在のチャートをPNGとして出力
+ * @param width 出力幅（px）。未指定はキャンバス幅
+ * @param background 背景色（CSSカラー文字列）。未指定は透過
+ */
+async function toImage(
+    width?: number,
+    background?: string | null,
+): Promise<Blob> {
+    const chart = chartIns.value
+    const canvas = chart?.canvas
+    if (!canvas) throw new Error("chart not ready")
+
+    const srcW = canvas.width
+    const srcH = canvas.height
+    const targetW = typeof width === "number" && width > 0 ? width : srcW
+    const targetH = Math.round((targetW / srcW) * srcH)
+
+    const off = document.createElement("canvas")
+    off.width = targetW
+    off.height = targetH
+    const ctx = off.getContext("2d")
+    if (!ctx) throw new Error("canvas context not available")
+    if (background) {
+        ctx.fillStyle = background
+        ctx.fillRect(0, 0, targetW, targetH)
+    }
+    ctx.drawImage(canvas, 0, 0, targetW, targetH)
+    const blob: Blob | null = await new Promise((resolve) =>
+        off.toBlob((b) => resolve(b), "image/png"),
+    )
+    if (!blob) throw new Error("failed to export image")
+    return blob
+}
+
+defineExpose({ toImage })
 
 // Methods
 /**
@@ -288,9 +368,9 @@ function calcYAxisMax(
     points: any[],
     key: string,
     roundUpUnit?: number,
-    alwaysUpper = true
+    alwaysUpper = true,
 ) {
-    const max = Math.max(...points.map(d => Number(d[key] ?? 0)))
+    const max = Math.max(...points.map((d) => Number(d[key] ?? 0)))
     if (max === 0) return 1
     // 繰り上げ単位を自動計算 or 指定
     let unit = roundUpUnit
@@ -315,10 +395,9 @@ function parseMonthDayToISO(md: string, today: DateTime): string | null {
     const mdVal = month * 100 + day
     const todayVal = today.month * 100 + today.day
     const year = mdVal > todayVal ? today.year - 1 : today.year
-    const dt = DateTime.local(year, month, day).startOf('day')
+    const dt = DateTime.local(year, month, day).startOf("day")
     return dt.isValid ? dt.toISODate() : null
 }
-
 </script>
 
 <template>
