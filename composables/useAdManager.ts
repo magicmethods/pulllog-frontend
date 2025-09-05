@@ -1,4 +1,4 @@
-import { useUserStore } from '~/stores/useUserStore'
+import { useUserStore } from "~/stores/useUserStore"
 
 export function useAdManager(disableForPlan?: string) {
     const userStore = useUserStore()
@@ -6,7 +6,7 @@ export function useAdManager(disableForPlan?: string) {
     const isShownAd = computed(() =>
         disableForPlan
             ? userStore.user?.plan !== disableForPlan
-            : /^(free|demo)$/i.test(userStore.user?.plan || 'free')
+            : /^(free|demo)$/i.test(userStore.user?.plan || "free"),
     )
     return { isShownAd }
 }

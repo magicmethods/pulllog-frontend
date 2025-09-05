@@ -3,7 +3,6 @@ import { DateTime } from "luxon"
 import { useToast } from "primevue/usetoast"
 import { useI18n } from "vue-i18n"
 import { z } from "zod"
-import ShareImageModal from "~/components/history/ShareImageModal.vue"
 import { useAppStore } from "~/stores/useAppStore"
 import { useCurrencyStore } from "~/stores/useCurrencyStore"
 import { useLoaderStore } from "~/stores/useLoaderStore"
@@ -93,7 +92,7 @@ const historyChartReloadKey = ref<number>(0) // 履歴グラフの再読み込�
 const historyStatsReloadKey = ref<number>(0) // 履歴統計の再読み込みキー（強制更新用）
 const historyListReloadKey = ref<number>(0) // 履歴リストの再読み込みキー（強制更新用）
 const isDemoUser = computed(() => userStore.hasUserRole("demo")) // デモユーザーかどうか
-const shareModalVisible = ref<boolean>(false)
+const statsImageModalVisible = ref<boolean>(false)
 const canDownloadImage = computed<boolean>(() => {
     const app = selectedApp.value
     const date = targetDate.value
@@ -418,15 +417,6 @@ const adConfig: Record<string, AdProps> = {
                     {{ t('history.currentTargetDate') }}: <strong>{{ formatDate(targetDate) }}</strong>
                   </Message>
                 </div>
-                <div class="w-full md:w-auto md:ml-auto flex items-center justify-end mt-2 md:mt-6">
-                  <Button
-                    :label="t('history.downloadShareImage')"
-                    class="btn btn-primary px-3 py-2 text-base"
-                    :disabled="!canDownloadImage"
-                    @click="shareModalVisible = true"
-                    v-blur-on-click
-                  />
-                </div>
               </div>
 
               <!-- 履歴の登録 -->
@@ -599,7 +589,7 @@ const adConfig: Record<string, AdProps> = {
                   <div class="flex justify-between items-center gap-2">
                     <Button
                       :label="t('history.resetInput')"
-                      class="btn btn-alternative w-1/2 lg:w-1/3 px-3 py-2 text-center text-base"
+                      class="btn btn-alt w-1/2 lg:w-1/3 px-3 py-2 text-center text-base"
                       @click="resetForm"
                       :disabled="!selectedApp || !targetDate"
                       v-blur-on-click
@@ -610,6 +600,15 @@ const adConfig: Record<string, AdProps> = {
                       class="btn btn-primary w-1/2 lg:w-2/3 px-3 py-2 text-center text-base"
                       @click="submitLog"
                       :disabled="!selectedApp || !targetDate"
+                      v-blur-on-click
+                    />
+                  </div>
+                  <div class="w-full flex items-center justify-end">
+                    <Button
+                      :label="t('history.downloadShareImage')"
+                      class="btn btn-alt w-full px-3 py-2 text-center text-base"
+                      :disabled="!canDownloadImage"
+                      @click="statsImageModalVisible = true"
                       v-blur-on-click
                     />
                   </div>
@@ -660,13 +659,13 @@ const adConfig: Record<string, AdProps> = {
       />
 
       <!-- シェア画像モーダル -->
-      <ShareImageModal
+      <HistoryStatsImageModal
         v-if="selectedApp && targetDate"
-        :visible="shareModalVisible"
+        :visible="statsImageModalVisible"
         :app="(selectedApp as AppData)"
         :targetDate="formatDate(targetDate)"
-        @update:visible="shareModalVisible = $event"
-        @close="shareModalVisible = false"
+        @update:visible="statsImageModalVisible = $event"
+        @close="statsImageModalVisible = false"
       />
 
   </div>

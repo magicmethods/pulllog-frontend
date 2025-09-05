@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
-import { useOptionStore } from '~/stores/useOptionStore'
-import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useI18n } from 'vue-i18n'
-import { strFromDate } from '~/utils/date'
-import { StorageUtil } from '~/utils/storage'
-import { capitalize } from '~/utils/string'
+import { useI18n } from "vue-i18n"
+import { useLoaderStore } from "~/stores/useLoaderStore"
+import { useOptionStore } from "~/stores/useOptionStore"
+import { useUserStore } from "~/stores/useUserStore"
+import { strFromDate } from "~/utils/date"
+import { StorageUtil } from "~/utils/storage"
+import { capitalize } from "~/utils/string"
 
 // Emits
-const emit = defineEmits<
-    (e: 'close') => void
->()
+const emit = defineEmits<(e: "close") => void>()
 
 // Config
 const appConfig = useConfig()
@@ -24,48 +22,53 @@ const loaderStore = useLoaderStore()
 const { t, locale, setLocale } = useI18n()
 
 // Refs & Computed
-const internalLang  = ref<string>(locale.value)
-const internalTheme = ref<string>(userStore.user?.theme ?? 'light')
-const internalHomepage = ref<string>(userStore.user?.homePage ?? 'apps')
+const internalLang = ref<string>(locale.value)
+const internalTheme = ref<string>(userStore.user?.theme ?? "light")
+const internalHomepage = ref<string>(userStore.user?.homePage ?? "apps")
 const languageOptions = computed(() => optionStore.languageOptions)
 const themeOptions = computed(() => optionStore.themeOptions)
 const homepageOptions = computed(() => optionStore.homepageOptions)
 const lastLoginDate = computed(() => {
-    return userStore.user?.lastLogin ? strFromDate(userStore.user.lastLogin, '%Y-%m-%d %H:%M') : '&mdash;'
+    return userStore.user?.lastLogin
+        ? strFromDate(userStore.user.lastLogin, "%Y-%m-%d %H:%M")
+        : "&mdash;"
 })
 const storage = new StorageUtil()
-const currentPlan = ref<string>(capitalize(userStore.user?.plan ?? 'free'))
-const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
+const currentPlan = ref<string>(capitalize(userStore.user?.plan ?? "free"))
+const isDemoUser = computed(() => userStore.hasUserRole("demo")) // デモユーザーかどうか
 // デバッグ用
 const showModal = ref<boolean>(false)
 const showPPModal = ref<boolean>(false)
 
 // Methods
 async function handleEditProfile() {
-    const lid = loaderStore.show(t('settingsDrawer.loading'))
-    emit('close')
-    await navigateTo({ path: '/settings' })
+    const lid = loaderStore.show(t("settingsDrawer.loading"))
+    emit("close")
+    await navigateTo({ path: "/settings" })
     loaderStore.hide(lid)
 }
 async function handleLogout() {
-    const lid = loaderStore.show(t('settingsDrawer.loggingOut'))
-    emit('close')
+    const lid = loaderStore.show(t("settingsDrawer.loggingOut"))
+    emit("close")
     await userStore.logout()
-    await navigateTo({ path: '/auth/login', replace: true })
+    await navigateTo({ path: "/auth/login", replace: true })
     loaderStore.hide(lid)
 }
-const avatarProps = (size?: 'xlarge' | 'large' | 'normal') => {
+const avatarProps = (size?: "xlarge" | "large" | "normal") => {
     const avatarProps = {
-        size: size ?? 'normal',
-        shape: 'circle',
+        size: size ?? "normal",
+        shape: "circle",
     }
     if (userStore.user?.avatarUrl) {
         return { ...avatarProps, image: userStore.user.avatarUrl }
     }
     if (userStore.user?.name) {
-        return { ...avatarProps, label: userStore.user.name.substring(0, 1).toLocaleUpperCase() }
+        return {
+            ...avatarProps,
+            label: userStore.user.name.substring(0, 1).toLocaleUpperCase(),
+        }
     }
-    return { ...avatarProps, icon: 'pi pi-user' }
+    return { ...avatarProps, icon: "pi pi-user" }
 }
 
 // Watchers
@@ -75,9 +78,9 @@ watch(
         if (userStore.user) {
             userStore.user.language = newLang
         }
-        storage.setItem('language', newLang)
+        storage.setItem("language", newLang)
         setLocale(newLang as Language)
-    }
+    },
 )
 watch(
     () => internalTheme.value,
@@ -85,7 +88,7 @@ watch(
         if (userStore.user) {
             userStore.user.theme = newTheme
         }
-    }
+    },
 )
 watch(
     () => internalHomepage.value,
@@ -93,7 +96,7 @@ watch(
         if (userStore.user) {
             userStore.user.homePage = newHomepage
         }
-    }
+    },
 )
 watch(
     // ストアのユーザーデータを監視
@@ -103,12 +106,11 @@ watch(
             internalLang.value = userData.language
             setLocale(userData.language as Language)
         }
-        internalTheme.value = userData?.theme ?? 'light'
-        internalHomepage.value = userData?.homePage ?? '/apps'
+        internalTheme.value = userData?.theme ?? "light"
+        internalHomepage.value = userData?.homePage ?? "/apps"
     },
-    { deep: true, immediate: true }
+    { deep: true, immediate: true },
 )
-
 </script>
 
 <template>

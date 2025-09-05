@@ -1,24 +1,36 @@
 <script setup lang="ts">
-import annotationPlugin from 'chartjs-plugin-annotation'
 import {
-    Chart as ChartJS, 
-    BarController, BarElement, 
-    LineController, LineElement,
-    ArcElement, PieController,
-    CategoryScale, LinearScale, PointElement,
-    Tooltip, Legend,
-    type ChartType
-} from 'chart.js'
-import { Chart as VueChart } from 'vue-chartjs'
+    ArcElement,
+    BarController,
+    BarElement,
+    CategoryScale,
+    Chart as ChartJS,
+    type ChartType,
+    Legend,
+    LineController,
+    LineElement,
+    LinearScale,
+    PieController,
+    PointElement,
+    Tooltip,
+} from "chart.js"
+import annotationPlugin from "chartjs-plugin-annotation"
+import { Chart as VueChart } from "vue-chartjs"
 
 // Chart.jsのコンポーネントを一括登録
 ChartJS.register(
-    BarController, BarElement,
-    LineController, LineElement,
-    ArcElement, PieController,
-    CategoryScale, LinearScale, PointElement,
-    Tooltip, Legend,
-    annotationPlugin
+    BarController,
+    BarElement,
+    LineController,
+    LineElement,
+    ArcElement,
+    PieController,
+    CategoryScale,
+    LinearScale,
+    PointElement,
+    Tooltip,
+    Legend,
+    annotationPlugin,
 )
 
 // Props & Emits
@@ -39,40 +51,44 @@ const props = defineProps<{
  * usage:
  * ```
  * <Chart v-bind="chartProps" @chartReady="onChartReady" />
- * 
+ *
  * function onChartReady(chartInstance: ChartJS) {
  *   chartInstance.data.datasets[0].backgroundColor = '#f00'
  *   chartInstance.update()
  * }
  * ```
  */
-const emit = defineEmits<
-    (e: 'chartReady', chart: ChartJS) => void
->()
+const emit = defineEmits<(e: "chartReady", chart: ChartJS) => void>()
 
 // Refs & Computed
 const chartRef = ref<{ chart: ChartJS } | null>(null)
-const chartType = computed<ChartType>(() => props.type ?? 'bar') // デフォルトは'bar'
+const chartType = computed<ChartType>(() => props.type ?? "bar") // デフォルトは'bar'
 const containerId = computed(() => props.chartId ?? `chart-${props.type}`)
 const containerStyle = computed(() => {
     return {
-        width: props.width ? (typeof props.width === 'number' ? `${props.width}px` : props.width) : undefined,
-        height: props.height ? (typeof props.height === 'number' ? `${props.height}px` : props.height) : undefined
+        width: props.width
+            ? typeof props.width === "number"
+                ? `${props.width}px`
+                : props.width
+            : undefined,
+        height: props.height
+            ? typeof props.height === "number"
+                ? `${props.height}px`
+                : props.height
+            : undefined,
     }
 })
 const containerClass = computed(() => {
-    return `chart-${props.type} w-full h-full relative ${props.addClass ?? ''}`
+    return `chart-${props.type} w-full h-full relative ${props.addClass ?? ""}`
 })
 
 // Lifecycle hooks
 onMounted(() => {
     if (chartRef.value?.chart) {
-        console.log('Chart component mounted:', props.type, chartRef.value.chart)
         // 初期化後に何か処理が必要ならここに記述
-        emit('chartReady', chartRef.value.chart as ChartJS)
+        emit("chartReady", chartRef.value.chart as ChartJS)
     }
 })
-
 </script>
 
 <template>

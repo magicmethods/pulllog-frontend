@@ -214,7 +214,13 @@ async function handleDownload() {
                         />
                     </div>
                     <div v-if="graph!=='A'" class="relative h-60 w-full border rounded bg-surface-50/50 dark:bg-gray-950/40 p-1">
-                        <ChartAppPullStats ref="chartBRef" :data="chartBCalc" />
+                        <!-- ChartAppPullStats ref="chartBRef" :data="chartBCalc" / -->
+                        <HistoryStats
+                            ref="chartBRef"
+                            :internalAppId="props.app.appId"
+                            :label="''"
+                            class="w-full h-full"
+                        />
                     </div>
                     <div v-if="loading" class="text-sm text-muted">{{ t('app.loading') }}</div>
                 </div>

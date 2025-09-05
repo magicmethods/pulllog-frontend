@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { marked } from 'marked'
-import DOMPurify from 'dompurify'
-import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useI18n } from 'vue-i18n'
-import { sleep } from '~/utils/timing'
+import DOMPurify from "dompurify"
+import { marked } from "marked"
+import { useI18n } from "vue-i18n"
+import { useLoaderStore } from "~/stores/useLoaderStore"
+import { sleep } from "~/utils/timing"
 
 // Props & Emits
 const props = defineProps<{
@@ -13,9 +13,7 @@ const props = defineProps<{
     width?: string
     maxWidth?: string
 }>()
-const emit = defineEmits<
-    (e: 'update:visible', v: boolean) => void
->()
+const emit = defineEmits<(e: "update:visible", v: boolean) => void>()
 
 // Stores etc.
 const loaderStore = useLoaderStore()
@@ -23,7 +21,7 @@ const { t } = useI18n()
 
 // State
 const loading = ref<boolean>(false)
-const content = ref<string>('')
+const content = ref<string>("")
 const isMaximized = ref<boolean>(false)
 const containerRef = ref<HTMLElement | null>(null)
 
@@ -31,8 +29,8 @@ const dialogStyle = computed(() => {
     // maximize中はstyleを空にしてPrimeVueのデフォルトに委譲
     if (isMaximized.value) return {}
     return {
-        width: props.width || '60vw',
-        maxWidth: props.maxWidth || '640px',
+        width: props.width || "60vw",
+        maxWidth: props.maxWidth || "640px",
     }
 })
 
@@ -41,7 +39,7 @@ async function fetchMarkdown() {
     loading.value = true
     await nextTick()
     const targetElm = containerRef.value ?? null
-    const lid = loaderStore.show(t('modal.document.loading'), targetElm)
+    const lid = loaderStore.show(t("modal.document.loading"), targetElm)
     try {
         const res = await fetch(props.src)
         const md = await res.text()
@@ -49,8 +47,9 @@ async function fetchMarkdown() {
         content.value = DOMPurify.sanitize(html)
         //console.log('Markdown fetched and sanitized:', html, content.value)
     } catch (e: unknown) {
-        content.value = e instanceof Error ? e.message : t('modal.document.error')
-        console.error('Markdown fetch error:', e)
+        content.value =
+            e instanceof Error ? e.message : t("modal.document.error")
+        console.error("Markdown fetch error:", e)
     } finally {
         const appConfig = useConfig()
         if (appConfig.isDebug) {
@@ -77,9 +76,8 @@ watch(
     () => props.visible,
     (v) => {
         if (v) fetchMarkdown()
-    }
+    },
 )
-
 </script>
 
 <template>

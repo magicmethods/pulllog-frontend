@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
 
 type AdProps = {
     adWidth?: number
@@ -9,7 +9,7 @@ type AdProps = {
     adHtml?: string
     adSlotName?: string
     adClient?: string
-    adType?: 'image' | 'carousel' | 'html' | 'slot' | 'none'
+    adType?: "image" | "carousel" | "html" | "slot" | "none"
     adFormat?: string
     adResponsive?: string
     adStyle?: string
@@ -28,8 +28,8 @@ const { t } = useI18n()
 const insEl = ref<HTMLElement | null>(null)
 const adClientId = props.adClient || appConfig.adsenseAccount
 const adSize = {
-    width: props.adWidth ? `${props.adWidth}px` : 'auto',
-    height: props.adHeight ? `${props.adHeight}px` : 'auto',
+    width: props.adWidth ? `${props.adWidth}px` : "auto",
+    height: props.adHeight ? `${props.adHeight}px` : "auto",
 }
 const adImage = computed(() => {
     if (!props.adItems) return null
@@ -40,34 +40,38 @@ const adImage = computed(() => {
     return null
 })
 const carouselPT = computed(() => {
-    if (props.adType === 'carousel' && props.adItems && props.adItems.length > 0) {
+    if (
+        props.adType === "carousel" &&
+        props.adItems &&
+        props.adItems.length > 0
+    ) {
         return {
             viewport: {
-                class: [ 'flex-1 w-max', props.adWidth ? '' : 'max-w-full' ],
+                class: ["flex-1 w-max", props.adWidth ? "" : "max-w-full"],
                 style: props.adWidth ? { maxWidth: `${props.adWidth}px` } : {},
             },
-            item: 'flex justify-center items-center',
-            pcPrevButton: { root: 'hidden md:inline-block' },
-            pcNextButton: { root: 'hidden md:inline-block' },
+            item: "flex justify-center items-center",
+            pcPrevButton: { root: "hidden md:inline-block" },
+            pcNextButton: { root: "hidden md:inline-block" },
         }
     }
     return undefined
 })
 const hideAd = computed(() => {
     // adTypeがnoneの場合は広告を表示しない
-    return props.adType === 'none'
+    return props.adType === "none"
 })
 
 // Methods
 function handleClickAd(link: string | undefined) {
     if (link && window) {
         // 広告クリック分析処理等があればここに追加
-        window.open(link, '_blank')
+        window.open(link, "_blank")
     }
 }
 // Adsense: insタグ挿入後にpush({})を呼ぶ
 function loadAdsense() {
-    if (window && 'adsbygoogle' in window) {
+    if (window && "adsbygoogle" in window) {
         try {
             window.adsbygoogle = window.adsbygoogle || []
             // biome-ignore lint:/suspicious/noExplicitAnylint
@@ -80,29 +84,34 @@ function loadAdsense() {
 
 onMounted(() => {
     //console.debug('EmbedAd mounted', isShownAd.value, adClientId)
-    if (props.adType === 'slot' && adClientId && props.adSlotName) {
+    if (props.adType === "slot" && adClientId && props.adSlotName) {
         // adType="slot" の時だけpushする
         nextTick(() => loadAdsense())
     }
 })
 
 // Watchers
-watch(() => props.adType, (val) => {
-    // SSRや動的切り替え対応：adTypeやslot切り替え時にもpushする
-    if (val === 'slot' && adClientId && props.adSlotName) {
-        nextTick(() => loadAdsense())
-    }
-})
+watch(
+    () => props.adType,
+    (val) => {
+        // SSRや動的切り替え対応：adTypeやslot切り替え時にもpushする
+        if (val === "slot" && adClientId && props.adSlotName) {
+            nextTick(() => loadAdsense())
+        }
+    },
+)
 
 // Styles
 const adContainerClass = computed(() => {
-    return ['flex items-center justify-center text-center font-semibold text-lg', `
+    return [
+        "flex items-center justify-center text-center font-semibold text-lg",
+        `
         text-surface-700/50 dark:text-gray-400/60
         border-2 border-dashed border-surface-600/50 dark:border-gray-400/30 rounded-sm py-3
         bg-surface-200/30 dark:bg-gray-700/30
-    `].join(' ')
+    `,
+    ].join(" ")
 })
-
 </script>
 
 <template>

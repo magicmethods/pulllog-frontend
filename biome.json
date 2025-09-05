@@ -1,0 +1,43 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.0.5/schema.json",
+    "files": {
+        "ignore": [
+            ".output/**",
+            ".github/**",
+            ".husky/**",
+            ".nuxt/**",
+            ".vscode/**",
+            ".wrangler/**",
+            "node_modules/**",
+            "dist/**",
+            "public/**"
+        ]
+    },
+    "formatter": {
+        "indentStyle": "space",
+        "indentWidth": 4
+    },
+    "javascript": {
+        "formatter": {
+            "semicolons": "asNeeded"
+        }
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "suspicious": {
+                "noConsole": {
+                    "level": "warn",
+                    "options": {
+                        "allow": ["assert", "warn", "error", "info"]
+                    }
+                },
+                "noExplicitAny": "error"
+            },
+            "style": {
+                "noNonNullAssertion": "error"
+            }
+        }
+    }
+}

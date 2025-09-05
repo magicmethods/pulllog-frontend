@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { ChipsAddEvent } from 'primevue/chips'
-import { useI18n } from 'vue-i18n'
+import type { ChipsAddEvent } from "primevue/chips"
+import { useI18n } from "vue-i18n"
 
 // Props & Emits
 const props = defineProps<{
@@ -13,9 +13,7 @@ const props = defineProps<{
     disabled?: boolean
     tagPrefix?: string // 'icon' or 'symbol'
 }>()
-const emit = defineEmits<
-    (e: 'update:modelValue', value: string[]) => void
->()
+const emit = defineEmits<(e: "update:modelValue", value: string[]) => void>()
 
 // i18n
 const { t } = useI18n()
@@ -26,33 +24,42 @@ const internalValue = ref<string[]>([...props.modelValue])
 // Computed
 const placeholderText = computed(() => {
     if (props.placeholder) {
-        const maxTags = (props.maxTags ?? '').toString()
-        const maxLength = (props.maxLength ?? '').toString()
-        return props.placeholder.replace(/%maxTags%/g, maxTags).replace(/%maxLength%/g, maxLength)
+        const maxTags = (props.maxTags ?? "").toString()
+        const maxLength = (props.maxLength ?? "").toString()
+        return props.placeholder
+            .replace(/%maxTags%/g, maxTags)
+            .replace(/%maxLength%/g, maxLength)
     }
-    return props.maxTags !== undefined ? t('component.inputTags.maxTags', { count: props.maxTags }) : t('component.inputTags.addTag')
+    return props.maxTags !== undefined
+        ? t("component.inputTags.maxTags", { count: props.maxTags })
+        : t("component.inputTags.addTag")
 })
 
 // Methods
 const updateValue = (value: string[]) => {
-    const unique = Array.from(new Set(value.map(v => {
-        const tag = (v?.toString() ?? '').trim()
-        return props.maxLength !== undefined ? tag.slice(0, props.maxLength).trim() : tag
-    }))).filter(v => v.length > 0)
+    const unique = Array.from(
+        new Set(
+            value.map((v) => {
+                const tag = (v?.toString() ?? "").trim()
+                return props.maxLength !== undefined
+                    ? tag.slice(0, props.maxLength).trim()
+                    : tag
+            }),
+        ),
+    ).filter((v) => v.length > 0)
 
     if (props.maxTags !== undefined && unique.length > props.maxTags) return
 
     internalValue.value = unique
-    emit('update:modelValue', unique)
+    emit("update:modelValue", unique)
 }
 const clearIMEInput = async (evt: KeyboardEvent) => {
     // IME確定後のゴミ入力削除
     if (internalValue.value.length === 0) return
     const target = evt.target as HTMLInputElement
-    if (evt.key === 'Process' && evt.code === 'Enter' && evt.isComposing) {
-        console.log('clearIMEInput', evt.key, evt.code, evt.isComposing, target, internalValue.value)
+    if (evt.key === "Process" && evt.code === "Enter" && evt.isComposing) {
         await setTimeout(() => {
-            target.value = ''
+            target.value = ""
         })
     }
     return Promise.resolve()
@@ -64,15 +71,22 @@ const handleAdd = async (e: ChipsAddEvent) => {
     let rawInputs: string[] = []
 
     if (Array.isArray(e.value)) {
-        rawInputs = e.value.map(v => v?.toString() ?? '')
-    } else if (typeof e.value === 'string') {
-        rawInputs = [(e.value ?? '').toString()]
+        rawInputs = e.value.map((v) => v?.toString() ?? "")
+    } else if (typeof e.value === "string") {
+        rawInputs = [(e.value ?? "").toString()]
     }
     // 入力値を正規化
     const sanitizedInputs = rawInputs
-        .map(v => props.maxLength !== undefined ? v.slice(0, props.maxLength) : v)
-        .map(v => v.trim())
-        .filter(v => v.length > 0 && (props.maxLength !== undefined && v.length <= props.maxLength))
+        .map((v) =>
+            props.maxLength !== undefined ? v.slice(0, props.maxLength) : v,
+        )
+        .map((v) => v.trim())
+        .filter(
+            (v) =>
+                v.length > 0 &&
+                props.maxLength !== undefined &&
+                v.length <= props.maxLength,
+        )
 
     await clearIMEInput(evt)
 
@@ -81,7 +95,10 @@ const handleAdd = async (e: ChipsAddEvent) => {
     const input = sanitizedInputs.slice(-1)[0]
 
     // 最大タグ数を超えた場合は追加しない
-    if (props.maxTags !== undefined && internalValue.value.length >= props.maxTags) {
+    if (
+        props.maxTags !== undefined &&
+        internalValue.value.length >= props.maxTags
+    ) {
         //console.warn(`タグ数の上限(${props.maxTags}件)に達しました`)
         await clearIMEInput(evt)
         return
@@ -93,18 +110,16 @@ const handleAdd = async (e: ChipsAddEvent) => {
     updateValue([...internalValue.value, input])
 
     await clearIMEInput(evt)
-
 }
 
 // Watches
 watch(
     () => props.modelValue,
-    tags => {
+    (tags) => {
         // モデルの同期
         internalValue.value = [...tags]
-    }
+    },
 )
-
 </script>
 
 <template>

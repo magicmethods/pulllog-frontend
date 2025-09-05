@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { FileUploadSelectEvent, FileUploadRemoveEvent } from 'primevue/fileupload'
-import { z } from 'zod'
-import { useToast } from 'primevue/usetoast'
-import { useUserStore } from '~/stores/useUserStore'
-import { useOptionStore } from '~/stores/useOptionStore'
-import { useI18n } from 'vue-i18n'
+import type {
+    FileUploadRemoveEvent,
+    FileUploadSelectEvent,
+} from "primevue/fileupload"
+import { useToast } from "primevue/usetoast"
+import { useI18n } from "vue-i18n"
+import { z } from "zod"
+import { useOptionStore } from "~/stores/useOptionStore"
+import { useUserStore } from "~/stores/useUserStore"
 
 // Stores etc.
 const userStore = useUserStore()
@@ -14,27 +17,39 @@ const toast = useToast()
 const { t } = useI18n()
 
 // Zod schema
-const settingsSchema = computed(() => z.object({
-    name: z.string().min(1, { message: t('validation.nameRequired') }).max(50, { message: t('validation.nameMaxLength') }),
-    password: z.string().optional().or(z.literal('')).refine(
-        val => !val || val.length >= 8,
-        { message: t('validation.shortPassword') }
-    ),
-    language: z.string().min(1, { message: t('validation.languageRequired') }),
-    theme: z.string().min(1, { message: t('validation.themeRequired') }),
-    homePage: z.string().min(1, { message: t('validation.homePageRequired') }),
-    // email, avatarUrlはバリデーションしない（編集不可＆外部アップロードなので）
-}))
+const settingsSchema = computed(() =>
+    z.object({
+        name: z
+            .string()
+            .min(1, { message: t("validation.nameRequired") })
+            .max(50, { message: t("validation.nameMaxLength") }),
+        password: z
+            .string()
+            .optional()
+            .or(z.literal(""))
+            .refine((val) => !val || val.length >= 8, {
+                message: t("validation.shortPassword"),
+            }),
+        language: z
+            .string()
+            .min(1, { message: t("validation.languageRequired") }),
+        theme: z.string().min(1, { message: t("validation.themeRequired") }),
+        homePage: z
+            .string()
+            .min(1, { message: t("validation.homePageRequired") }),
+        // email, avatarUrlはバリデーションしない（編集不可＆外部アップロードなので）
+    }),
+)
 
 // Refs & Local variables
 const internalUser = reactive<Partial<User> & { avatarFile?: File }>({
-    name: userStore.user?.name ?? '',
-    email: userStore.user?.email ?? '',
-    password: '',
-    avatarUrl: userStore.user?.avatarUrl ?? '',
+    name: userStore.user?.name ?? "",
+    email: userStore.user?.email ?? "",
+    password: "",
+    avatarUrl: userStore.user?.avatarUrl ?? "",
     language: userStore.user?.language ?? appConfig.defaultLocale,
-    theme: userStore.user?.theme ?? 'light',
-    homePage: userStore.user?.homePage ?? '/apps',
+    theme: userStore.user?.theme ?? "light",
+    homePage: userStore.user?.homePage ?? "/apps",
     avatarFile: undefined, // アップロード用のファイル
 })
 const errors = reactive<{ [K in keyof typeof internalUser]?: string }>({})
@@ -46,21 +61,21 @@ const themeOptions = optionStore.themeOptions
 const homepageOptions = optionStore.homepageOptions
 const fileUploadRef = ref(null)
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
-const uploadHelperMessage = computed(() => t('settings.fileUpload.dragAndDrop')) // Drag and drop files to here to upload.
+const uploadHelperMessage = computed(() => t("settings.fileUpload.dragAndDrop")) // Drag and drop files to here to upload.
 const showDeleteModal = ref<boolean>(false)
 
 // Methods
 function showToast(
     message: string,
     summary: string,
-    severity: 'info' | 'success' | 'error' | 'warn' = 'success',
-    life = 2500
+    severity: "info" | "success" | "error" | "warn" = "success",
+    life = 2500,
 ) {
     toast.add({
         severity,
         summary,
         detail: message,
-        group: 'notices',
+        group: "notices",
         life,
     })
 }
@@ -108,22 +123,25 @@ async function handleSave() {
     touched.homePage = true
     if (!validateAll()) {
         showToast(
-            t('settings.notice.inputErrorDetail'),
-            t('settings.notice.inputErrorTitle'),
-            'warn'
+            t("settings.notice.inputErrorDetail"),
+            t("settings.notice.inputErrorTitle"),
+            "warn",
         )
         return
     }
 
     const formData = new FormData()
-    formData.append('name', internalUser.name ?? '')
-    formData.append('email', internalUser.email ?? '')
-    formData.append('password', internalUser.password ?? '')
-    formData.append('language', internalUser.language ?? appConfig.defaultLocale)
-    formData.append('theme', internalUser.theme ?? 'light')
-    formData.append('homePage', internalUser.homePage ?? '/apps')
+    formData.append("name", internalUser.name ?? "")
+    formData.append("email", internalUser.email ?? "")
+    formData.append("password", internalUser.password ?? "")
+    formData.append(
+        "language",
+        internalUser.language ?? appConfig.defaultLocale,
+    )
+    formData.append("theme", internalUser.theme ?? "light")
+    formData.append("homePage", internalUser.homePage ?? "/apps")
     if (internalUser.avatarFile) {
-        formData.append('avatar', internalUser.avatarFile)
+        formData.append("avatar", internalUser.avatarFile)
     }
 
     isSubmitting.value = true
@@ -132,14 +150,25 @@ async function handleSave() {
         await userStore.updateUser(formData)
 
         // エラーがキャッチされなければ成功
-        showToast(t('settings.notice.saveSuccessDetail'), t('settings.notice.saveSuccessTitle'))
+        showToast(
+            t("settings.notice.saveSuccessDetail"),
+            t("settings.notice.saveSuccessTitle"),
+        )
         // パスワードフォームは空にする
-        internalUser.password = ''
+        internalUser.password = ""
         clearUploadFile()
     } catch (e: unknown) {
-        const errorMessage = e instanceof Error ? e.message : t('settings.notice.saveErrorDetail')
-        console.error('Error saving user settings:', e)
-        showToast(errorMessage, t('settings.notice.saveErrorTitle'), 'error', 3500)
+        const errorMessage =
+            e instanceof Error
+                ? e.message
+                : t("settings.notice.saveErrorDetail")
+        console.error("Error saving user settings:", e)
+        showToast(
+            errorMessage,
+            t("settings.notice.saveErrorTitle"),
+            "error",
+            3500,
+        )
     } finally {
         isSubmitting.value = false
     }
@@ -157,10 +186,12 @@ function handleFileSelect(event: FileUploadSelectEvent) {
     internalUser.avatarFile = undefined
     if (file && file.size > MAX_UPLOAD_SIZE) {
         showToast(
-            t('settings.notice.fileSizeError', { size: MAX_UPLOAD_SIZE / 1024 / 1024 }),
-            t('settings.notice.fileSizeErrorTitle'),
-            'error',
-            3000
+            t("settings.notice.fileSizeError", {
+                size: MAX_UPLOAD_SIZE / 1024 / 1024,
+            }),
+            t("settings.notice.fileSizeErrorTitle"),
+            "error",
+            3000,
         )
         //if (fileUploadRef.value) fileUploadRef.value.clear()
         return
@@ -168,7 +199,11 @@ function handleFileSelect(event: FileUploadSelectEvent) {
     if (file) {
         internalUser.avatarFile = file
         // 1ファイルのみ受け付けるためアップローダ側も1ファイルに制限
-        if (fileUploadRef.value && Array.isArray(event.files) && event.files.length > 1) {
+        if (
+            fileUploadRef.value &&
+            Array.isArray(event.files) &&
+            event.files.length > 1
+        ) {
             // 先頭以外削除
             //fileUploadRef.value.files = [file]
         }
@@ -182,7 +217,10 @@ function handleClearFile() {
 }
 function handleRemoveFile(event: FileUploadRemoveEvent) {
     //console.log('handleRemoveFile（ファイルの個別削除）:', event)
-    if (internalUser.avatarFile && event.file.name === internalUser.avatarFile.name) {
+    if (
+        internalUser.avatarFile &&
+        event.file.name === internalUser.avatarFile.name
+    ) {
         internalUser.avatarFile = undefined
     }
 }
@@ -198,23 +236,26 @@ function handleAccountDeleted() {
 }
 const avatarProps = () => {
     const avatarProps = {
-        size: 'xlarge',
-        shape: 'circle',
+        size: "xlarge",
+        shape: "circle",
     }
     if (internalUser.avatarUrl) {
         return { ...avatarProps, image: internalUser.avatarUrl }
     }
-    if (internalUser && internalUser.name !== '') {
-        return { ...avatarProps, label: internalUser.name?.substring(0, 1).toLocaleUpperCase() }
+    if (internalUser && internalUser.name !== "") {
+        return {
+            ...avatarProps,
+            label: internalUser.name?.substring(0, 1).toLocaleUpperCase(),
+        }
     }
-    return { ...avatarProps, icon: 'pi pi-plus' }
+    return { ...avatarProps, icon: "pi pi-plus" }
 }
 const errorMessageProps = () => {
     return {
-        severity: 'error',
-        size: 'small',
-        variant: 'simple',
-        class: 'w-max'
+        severity: "error",
+        size: "small",
+        variant: "simple",
+        class: "w-max",
     }
 }
 
@@ -225,32 +266,31 @@ watch(
         if (newTheme && internalUser.theme !== newTheme) {
             internalUser.theme = newTheme
         }
-    }
+    },
 )
 watch(
     () => userStore.user,
     (newUser) => {
         if (newUser) {
-            internalUser.name = newUser.name ?? ''
-            internalUser.email = newUser.email ?? ''
-            internalUser.avatarUrl = newUser.avatarUrl ?? ''
+            internalUser.name = newUser.name ?? ""
+            internalUser.email = newUser.email ?? ""
+            internalUser.avatarUrl = newUser.avatarUrl ?? ""
             internalUser.language = newUser.language ?? appConfig.defaultLocale
-            internalUser.theme = newUser.theme ?? 'light'
-            internalUser.homePage = newUser.homePage ?? '/apps'
+            internalUser.theme = newUser.theme ?? "light"
+            internalUser.homePage = newUser.homePage ?? "/apps"
         }
         internalUser.avatarFile = undefined
     },
-    { immediate: true, deep: true }
+    { immediate: true, deep: true },
 )
 
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        adType: 'none',
+        adType: "none",
         //adHeight: 90,
     },
 }
-
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useI18n } from "vue-i18n"
+import { useLoaderStore } from "~/stores/useLoaderStore"
 
 const loaderStore = useLoaderStore()
 const { t } = useI18n()
@@ -10,12 +10,11 @@ const loaderId = ref<string | null>(null)
 const sectionRef = ref<HTMLElement | null>(null)
 
 onMounted(async () => {
-    loaderId.value = loaderStore.show('', sectionRef.value ?? undefined)
+    loaderId.value = loaderStore.show("", sectionRef.value ?? undefined)
     await nextTick()
     loaderStore.hide(loaderId.value)
     isLoading.value = false
 })
-
 </script>
 
 <template>

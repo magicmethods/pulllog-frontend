@@ -1,8 +1,8 @@
-import { useUserStore } from '~/stores/useUserStore'
-import { useStatsStore } from '~/stores/useStatsStore'
-import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useAPI } from '~/composables/useAPI'
-import { endpoints } from '~/api/endpoints'
+import { endpoints } from "~/api/endpoints"
+import { useAPI } from "~/composables/useAPI"
+import { useLoaderStore } from "~/stores/useLoaderStore"
+import { useStatsStore } from "~/stores/useStatsStore"
+import { useUserStore } from "~/stores/useUserStore"
 
 // Types
 // type LastFetchedAtMap = Map<string, string | null> // appId -> ISO8601
@@ -15,12 +15,15 @@ function createQueryKey(options: FetchLogsOptions): string {
         .sort()
         .reduce((obj, key) => {
             // biome-ignore lint:/suspicious/noExplicitAny
-            (obj as any)[key] = (options as any)[key]
+            ;(obj as any)[key] = (options as any)[key]
             return obj
         }, {} as FetchLogsOptions)
     return JSON.stringify(stableOptions)
 }
-function isCacheKeyAffectedByDate(options: FetchLogsOptions, logDate: string): boolean {
+function isCacheKeyAffectedByDate(
+    options: FetchLogsOptions,
+    logDate: string,
+): boolean {
     /*
     // logDate（例：today）がキャッシュのfrom/to/limit範囲に該当し得る場合
     if (options.fromDate && options.fromDate > logDate) return false
@@ -46,7 +49,7 @@ function isCacheKeyAffectedByDate(options: FetchLogsOptions, logDate: string): b
     return true // 完全指定なし（全件取得）も影響あり
 }
 
-export const useLogStore = defineStore('log', () => {
+export const useLogStore = defineStore("log", () => {
     // composables
     const { callApi } = useAPI()
 
@@ -76,11 +79,18 @@ export const useLogStore = defineStore('log', () => {
         }
         appMap.set(date, log)
     }
-    function getLogsList(appId: string, queryKey: string): DateLog[] | undefined {
+    function getLogsList(
+        appId: string,
+        queryKey: string,
+    ): DateLog[] | undefined {
         const appMap = logsList.value.get(appId)
         return appMap ? appMap.get(queryKey) : undefined
     }
-    function setLogsList(appId: string, queryKey: string, list: DateLog[]): void {
+    function setLogsList(
+        appId: string,
+        queryKey: string,
+        list: DateLog[],
+    ): void {
         let appMap = logsList.value.get(appId)
         if (!appMap) {
             appMap = new Map<string, DateLog[]>()
@@ -103,9 +113,16 @@ export const useLogStore = defineStore('log', () => {
         lastFetchedAt.value.set(appId, dateStr)
     }
     */
-    function setLastFetchedAt(appId: string, queryKey: string, dateStr: string) {
+    function setLastFetchedAt(
+        appId: string,
+        queryKey: string,
+        dateStr: string,
+    ) {
         let m = lastFetchedAt.value.get(appId)
-        if (!m) { m = new Map(); lastFetchedAt.value.set(appId, m) }
+        if (!m) {
+            m = new Map()
+            lastFetchedAt.value.set(appId, m)
+        }
         m.set(queryKey, dateStr)
     }
     /*
@@ -129,7 +146,10 @@ export const useLogStore = defineStore('log', () => {
      * @returns 日次ログデータ（DateLog）またはnull（エラー時）
      * @throws エラー時はerrorにメッセージがセットされる
      */
-    async function fetchLog(appId: string, date: string): Promise<DateLog | null> {
+    async function fetchLog(
+        appId: string,
+        date: string,
+    ): Promise<DateLog | null> {
         error.value = null
 
         const cached = getLog(appId, date)
@@ -140,31 +160,32 @@ export const useLogStore = defineStore('log', () => {
 
         isLoading.value = true
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show(t('history.loading.logs'))
+        const loaderId = loaderStore.show(t("history.loading.logs"))
         try {
             // CSRFトークンからユーザーIDは補完されるので、ユーザーIDを指定する必要はない
             const userStore = useUserStore()
             if (!userStore.user?.id) {
-                error.value = t('app.error.noLogin')
+                error.value = t("app.error.noLogin")
                 return cached ?? null
             }
             // API呼び出し
             const response = await callApi<DateLog>({
                 endpoint: endpoints.logs.daily(appId, date),
-                method: 'GET',
-                onAuthError: 'throw', // 認証切れでもリダイレクトしない
+                method: "GET",
+                onAuthError: "throw", // 認証切れでもリダイレクトしない
             })
             // 該当するログが見つからない場合は null が返る
             //console.log('fetchLog: fetch from API response', response)
             if (!response) {
-                error.value = t('app.error.logsNotFound')
+                error.value = t("app.error.logsNotFound")
                 return cached ?? null
             }
             setLog(appId, date, response)
             return response
         } catch (e: unknown) {
-            console.error('Failed to fetch log:', e)
-            error.value = e instanceof Error ? e.message : t('app.error.logsNotFound')
+            console.error("Failed to fetch log:", e)
+            error.value =
+                e instanceof Error ? e.message : t("app.error.logsNotFound")
             return cached ?? null
         } finally {
             isLoading.value = false
@@ -184,7 +205,7 @@ export const useLogStore = defineStore('log', () => {
         appId: string,
         options: FetchLogsOptions = {},
         loaderContainerElement?: HTMLElement,
-        forceFetch = false
+        forceFetch = false,
     ): Promise<DateLog[]> {
         const queryKey = createQueryKey(options)
         const now = Date.now()
@@ -208,13 +229,16 @@ export const useLogStore = defineStore('log', () => {
         error.value = null
         isLoading.value = true
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show(t('history.loading.logs'), loaderContainerElement ?? null)
+        const loaderId = loaderStore.show(
+            t("history.loading.logs"),
+            loaderContainerElement ?? null,
+        )
 
         try {
             const userStore = useUserStore()
             if (!userStore.user?.id) {
                 // セッション情報がなければ stale を返す（UIを空にしない）
-                const loginErr = t('app.error.noLogin')
+                const loginErr = t("app.error.noLogin")
                 error.value = loginErr
                 // console.warn('fetchLogs: no login, return stale if exists')
                 return stale ?? []
@@ -225,13 +249,13 @@ export const useLogStore = defineStore('log', () => {
                 from: options.fromDate,
                 to: options.toDate,
                 limit: options.limit,
-                offset: options.offset
+                offset: options.offset,
             })
 
             const response = await callApi<DateLog[]>({
                 endpoint,
-                method: 'GET',
-                onAuthError: 'throw', // 認証切れでもリダイレクトしない
+                method: "GET",
+                onAuthError: "throw", // 認証切れでもリダイレクトしない
             })
             // console.log('fetchLogs: fetch from API response', response)
             if (response && Array.isArray(response)) {
@@ -246,7 +270,7 @@ export const useLogStore = defineStore('log', () => {
             }
 
             // API が配列を返さなかった（実質エラー扱い）→ stale があればそれを維持
-            error.value = t('app.error.logsNotFound')
+            error.value = t("app.error.logsNotFound")
             // キャッシュを作らず、明示的に該当Keyを削除（既にあれば）
             // logsList.value.get(appId)?.delete(queryKey)
             return stale ?? []
@@ -254,14 +278,18 @@ export const useLogStore = defineStore('log', () => {
             // 3) 失敗時はキャッシュを消さない
             //    認証失効などの可能性があるので、stale を見せ続ける
             // 401/419 判定（形状は useAPI に依存）
-            const status = (e && typeof e === 'object' && 'status' in (e as Record<string, unknown>))
-                ? (e as { status?: number }).status
-                : undefined
+            const status =
+                e &&
+                typeof e === "object" &&
+                "status" in (e as Record<string, unknown>)
+                    ? (e as { status?: number }).status
+                    : undefined
 
             if (status === 401 || status === 419) {
-                error.value = t('app.error.noLogin')
+                error.value = t("app.error.noLogin")
             } else {
-                error.value = e instanceof Error ? e.message : t('app.error.logsNotFound')
+                error.value =
+                    e instanceof Error ? e.message : t("app.error.logsNotFound")
             }
 
             // logsList.value.get(appId)?.delete(queryKey)
@@ -282,21 +310,20 @@ export const useLogStore = defineStore('log', () => {
         isLoading.value = true
         error.value = null
         const loaderStore = useLoaderStore()
-        const loaderId = loaderStore.show(t('history.loading.saving'))
+        const loaderId = loaderStore.show(t("history.loading.saving"))
         try {
             // 既存編集はPUT、新規登録はPOST
             const isEdit = Boolean(getLog(log.appId, log.date))
             const endpoint = isEdit
                 ? endpoints.logs.update(log.appId, log.date) // {API_BASE_URL}/logs/daily/:appId/:date
                 : endpoints.logs.create(log.appId, log.date) // {API_BASE_URL}/logs/daily/:appId/:date
-            const method = isEdit ? 'PUT' : 'POST'
+            const method = isEdit ? "PUT" : "POST"
             const saved = await callApi<DateLog | null>({
                 endpoint,
                 method,
                 data: log,
             })
             // ローカル logs も即時同期（返却された内容で上書き）
-            console.log('saveLog: returned API response', saved)
             if (saved) {
                 setLog(log.appId, log.date, saved)
                 if (isEdit) {
@@ -304,7 +331,9 @@ export const useLogStore = defineStore('log', () => {
                     const appMap = logsList.value.get(log.appId)
                     if (appMap) {
                         for (const list of appMap.values()) {
-                            const idx = list.findIndex(item => item.date === saved.date)
+                            const idx = list.findIndex(
+                                (item) => item.date === saved.date,
+                            )
                             if (idx !== -1) list[idx] = saved
                         }
                     }
@@ -317,11 +346,12 @@ export const useLogStore = defineStore('log', () => {
                 statsStore.clearStatsCache(log.appId)
                 return saved
             }
-            error.value = t('app.error.saveFailed')
+            error.value = t("app.error.saveFailed")
             throw new Error(error.value)
         } catch (e: unknown) {
-            console.error('Failed to save log:', e)
-            error.value = e instanceof Error ? e.message : t('app.error.saveFailed')
+            console.error("Failed to save log:", e)
+            error.value =
+                e instanceof Error ? e.message : t("app.error.saveFailed")
             throw e
         } finally {
             isLoading.value = false
@@ -335,7 +365,10 @@ export const useLogStore = defineStore('log', () => {
      * @returns 成功した場合はtrue、失敗した場合はfalse
      * @throws エラー時はerrorにメッセージがセットされる
      */
-    async function importLogsFile(appId: string, uploadData: UploadData): Promise<boolean> {
+    async function importLogsFile(
+        appId: string,
+        uploadData: UploadData,
+    ): Promise<boolean> {
         isLoading.value = true
         error.value = null
         // ローダー表示はオプションにするかもしれない
@@ -343,15 +376,18 @@ export const useLogStore = defineStore('log', () => {
         //const loaderId = loaderStore.show('履歴をインポート中...')
         try {
             const formData = new FormData()
-            formData.append('file', uploadData.file)
+            formData.append("file", uploadData.file)
 
-            const response = await callApi<{ state: 'success' | 'error', message?: string } | null>({
+            const response = await callApi<{
+                state: "success" | "error"
+                message?: string
+            } | null>({
                 endpoint: endpoints.logs.import(appId, uploadData.mode),
-                method: 'POST',
-                data: formData
+                method: "POST",
+                data: formData,
             })
             //console.log('importLogsFile: returned API response', response)
-            if (response?.state === 'success') {
+            if (response?.state === "success") {
                 // インポート成功時は対象appIdのキャッシュをクリア
                 logs.value.delete(appId) // 全てのキャッシュをクリア
                 logsList.value.delete(appId) // リストキャッシュもクリア
@@ -360,11 +396,12 @@ export const useLogStore = defineStore('log', () => {
                 //await fetchLogs(appId)
                 return true
             }
-            error.value = response?.message ?? t('app.error.importFailed')
+            error.value = response?.message ?? t("app.error.importFailed")
             throw new Error(error.value)
         } catch (e: unknown) {
-            console.error('Failed to import history:', e)
-            error.value = e instanceof Error ? e.message : t('app.error.importFailed')
+            console.error("Failed to import history:", e)
+            error.value =
+                e instanceof Error ? e.message : t("app.error.importFailed")
             return false
         } finally {
             isLoading.value = false

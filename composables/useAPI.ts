@@ -1,11 +1,11 @@
-import { useCsrfStore } from '~/stores/useCsrfStore'
-import { ERROR_URL, ApiError } from '~/utils/error'
+import { useCsrfStore } from "~/stores/useCsrfStore"
+import { ApiError, ERROR_URL } from "~/utils/error"
 
 const apiCache = new Map<string, { timestamp: number; data: unknown }>()
 
 export function useAPI() {
     const appConfig = useConfig()
-    const apiProxy = appConfig.apiProxy ?? '/api'
+    const apiProxy = appConfig.apiProxy ?? "/api"
     //const apiBaseURL = appConfig.apiBaseURL ?? ''
     const mockMode = appConfig.mockMode ?? false
     const csrfStore = useCsrfStore()
@@ -27,22 +27,34 @@ export function useAPI() {
 
     // キャッシュキー生成
     function stableStringify(obj: Record<string, unknown>): string {
-        const sorted = Object.keys(obj).sort().reduce((acc, k) => {
-            // biome-ignore lint:/suspicious/noExplicitAny
-            (acc as any)[k] = (obj as any)[k]
-            return acc
-        }, {} as Record<string, unknown>)
+        const sorted = Object.keys(obj)
+            .sort()
+            .reduce(
+                (acc, k) => {
+                    // biome-ignore lint:/suspicious/noExplicitAny
+                    ;(acc as any)[k] = (obj as any)[k]
+                    return acc
+                },
+                {} as Record<string, unknown>,
+            )
         return JSON.stringify(sorted)
     }
     function generateCacheKey(options: CallApiOptions): string {
         const { endpoint, method, params } = options
-        return `${method}:${endpoint}:${params ? stableStringify(params) : ''}`
+        return `${method}:${endpoint}:${params ? stableStringify(params) : ""}`
     }
 
     // タイムアウト付きfetch
-    async function fetchWithTimeout(url: string, options: RequestInit, timeoutSec: number): Promise<Response> {
+    async function fetchWithTimeout(
+        url: string,
+        options: RequestInit,
+        timeoutSec: number,
+    ): Promise<Response> {
         const controller = new AbortController()
-        const timeoutId = setTimeout(() => controller.abort(), timeoutSec * 1000)
+        const timeoutId = setTimeout(
+            () => controller.abort(),
+            timeoutSec * 1000,
+        )
         try {
             return await fetch(url, { ...options, signal: controller.signal })
         } finally {
@@ -51,7 +63,9 @@ export function useAPI() {
     }
 
     // メインAPI呼び出し
-    async function callApi<T = unknown>(options: CallApiOptions): Promise<T | null> {
+    async function callApi<T = unknown>(
+        options: CallApiOptions,
+    ): Promise<T | null> {
         const {
             endpoint,
             method,
@@ -64,7 +78,7 @@ export function useAPI() {
             timeout = 10,
             extraHeaders = {},
             requestInit = {},
-            onAuthError = 'redirect',
+            onAuthError = "redirect",
         } = options
 
         const cacheKey = generateCacheKey(options)
@@ -84,7 +98,7 @@ export function useAPI() {
         }
 
         // URL組み立て
-        let url = ''
+        let url = ""
         if (overrideURI) {
             // 絶対パスや外部APIへのリクエスト
             url = endpoint
@@ -92,29 +106,31 @@ export function useAPI() {
             // APIプロキシ経由の相対パス
             url = endpoint.startsWith(apiProxy)
                 ? endpoint
-                : apiProxy.replace(/\/$/, '') + (endpoint.startsWith('/') ? endpoint : `/${endpoint}`)
+                : apiProxy.replace(/\/$/, "") +
+                  (endpoint.startsWith("/") ? endpoint : `/${endpoint}`)
         }
-        if (method === 'GET' && params) {
+        if (method === "GET" && params) {
             const qs = createQueryParams(params)
             if (qs) url += `?${qs}`
         }
 
         // リクエストヘッダ
         // CSRFトークンの最新値を取得
-        const currentCSRFToken = csrfStore.token ?? ''
+        const currentCSRFToken = csrfStore.token ?? ""
         // extraHeadersを全て小文字キーに正規化（念のため）
         const normalizedExtraHeaders = Object.fromEntries(
-            Object.entries(extraHeaders).map(([k, v]) => [k.toLowerCase(), v])
+            Object.entries(extraHeaders).map(([k, v]) => [k.toLowerCase(), v]),
         )
         const headers: Record<string, string> = {}
         // content-typeの自動付与ロジック
-        const isFormData = typeof FormData !== 'undefined' && data instanceof FormData
-        if (!isFormData && !('content-type' in normalizedExtraHeaders)) {
-            headers['content-type'] = 'application/json'
+        const isFormData =
+            typeof FormData !== "undefined" && data instanceof FormData
+        if (!isFormData && !("content-type" in normalizedExtraHeaders)) {
+            headers["content-type"] = "application/json"
         }
         // CSRFトークンを自動付与
-        if (!('x-csrf-token' in normalizedExtraHeaders)) {
-            headers['x-csrf-token'] = currentCSRFToken
+        if (!("x-csrf-token" in normalizedExtraHeaders)) {
+            headers["x-csrf-token"] = currentCSRFToken
         }
         // extraHeadersで上書き（明示的なcontent-typeや他ヘッダも反映）
         Object.assign(headers, normalizedExtraHeaders)
@@ -124,7 +140,9 @@ export function useAPI() {
         if (initHeadersRaw) {
             // Headers | Record | Array いずれにも対応
             const h = new Headers(initHeadersRaw as HeadersInit)
-            h.forEach((v, k) => { initHeaders[k.toLowerCase()] = v })
+            h.forEach((v, k) => {
+                initHeaders[k.toLowerCase()] = v
+            })
         }
         const mergedObj = { ...headers, ...initHeaders }
         const finalHeaders = new Headers()
@@ -134,7 +152,7 @@ export function useAPI() {
         }
         if (isFormData) {
             // FormDataの場合はcontent-typeを削除
-            finalHeaders.delete('content-type')
+            finalHeaders.delete("content-type")
         }
         // 最終ヘッダー（自動付与 → extraHeaders → requestInit.headers の順）
         const requestOptions: RequestInit = {
@@ -151,11 +169,19 @@ export function useAPI() {
         for (let attempt = 0; attempt <= retries; attempt++) {
             try {
                 // 再試行のたびに body を再セット
-                if (['POST', 'PUT', 'PATCH'].includes(method)) {
-                    requestOptions.body = isFormData ? (data as FormData) : data ? JSON.stringify(data) : undefined
+                if (["POST", "PUT", "PATCH"].includes(method)) {
+                    requestOptions.body = isFormData
+                        ? (data as FormData)
+                        : data
+                          ? JSON.stringify(data)
+                          : undefined
                 }
 
-                const response = await fetchWithTimeout(url, requestOptions, timeout)
+                const response = await fetchWithTimeout(
+                    url,
+                    requestOptions,
+                    timeout,
+                )
 
                 if (!response.ok) {
                     // エラーハンドラに委譲
@@ -167,46 +193,50 @@ export function useAPI() {
                     return null
                 }
 
-                const contentType = response.headers.get('content-type')
-                if (!contentType || !contentType.includes('application/json')) {
-                    // @ts-ignore - JSON以外はテキストで返す
+                const contentType = response.headers.get("content-type")
+                if (!contentType || !contentType.includes("application/json")) {
+                    // JSON以外はテキストで返す
                     return (await response.text()) as T
                 }
 
                 const responseJson = await response.json()
                 if (debug) downloadJsonFile(responseJson, response.url)
                 if (cacheTime) {
-                    apiCache.set(cacheKey, { timestamp: now, data: responseJson })
+                    apiCache.set(cacheKey, {
+                        timestamp: now,
+                        data: responseJson,
+                    })
                 }
                 //console.log(`API Request [${attempt + 1}/${retries + 1}]:`, { url, requestOptions, responseJson })
                 return responseJson
             } catch (error: unknown) {
-                const status = error instanceof ApiError ? error.status : undefined
+                const status =
+                    error instanceof ApiError ? error.status : undefined
 
                 // 419 レスポンスは CSRF リフレッシュ→ヘッダ差し替え→即再試行
                 if (status === 419 && !didCsrfRefresh) {
                     const refreshed = await csrfStore.refresh() // POST /auth/csrf/refresh
                     if (refreshed) {
-                        finalHeaders.set('x-csrf-token', csrfStore.token ?? '')
+                        finalHeaders.set("x-csrf-token", csrfStore.token ?? "")
                         didCsrfRefresh = true
                         continue // 同じ attempt で再試行（retries を消費しない）
                     }
-                    if (onAuthError === 'redirect') {
+                    if (onAuthError === "redirect") {
                         // CSRFリフレッシュ失敗時は認証エラーとして処理
                         navigateTo(ERROR_URL.SessionExpired, { replace: true })
                     }
                     // 上位の finally 用にエラーも投げる
-                    throw new Error('Session expired. please login again.')
+                    throw new Error("Session expired. please login again.")
                 }
 
-                if (error instanceof Error && error.name === 'AbortError') {
+                if (error instanceof Error && error.name === "AbortError") {
                     // タイムアウト
-                    throw new Error('API Request timed out')
+                    throw new Error("API Request timed out")
                 }
                 // リトライ判定
                 if (attempt < retries && shouldRetry(error)) {
                     const delay = 2 ** attempt * 100
-                    await new Promise(resolve => setTimeout(resolve, delay))
+                    await new Promise((resolve) => setTimeout(resolve, delay))
                     continue
                 }
                 throw error // コンポーネント側でcatchできる
@@ -218,40 +248,55 @@ export function useAPI() {
     // 5xx/429エラー時のみリトライ
     function shouldRetry(error: unknown): boolean {
         const status = error instanceof ApiError ? error.status : undefined
-        return status !== undefined && [429, 500, 502, 503, 504].includes(status)
+        return (
+            status !== undefined && [429, 500, 502, 503, 504].includes(status)
+        )
     }
 
     // 共通エラー処理（認証・認可・バリデーション等）
     async function handleErrorResponse(
         response: Response,
-        onAuthError: 'redirect' | 'throw'
+        onAuthError: "redirect" | "throw",
     ): Promise<never> {
         let errorJson: unknown = null
-        try { errorJson = await response.json() } catch (e) { /* ignore */ }
+        try {
+            errorJson = await response.json()
+        } catch (e) {
+            /* ignore */
+        }
 
-        const msg = (errorJson as { message?: string } | null)?.message
-            ?? `API Error: ${response.status} - ${response.statusText}`
+        const msg =
+            (errorJson as { message?: string } | null)?.message ??
+            `API Error: ${response.status} - ${response.statusText}`
 
         // エラーコードごとの遷移/通知
         if (response.status === 419) {
-            throw new ApiError(msg || 'CSRF token expired', 419, errorJson)
+            throw new ApiError(msg || "CSRF token expired", 419, errorJson)
         }
 
         if (response.status === 401) {
-            if (onAuthError === 'redirect') {
+            if (onAuthError === "redirect") {
                 navigateTo(ERROR_URL.Unauthorized, { replace: true })
             }
             // 遷移したとしても上位が finally 等を通るため例外は投げる
             throw new ApiError(msg, response.status, errorJson)
         }
         if (response.status === 403) {
-            throw new ApiError(msg || 'Forbidden', 403, errorJson)
+            throw new ApiError(msg || "Forbidden", 403, errorJson)
         }
         if (response.status === 422) {
-            throw new ApiError(msg || 'Validation error occurred', 422, errorJson)
+            throw new ApiError(
+                msg || "Validation error occurred",
+                422,
+                errorJson,
+            )
         }
         if (response.status >= 500) {
-            throw new ApiError('Internal server error occurred. Please try again later.', response.status, errorJson)
+            throw new ApiError(
+                "Internal server error occurred. Please try again later.",
+                response.status,
+                errorJson,
+            )
         }
         throw new ApiError(msg, response.status, errorJson)
     }
@@ -260,22 +305,24 @@ export function useAPI() {
     function downloadJsonFile(
         // biome-ignore lint:/suspicious/noExplicitAny
         jsonData: any,
-        requestURL: string
+        requestURL: string,
     ): void {
         const jsonString = JSON.stringify(jsonData, null, 2)
-        const blob = new Blob([jsonString], { type: 'application/json' })
+        const blob = new Blob([jsonString], { type: "application/json" })
         const url = URL.createObjectURL(blob)
         const sanitizeFileName = (name: string) =>
-            name.replace(/[\/\?<>\\:\*\|"]/g, '~')
+            name.replace(/[/?<>\\:*|"]/g, "~")
         const urlObj = new URL(requestURL)
-        const path = urlObj.pathname.replace(/\//g, '_')
+        const path = urlObj.pathname.replace(/\//g, "_")
         const queryParams = urlObj.searchParams
-        let query = ''
+        let query = ""
         if (queryParams.toString()) {
-            query = [...queryParams.entries()].map(([key, value]) => `${key}-${sanitizeFileName(value)}`).join('+')
+            query = [...queryParams.entries()]
+                .map(([key, value]) => `${key}-${sanitizeFileName(value)}`)
+                .join("+")
         }
         const fileName = query ? `${path}_${query}.json` : `${path}.json`
-        const link = document.createElement('a')
+        const link = document.createElement("a")
         link.href = url
         link.download = fileName
         link.click()
@@ -283,9 +330,14 @@ export function useAPI() {
     }
 
     // モックデータ取得
-    async function loadMockData<T = unknown>(endpoint: string): Promise<T | null> {
+    async function loadMockData<T = unknown>(
+        endpoint: string,
+    ): Promise<T | null> {
         // mockMode時は/api以下のパスも有効にする
-        const sanitized = endpoint.replace(apiProxy, '').replace(/^\//, '').replace(/\//g, '_')
+        const sanitized = endpoint
+            .replace(apiProxy, "")
+            .replace(/^\//, "")
+            .replace(/\//g, "_")
         const mockFilePath = `/mocks/${sanitized}.json`
         try {
             const response = await fetch(mockFilePath)

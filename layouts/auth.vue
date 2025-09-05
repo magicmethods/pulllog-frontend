@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { StorageUtil } from '~/utils/storage'
+import { useI18n } from "vue-i18n"
+import { StorageUtil } from "~/utils/storage"
 
 // i18n
 const { t } = useI18n()
@@ -10,21 +10,22 @@ const storage = ref()
 onMounted(() => {
     storage.value = new StorageUtil()
     // テーマ設定があればそれを適用し、なければシステムの設定に従う
-    const savedTheme = storage.value.getItem('theme')
+    const savedTheme = storage.value.getItem("theme")
     const html = document.documentElement
-    html.classList.add('theme-switching')
+    html.classList.add("theme-switching")
     if (savedTheme) {
-        html.classList.toggle('app-dark', savedTheme === 'dark')
+        html.classList.toggle("app-dark", savedTheme === "dark")
     } else {
-        const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
-        html.classList.toggle('app-dark', prefersDarkMode)
+        const prefersDarkMode = window.matchMedia(
+            "(prefers-color-scheme: dark)",
+        ).matches
+        html.classList.toggle("app-dark", prefersDarkMode)
     }
     void html.offsetWidth
     requestAnimationFrame(() => {
-        html.classList.remove('theme-switching')
+        html.classList.remove("theme-switching")
     })
 })
-
 </script>
 
 <template>

@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useUserStore } from '~/stores/useUserStore'
-import { useOptionStore } from '~/stores/useOptionStore'
-import { useChartPalette } from '~/composables/useChart'
-import ChartDataLabels from 'chartjs-plugin-datalabels'
-import type { ChartDataset } from 'chart.js'
-import { stripEmoji } from '~/utils/string'
-import { classifyMarkerText } from '~/utils/markerMatcher'
+import type { ChartDataset } from "chart.js"
+import ChartDataLabels from "chartjs-plugin-datalabels"
+import { useI18n } from "vue-i18n"
+import { useChartPalette } from "~/composables/useChart"
+import { useOptionStore } from "~/stores/useOptionStore"
+import { useUserStore } from "~/stores/useUserStore"
+import { classifyMarkerText } from "~/utils/markerMatcher"
+import { stripEmoji } from "~/utils/string"
 
 // Stores etc.
 const userStore = useUserStore()
@@ -14,7 +14,13 @@ const optionStore = useOptionStore()
 const { t, locale } = useI18n()
 
 const SYSTEM_OTHER_KEY = computed(() => optionStore.otherPlaceholder)
-const PRESET_MARKER_LABELS = ['pickup', 'lose', 'target', 'guaranteed', 'other'] as const
+const PRESET_MARKER_LABELS = [
+    "pickup",
+    "lose",
+    "target",
+    "guaranteed",
+    "other",
+] as const
 type MarkerKey = (typeof PRESET_MARKER_LABELS)[number]
 
 // Props
@@ -40,24 +46,24 @@ const EFFECTIVE_BAR_THICKNESS = Math.floor(ROW_HEIGHT_PX * (1 - ROW_GAP_RATIO))
 const MIN_ROWS = 6
 // ラベルマップ
 const labelMap = computed<Record<MarkerKey, string>>(() => ({
-    pickup: t('app.word.pickup'),
-    lose: t('app.word.lose'),
-    target: t('app.word.target'),
-    guaranteed: t('app.word.guaranteed'),
-    other: t('app.word.other')
+    pickup: t("app.word.pickup"),
+    lose: t("app.word.lose"),
+    target: t("app.word.target"),
+    guaranteed: t("app.word.guaranteed"),
+    other: t("app.word.other"),
 }))
-const otherLabel = computed(() => t('app.word.other'))
+const otherLabel = computed(() => t("app.word.other"))
 // 色マップ
 const colorMap = computed<ColorMap>(() => {
     const map: ColorMap = {}
     const preset = presetColors.value
-    ;(PRESET_MARKER_LABELS).forEach((label: MarkerKey, i: number) => {
+    PRESET_MARKER_LABELS.forEach((label: MarkerKey, i: number) => {
         map[label] = props.colors?.[label] ?? preset[i % preset.length]
     })
     return map
 })
 // 対象アプリのデータを抽出
-const ranking = computed(() => props.data.find(d => d.appId === props.appId))
+const ranking = computed(() => props.data.find((d) => d.appId === props.appId))
 // アイテム名一覧（カウント降順→アルファベット順→五十音順）
 const sortedNames = computed(() => {
     if (!ranking.value) return []
@@ -66,7 +72,9 @@ const sortedNames = computed(() => {
     const itemArr = Object.entries(ranking.value.items.name)
 
     // システム「その他」を抽出
-    const etcIdx = itemArr.findIndex(([name]) => name === SYSTEM_OTHER_KEY.value)
+    const etcIdx = itemArr.findIndex(
+        ([name]) => name === SYSTEM_OTHER_KEY.value,
+    )
     let etcEntry: [string, number] | undefined
     if (etcIdx >= 0) {
         etcEntry = itemArr.splice(etcIdx, 1)[0]
@@ -81,21 +89,20 @@ const sortedNames = computed(() => {
     })
     const mapped = itemArr.map(([name, count]) => ({
         name,
-        label: `${name} (${count})`
+        label: `${name} (${count})`,
     }))
 
     // システム「その他」をラベル変換して末尾に追加
     if (etcEntry) {
         mapped.push({
             name: SYSTEM_OTHER_KEY.value,
-            label: `${otherLabel.value} (${etcEntry[1]})`
+            label: `${otherLabel.value} (${etcEntry[1]})`,
         })
     }
-    console.log('Sorted Names:', mapped, SYSTEM_OTHER_KEY.value)
 
     // maxRank対応
     if (props.maxRank && props.maxRank > 0) {
-        return mapped.slice(0, props.maxRank)/* .map(([name, count]) => ({
+        return mapped.slice(0, props.maxRank) /* .map(([name, count]) => ({
             name,
             label: `${name} (${count})`
         }))*/
@@ -110,10 +117,10 @@ const rarityStats = computed(() => {
     // name: { "itemName": count }
     const map: Record<string, Partial<Record<string, number>>> = {}
     for (const [key, value] of Object.entries(ranking.value.items.rarityName)) {
-        let [rarity, name] = key.split('|')
+        let [rarity, name] = key.split("|")
         rarity = rarity.trim()
         name = stripEmoji(name).trim()
-        const label = rarity !== '' ? rarity : 'rare'
+        const label = rarity !== "" ? rarity : "rare"
         map[name] = map[name] || {}
         map[name][label] = (map[name][label] ?? 0) + value
     }
@@ -132,7 +139,7 @@ const raritySummary = computed(() => {
     return summary
 })
 
-type Marker = 'pickup' | 'lose' | 'target' | 'guaranteed'
+type Marker = "pickup" | "lose" | "target" | "guaranteed"
 
 // マーカー・パース＋合計
 const markerKeys = computed(() => {
@@ -140,14 +147,16 @@ const markerKeys = computed(() => {
     // markerName: { "name|marker": count }
     const map: Record<string, Partial<Record<MarkerKey, number>>> = {}
     for (const [key, value] of Object.entries(ranking.value.items.markerName)) {
-        let [name, markerText] = key.split('|')
+        let [name, markerText] = key.split("|")
         name = stripEmoji(name).trim()
         markerText = stripEmoji(markerText).trim()
 
         const cls = classifyMarkerText(markerText)
-        const label: MarkerKey = (['pickup','lose','target','guaranteed'] as const).includes(cls as Marker)
+        const label: MarkerKey = (
+            ["pickup", "lose", "target", "guaranteed"] as const
+        ).includes(cls as Marker)
             ? (cls as MarkerKey)
-            : 'other'
+            : "other"
 
         map[name] = map[name] || {}
         map[name][label] = (map[name][label] ?? 0) + value
@@ -161,7 +170,10 @@ const maxCounts = computed(() => {
     const res: Record<string, number> = {}
     for (const { name } of sortedNames.value) {
         // markerごとの合計値とnameのカウント値
-        const markerSum = Object.values(markerKeys.value[name] ?? {}).reduce((a, b) => a + (b ?? 0), 0)
+        const markerSum = Object.values(markerKeys.value[name] ?? {}).reduce(
+            (a, b) => a + (b ?? 0),
+            0,
+        )
         const nameCount = ranking.value.items.name[name] ?? 0
         res[name] = Math.max(markerSum, nameCount)
     }
@@ -172,35 +184,45 @@ const maxCounts = computed(() => {
 const chartData = computed(() => {
     if (!ranking.value) return { labels: [], datasets: [] }
     //const labels = sortedNames.value
-    const labels = sortedNames.value.map(item => item.label) // アイテム名のラベル
+    const labels = sortedNames.value.map((item) => item.label) // アイテム名のラベル
 
     // markerのスタックBar
     const datasets: ChartDataset[] = PRESET_MARKER_LABELS.map((marker, i) => ({
         label: labelMap.value[marker],
-        data: sortedNames.value.map(item => markerKeys.value[item.name]?.[marker] ?? 0),
-        backgroundColor: props.colors?.[marker]?.bg ?? colorMap.value[marker].bg,
-        hoverBackgroundColor: props.colors?.[marker]?.hover ?? colorMap.value[marker].hover,
-        borderColor: props.colors?.[marker]?.border ?? colorMap.value[marker].border,
+        data: sortedNames.value.map(
+            (item) => markerKeys.value[item.name]?.[marker] ?? 0,
+        ),
+        backgroundColor:
+            props.colors?.[marker]?.bg ?? colorMap.value[marker].bg,
+        hoverBackgroundColor:
+            props.colors?.[marker]?.hover ?? colorMap.value[marker].hover,
+        borderColor:
+            props.colors?.[marker]?.border ?? colorMap.value[marker].border,
         borderWidth: 1,
-        stack: 'marker',
-    })).filter(ds => ds.data.some(v => v > 0)) // データが0のものは除外
+        stack: "marker",
+    })).filter((ds) => ds.data.some((v) => v > 0)) // データが0のものは除外
     // "その他" スタック：合計未満の差分
     datasets.push({
         label: labelMap.value.other,
-        data: sortedNames.value.map(item => {
-            const stackedSum = PRESET_MARKER_LABELS.reduce((sum, marker) => sum + (markerKeys.value[item.name]?.[marker] ?? 0), 0)
+        data: sortedNames.value.map((item) => {
+            const stackedSum = PRESET_MARKER_LABELS.reduce(
+                (sum, marker) =>
+                    sum + (markerKeys.value[item.name]?.[marker] ?? 0),
+                0,
+            )
             return Math.max(0, (maxCounts.value[item.name] ?? 0) - stackedSum)
         }),
         backgroundColor: props.colors?.other?.bg ?? colorMap.value.other.bg,
-        hoverBackgroundColor: props.colors?.other?.hover ?? colorMap.value.other.hover,
+        hoverBackgroundColor:
+            props.colors?.other?.hover ?? colorMap.value.other.hover,
         borderColor: props.colors?.other?.border ?? colorMap.value.other.border,
         borderWidth: 1,
-        stack: 'marker',
+        stack: "marker",
     })
 
     return {
         labels,
-        datasets
+        datasets,
     }
 })
 
@@ -220,24 +242,24 @@ const maxValue = computed(() => {
     if (!arr.length) return 10
     const max = Math.max(...arr)
     const step = calcStepSize(max)
-    return Math.ceil(max * 1.1 / step) * step
+    return Math.ceil((max * 1.1) / step) * step
 })
 
 // Chart.jsオプション
 const chartOptions = computed(() => ({
-    indexAxis: 'y',
+    indexAxis: "y",
     plugins: {
         legend: {
             display: false,
-            position: 'bottom',
+            position: "bottom",
         },
         datalabels: {
             display: (ctx: ContextModel) => ctx.dataset.data[ctx.dataIndex] > 0,
-            align: 'center',
-            anchor: 'center',
-            color: 'oklch(100% 0 0)', // white
-            font: { weight: 'bold' },
-            formatter: (value: number) => value > 0 ? value : '',
+            align: "center",
+            anchor: "center",
+            color: "oklch(100% 0 0)", // white
+            font: { weight: "bold" },
+            formatter: (value: number) => (value > 0 ? value : ""),
         },
         tooltip: {
             enabled: true,
@@ -247,9 +269,10 @@ const chartOptions = computed(() => ({
             borderColor: palette.value.tooltipBorder, // ボーダー色
             borderWidth: 1,
             callbacks: {
-                label: (ctx: ContextModel) => `${ctx.dataset.label}: ${ctx.parsed.x}`
-            }
-        }
+                label: (ctx: ContextModel) =>
+                    `${ctx.dataset.label}: ${ctx.parsed.x}`,
+            },
+        },
     },
     datasets: {
         bar: {
@@ -257,54 +280,68 @@ const chartOptions = computed(() => ({
             maxBarThickness: EFFECTIVE_BAR_THICKNESS,
             categoryPercentage: Math.max(0.3, 1 - ROW_GAP_RATIO), // カテゴリーの占有率（行の中の棒群の幅）
             barPercentage: 0.9, // 同一カテゴリー内での棒の占有率
-            borderWidth: 1
-        }
+            borderWidth: 1,
+        },
     },
     scales: {
         x: {
-            position: 'top',
+            position: "top",
             min: 0,
             max: maxValue.value,
-            title: { display: false, text: t('stats.chart.rareDropRanking.count') },
-            ticks: { color: palette.value.text, stepSize: calcStepSize(maxValue.value) },
-            border: { color: palette.value.axis }
+            title: {
+                display: false,
+                text: t("stats.chart.rareDropRanking.count"),
+            },
+            ticks: {
+                color: palette.value.text,
+                stepSize: calcStepSize(maxValue.value),
+            },
+            border: { color: palette.value.axis },
         },
         x2: {
-            position: 'bottom',
+            position: "bottom",
             min: 0,
             max: maxValue.value,
-            title: { display: false, text: t('stats.chart.rareDropRanking.count') },
-            ticks: { color: palette.value.text, stepSize: calcStepSize(maxValue.value) },
-            border: { color: palette.value.axis }
+            title: {
+                display: false,
+                text: t("stats.chart.rareDropRanking.count"),
+            },
+            ticks: {
+                color: palette.value.text,
+                stepSize: calcStepSize(maxValue.value),
+            },
+            border: { color: palette.value.axis },
         },
         y: {
             offset: true, // Y軸のオフセットを有効にしてラベルを中央に配置
-            title: { display: false, text: t('stats.chart.rareDropRanking.itemName') },
+            title: {
+                display: false,
+                text: t("stats.chart.rareDropRanking.itemName"),
+            },
             grid: { color: palette.value.grid },
             ticks: {
                 color: palette.value.text,
                 autoSkip: false, // ラベルを間引かない（スクロール前提）
             },
             border: { color: palette.value.axis },
-        }
+        },
     },
     responsive: true,
-    maintainAspectRatio: false
+    maintainAspectRatio: false,
 }))
 
 // ツールチップを表示する
 function showTooltip() {
     return {
-        value: t('stats.chart.rareDropRanking.noticeLong'),
+        value: t("stats.chart.rareDropRanking.noticeLong"),
         escape: false,
         pt: {
-            root: 'pt-1',
-            text: 'w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs',
-            arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
-        }
+            root: "pt-1",
+            text: "w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs",
+            arrow: "w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800",
+        },
     }
 }
-
 </script>
 
 <template>

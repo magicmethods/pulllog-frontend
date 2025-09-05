@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useAppStore } from '~/stores/useAppStore'
-import { useOptionStore } from '~/stores/useOptionStore'
+import { useI18n } from "vue-i18n"
+import { useAppStore } from "~/stores/useAppStore"
+import { useOptionStore } from "~/stores/useOptionStore"
 
 // Props/Emits
 const props = defineProps<{
     maxEntries: number // 最高レア排出数
     modelValue: DropDetail[] // 排出内容の詳細
 }>()
-const emit = defineEmits<
-    (e: 'update:modelValue', value: DropDetail[]) => void
->()
+const emit =
+    defineEmits<(e: "update:modelValue", value: DropDetail[]) => void>()
 
 // Stores etc.
 const appStore = useAppStore()
@@ -23,43 +22,55 @@ const internalDetails = shallowRef<DropDetail[]>([...props.modelValue])
 // Computed
 const rarityOptions = computed(() => {
     if (appStore.app?.rarity_defs && appStore.app.rarity_defs.length > 0) {
-        return appStore.app.rarity_defs.map(opt => opt.label)
+        return appStore.app.rarity_defs.map((opt) => opt.label)
     }
     return optionStore.rarityLabels
 })
 const markerOptions = computed(() => {
     if (appStore.app?.marker_defs && appStore.app.marker_defs.length > 0) {
-        return appStore.app.marker_defs.map(opt => opt.label)
+        return appStore.app.marker_defs.map((opt) => opt.label)
     }
     return optionStore.markerLabels
 })
 
 // Methods
-function updateEntry(index: number, field: keyof DropDetail, value: string | null) {
+function updateEntry(
+    index: number,
+    field: keyof DropDetail,
+    value: string | null,
+) {
     const entry = internalDetails.value[index]
     if (!entry) return
     internalDetails.value[index] = { ...entry, [field]: value }
-    emit('update:modelValue', [...internalDetails.value])
+    emit("update:modelValue", [...internalDetails.value])
 }
 
 // Watchers
-watch(() => props.modelValue, (val) => {
-    // (親)modelValue -> (子)internalDetails
-    internalDetails.value = [...val]
-}, { deep: false, immediate: false })
-watch(() => props.maxEntries, (newMax) => {
-    // maxEntriesの変更を監視（初期表示時も）
-    const entries = internalDetails.value
-    const current = entries.length
-    if (newMax > current) {
-        for (let i = current; i < newMax; i++) {
-            entries.push({ rarity: null, name: null, marker: null })
+watch(
+    () => props.modelValue,
+    (val) => {
+        // (親)modelValue -> (子)internalDetails
+        internalDetails.value = [...val]
+    },
+    { deep: false, immediate: false },
+)
+watch(
+    () => props.maxEntries,
+    (newMax) => {
+        // maxEntriesの変更を監視（初期表示時も）
+        const entries = internalDetails.value
+        const current = entries.length
+        if (newMax > current) {
+            for (let i = current; i < newMax; i++) {
+                entries.push({ rarity: null, name: null, marker: null })
+            }
+        } else if (newMax < current) {
+            entries.splice(newMax)
         }
-    } else if (newMax < current) {
-        entries.splice(newMax)
-    }
-    emit('update:modelValue', [...entries])
-}, { immediate: true })
+        emit("update:modelValue", [...entries])
+    },
+    { immediate: true },
+)
 </script>
 
 <template>

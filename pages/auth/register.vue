@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { z } from 'zod'
-import { useUserStore } from '~/stores/useUserStore'
-import { useI18n } from 'vue-i18n'
-import { useAuth } from '~/composables/useAuth'
+import { useI18n } from "vue-i18n"
+import { z } from "zod"
+import { useAuth } from "~/composables/useAuth"
+import { useUserStore } from "~/stores/useUserStore"
 
 definePageMeta({
-    layout: 'auth'
+    layout: "auth",
 })
 
 // Stores etc.
@@ -15,15 +15,30 @@ const { t, locale, getLocaleCookie } = useI18n()
 
 // Refs & Local variables
 const form = reactive({
-    name: '',
-    email: '',
-    password: '',
+    name: "",
+    email: "",
+    password: "",
     isAgreed: false,
 })
-const errors = reactive<{ name?: string; email?: string; password?: string; isAgreed?: string }>({})
+const errors = reactive<{
+    name?: string
+    email?: string
+    password?: string
+    isAgreed?: string
+}>({})
 const globalError = ref<string | null>(null)
-const currentLocale = ref<string>(userStore.user?.language ?? getLocaleCookie() ?? locale.value ?? useConfig().defaultLocale)
-const touched = reactive<{ name: boolean; email: boolean; password: boolean; isAgreed: boolean }>({
+const currentLocale = ref<string>(
+    userStore.user?.language ??
+        getLocaleCookie() ??
+        locale.value ??
+        useConfig().defaultLocale,
+)
+const touched = reactive<{
+    name: boolean
+    email: boolean
+    password: boolean
+    isAgreed: boolean
+}>({
     name: false,
     email: false,
     password: false,
@@ -35,17 +50,26 @@ const showTerms = ref<boolean>(false) // 利用規約モーダル表示状態
 const showPolicy = ref<boolean>(false) // プライバシーポリシーモーダル表示状態
 const isAccepted = ref<boolean>(false) // ユーザー登録が受理されたかどうか
 // Schema for form validation
-const registerSchema = computed(() => z.object({
-    name: z.string().min(1, { message: t('validation.nameRequired') }).max(50, { message: t('validation.nameMaxLength') }),
-    email: z.string().email({ message: t('validation.emailInvalid') }),
-    password: z.string().min(8, { message: t('validation.shortPassword') }),
-    isAgreed: z.literal(true, { errorMap: () => ({ message: t('validation.termsRequired') }) }),
-}))
+const registerSchema = computed(() =>
+    z.object({
+        name: z
+            .string()
+            .min(1, { message: t("validation.nameRequired") })
+            .max(50, { message: t("validation.nameMaxLength") }),
+        email: z.string().email({ message: t("validation.emailInvalid") }),
+        password: z.string().min(8, { message: t("validation.shortPassword") }),
+        isAgreed: z.literal(true, {
+            errorMap: () => ({ message: t("validation.termsRequired") }),
+        }),
+    }),
+)
 
 // Computed
 const isFormValid = computed(() => registerSchema.value.safeParse(form).success)
 const termSrc = computed(() => `/docs/terms_${currentLocale.value}.md`)
-const policySrc = computed(() => `/docs/privacy_policy_${currentLocale.value}.md`)
+const policySrc = computed(
+    () => `/docs/privacy_policy_${currentLocale.value}.md`,
+)
 
 // Methods
 // 強度インジケータ開いた
@@ -57,9 +81,11 @@ function handlePasswordHide() {
     isMeterVisible.value = false
 }
 // 指定フィールドのみバリデーション
-function validateFields(fields: ('name' | 'email' | 'password' | 'isAgreed')[]) {
+function validateFields(
+    fields: ("name" | "email" | "password" | "isAgreed")[],
+) {
     for (const f of fields) {
-        if (f !== 'isAgreed' && !form[f]) {
+        if (f !== "isAgreed" && !form[f]) {
             errors[f] = undefined
             continue
         }
@@ -68,7 +94,7 @@ function validateFields(fields: ('name' | 'email' | 'password' | 'isAgreed')[]) 
         const result = registerSchema.value.shape[f].safeParse(form[f])
         errors[f] = result.success ? undefined : result.error.issues[0]?.message
     }
-    return fields.every(f => !errors[f])
+    return fields.every((f) => !errors[f])
 }
 // 全体バリデーション
 function validateAll(): boolean {
@@ -86,14 +112,15 @@ function validateAll(): boolean {
             if (issue.path.length > 0) {
                 const field = issue.path[0] as keyof typeof touched
                 // 未入力でなければエラーをセット
-                if (field === 'isAgreed' || form[field]) errors[field] = issue.message
+                if (field === "isAgreed" || form[field])
+                    errors[field] = issue.message
             }
         }
         return false
     }
     return true
 }
-function handleBlur(field: 'name' | 'email') {
+function handleBlur(field: "name" | "email") {
     touched[field] = true
     validateFields([field])
 }
@@ -106,27 +133,28 @@ async function handleRegister() {
         await register(form.name, form.email, form.password)
         isAccepted.value = true
     } catch (e: unknown) {
-        globalError.value = e instanceof Error ? e.message : t('auth.register.failed')
-        console.error('Register failed:', e)
+        globalError.value =
+            e instanceof Error ? e.message : t("auth.register.failed")
+        console.error("Register failed:", e)
         isSubmitting.value = false
     } finally {
         if (isAccepted.value) {
-          // 登録が受理された場合はフォームをリセット
-          form.name = ''
-          form.email = ''
-          form.password = ''
-          form.isAgreed = false
-          touched.name = false
-          touched.email = false
-          touched.password = false
-          touched.isAgreed = false
-          await nextTick() // DOM更新を待つ
-          isSubmitting.value = false
+            // 登録が受理された場合はフォームをリセット
+            form.name = ""
+            form.email = ""
+            form.password = ""
+            form.isAgreed = false
+            touched.name = false
+            touched.email = false
+            touched.password = false
+            touched.isAgreed = false
+            await nextTick() // DOM更新を待つ
+            isSubmitting.value = false
         }
     }
 }
 function handleBack() {
-    navigateTo({ path: '/' })
+    navigateTo({ path: "/" })
 }
 
 // Watchers
@@ -135,11 +163,10 @@ watch(
     async (newValue) => {
         if (!newValue) {
             await nextTick()
-            validateFields(['password'])
+            validateFields(["password"])
         }
-    }
+    },
 )
-
 </script>
 
 <template>

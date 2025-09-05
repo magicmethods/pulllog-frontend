@@ -1,5 +1,10 @@
-import { defineEventHandler } from 'h3'
-import { buildUrlWithQuery, buildProxyHeaders, proxyFetchAndReturn, getFileExtension } from '~/server/utils/apiProxyUtil'
+import { defineEventHandler } from "h3"
+import {
+    buildProxyHeaders,
+    buildUrlWithQuery,
+    getFileExtension,
+    proxyFetchAndReturn,
+} from "~/server/utils/apiProxyUtil"
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -11,7 +16,7 @@ export default defineEventHandler(async (event) => {
 
     if (!appId) {
         event.node.res.statusCode = 400
-        return { error: 'Missing parameters.' }
+        return { error: "Missing parameters." }
     }
 
     // バックエンド用URL組み立て
@@ -21,16 +26,16 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey)
     if (!headers) {
         event.node.res.statusCode = 403
-        return { error: 'Invalid parameters.' }
+        return { error: "Invalid parameters." }
     }
-    if ('content-length' in headers) {
+    if ("content-length" in headers) {
         // biome-ignore lint:/performance/noDelete
-        delete headers['content-length']
+        delete headers["content-length"]
     }
 
     // ボディは取得しない（ファイルストリームのまま送信するため）
     //const body = await readBody(event)
-    
+
     // fetch&レスポンス返却
-    return await proxyFetchAndReturn(event, url, headers, 'POST')
+    return await proxyFetchAndReturn(event, url, headers, "POST")
 })

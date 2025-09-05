@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { z } from 'zod'
-import { useUserStore } from '~/stores/useUserStore'
-import { useOptionStore } from '~/stores/useOptionStore'
-import { useCurrencyStore } from '~/stores/useCurrencyStore'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
+import { z } from "zod"
+import { useCurrencyStore } from "~/stores/useCurrencyStore"
+import { useOptionStore } from "~/stores/useOptionStore"
+import { useUserStore } from "~/stores/useUserStore"
 
 // Props/Emits
 const props = defineProps<{
@@ -11,8 +11,8 @@ const props = defineProps<{
     app?: AppData
 }>()
 const emit = defineEmits<{
-    (e: 'update:visible', value: boolean): void
-    (e: 'submit', value: AppData): void
+    (e: "update:visible", value: boolean): void
+    (e: "submit", value: AppData): void
 }>()
 
 // Stores etc.
@@ -24,49 +24,91 @@ const { t, locale } = useI18n()
 // Refs & Local variables
 const rawDateUpdateTime = ref<Date | null>(null)
 const formData = ref<AppData>({} as AppData) // 初期値は空のオブジェクト
-const maxAppNameLength = computed(() => userStore.planLimits?.maxAppNameLength ?? 30)
-const maxDescLength = computed(() => userStore.planLimits?.maxAppDescriptionLength ?? 400)
+const maxAppNameLength = computed(
+    () => userStore.planLimits?.maxAppNameLength ?? 30,
+)
+const maxDescLength = computed(
+    () => userStore.planLimits?.maxAppDescriptionLength ?? 400,
+)
 const descLength = ref<number>(0)
 const activeEmojiPickerId = ref<string | null>(null)
 const tooltips = computed(() => ({
-    appName: t('component.tooltip.appName'),
-    appUrl: t('component.tooltip.appUrl'),
-    appDesc: t('component.tooltip.appDesc', { maxLength: maxDescLength.value }),
-    appImage: t('component.tooltip.appImage'),
-    currencyUnit: t('component.tooltip.currencyUnit'),
-    dateUpdateTime: t('component.tooltip.dateUpdateTime'),
-    pitySystem: t('component.tooltip.pitySystem'),
-    rarityDefs: t('component.tooltip.rarityDefs'),
-    markerDefs: t('component.tooltip.markerDefs'),
+    appName: t("component.tooltip.appName"),
+    appUrl: t("component.tooltip.appUrl"),
+    appDesc: t("component.tooltip.appDesc", { maxLength: maxDescLength.value }),
+    appImage: t("component.tooltip.appImage"),
+    currencyUnit: t("component.tooltip.currencyUnit"),
+    dateUpdateTime: t("component.tooltip.dateUpdateTime"),
+    pitySystem: t("component.tooltip.pitySystem"),
+    rarityDefs: t("component.tooltip.rarityDefs"),
+    markerDefs: t("component.tooltip.markerDefs"),
 }))
 // Validation schema
 const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/
-const schema = computed(() => z.object({
-    name: z.string().min(1, t('validation.appNameRequired')).max(maxAppNameLength.value, t('validation.appNameLengthExceeded', { maxLength: maxAppNameLength.value })),
-    url: z.string().url(t('validation.invalidURL')).optional().or(z.literal('')).nullable(),
-    description: z.string().max(maxDescLength.value, t('validation.textLengthExceeded', { maxLength: maxDescLength.value })).optional().or(z.literal('')).nullable(),
-    //currency_code: z.string().max(8, t('validation.textLengthExceeded', { maxLength: 8 })).optional().or(z.literal('')).nullable(),
-    currency_code: z.string().regex(/^[A-Z]{3}$/, t('validation.invalidCurrencyCode')),
-    date_update_time: z.string().regex(timeRegex, t('validation.invalidTime')).optional().or(z.literal('')).nullable(),
-    sync_update_time: z.boolean().optional(),
-    pity_system: z.boolean().optional(),
-    guarantee_count: z.number().int().min(0, t('validation.guaranteeCountMin')).optional(),
-    rarity_defs: z.any().optional(), // 入力検証スキップ
-    marker_defs: z.any().optional(), // 入力検証スキップ
-    task_defs: z.any().optional(), // 未実装
-}))
+const schema = computed(() =>
+    z.object({
+        name: z
+            .string()
+            .min(1, t("validation.appNameRequired"))
+            .max(
+                maxAppNameLength.value,
+                t("validation.appNameLengthExceeded", {
+                    maxLength: maxAppNameLength.value,
+                }),
+            ),
+        url: z
+            .string()
+            .url(t("validation.invalidURL"))
+            .optional()
+            .or(z.literal(""))
+            .nullable(),
+        description: z
+            .string()
+            .max(
+                maxDescLength.value,
+                t("validation.textLengthExceeded", {
+                    maxLength: maxDescLength.value,
+                }),
+            )
+            .optional()
+            .or(z.literal(""))
+            .nullable(),
+        //currency_code: z.string().max(8, t('validation.textLengthExceeded', { maxLength: 8 })).optional().or(z.literal('')).nullable(),
+        currency_code: z
+            .string()
+            .regex(/^[A-Z]{3}$/, t("validation.invalidCurrencyCode")),
+        date_update_time: z
+            .string()
+            .regex(timeRegex, t("validation.invalidTime"))
+            .optional()
+            .or(z.literal(""))
+            .nullable(),
+        sync_update_time: z.boolean().optional(),
+        pity_system: z.boolean().optional(),
+        guarantee_count: z
+            .number()
+            .int()
+            .min(0, t("validation.guaranteeCountMin"))
+            .optional(),
+        rarity_defs: z.any().optional(), // 入力検証スキップ
+        marker_defs: z.any().optional(), // 入力検証スキップ
+        task_defs: z.any().optional(), // 未実装
+    }),
+)
 
 // Computed
 const isShown = computed(() => props.visible ?? false)
-const isEditMode = computed(() => props.app?.appId && props.app?.appId !== '')
-const displayMode = computed(() => isEditMode.value ? t('modal.appEdit.edit') : t('modal.appEdit.register'))
+const isEditMode = computed(() => props.app?.appId && props.app?.appId !== "")
+const displayMode = computed(() =>
+    isEditMode.value ? t("modal.appEdit.edit") : t("modal.appEdit.register"),
+)
 const isValidAll = computed(() => {
     // アプリ名が空でなく、全フィールドのバリデーションが正常かどうかをチェック
-    return errors.value === null && formData.value?.name !== ''
+    return errors.value === null && formData.value?.name !== ""
 })
 const exampleAppName = computed(() => {
     const exampleApps = optionStore.exampleApps
-    return `${t('modal.appEdit.appNamePlaceholder')}: ${exampleApps[Math.floor(Math.random() * exampleApps.length)]}`
+    return `${t("modal.appEdit.appNamePlaceholder")}: ${exampleApps[Math.floor(Math.random() * exampleApps.length)]}`
 })
 //const currencyOptions = computed(() => optionStore.currencyLabels)
 const currencyOptions = ref<CurrencyOption[]>([])
@@ -81,26 +123,32 @@ async function initCurrencies() {
 function createAppDataFromApp(app?: AppData): AppData {
     // 日付更新時間の初期値を設定
     if (app?.date_update_time) {
-        const [hour, minute] = app.date_update_time.split(':').map(Number)
-        rawDateUpdateTime.value = new Date(new Date().setHours(hour, minute, 0, 0)) as Date | null
+        const [hour, minute] = app.date_update_time.split(":").map(Number)
+        rawDateUpdateTime.value = new Date(
+            new Date().setHours(hour, minute, 0, 0),
+        ) as Date | null
     } else {
-        rawDateUpdateTime.value = new Date(new Date().setHours(0, 0, 0, 0)) as Date | null
+        rawDateUpdateTime.value = new Date(
+            new Date().setHours(0, 0, 0, 0),
+        ) as Date | null
     }
 
     const defaultCode = currencyStore.defaultCurrencyCode(locale.value)
-    const code = (app?.currency_code && currencyStore.get(app.currency_code)?.code) || defaultCode
+    const code =
+        (app?.currency_code && currencyStore.get(app.currency_code)?.code) ||
+        defaultCode
 
     // 新規登録（引数 app がない）時は InputOptions の初期値を設定
     const defaultRarityDefs = app?.rarity_defs ?? [...optionStore.rarityOptions]
     const defaultMarkerDefs = app?.marker_defs ?? [...optionStore.symbolOptions]
 
     const defaultAppData: AppData = {
-        appId: app?.appId ?? '',
-        name: app?.name ?? '',
-        url: app?.url ?? '',
-        description: app?.description ?? '',
+        appId: app?.appId ?? "",
+        name: app?.name ?? "",
+        url: app?.url ?? "",
+        description: app?.description ?? "",
         currency_code: code,
-        date_update_time: app?.date_update_time ?? '',
+        date_update_time: app?.date_update_time ?? "",
         sync_update_time: app?.sync_update_time ?? false,
         pity_system: app?.pity_system ?? false,
         guarantee_count: app?.guarantee_count ?? 0,
@@ -114,20 +162,20 @@ function createAppDataFromApp(app?: AppData): AppData {
 // ツールチップを表示する
 function showTooltip(key: string) {
     return {
-        value: tooltips.value[key as keyof typeof tooltips.value] ?? '',
+        value: tooltips.value[key as keyof typeof tooltips.value] ?? "",
         escape: false,
         pt: {
-            root: 'pb-1',
-            text: 'w-max max-w-[20rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs',
-            arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
-        }
+            root: "pb-1",
+            text: "w-max max-w-[20rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs",
+            arrow: "w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800",
+        },
     }
 }
 // TimePicker の日付値を HH:mm 形式に変換
 function toTimeString(d: CalenderDate): string {
-    if (!d || !(d instanceof Date)) return ''
-    const hours = String(d.getHours()).padStart(2, '0')
-    const minutes = String(d.getMinutes()).padStart(2, '0')
+    if (!d || !(d instanceof Date)) return ""
+    const hours = String(d.getHours()).padStart(2, "0")
+    const minutes = String(d.getMinutes()).padStart(2, "0")
     return `${hours}:${minutes}`
 }
 // フォームの値を検証
@@ -135,7 +183,10 @@ const errors = ref<Record<string, string[]> | null>(null)
 function validateForm(): boolean {
     const code = formData.value.currency_code
     if (!code || !currencyStore.get(code)) {
-        errors.value = { ...(errors.value ?? {}), currency_code: [t('validation.currencyCodeInvalid')] }
+        errors.value = {
+            ...(errors.value ?? {}),
+            currency_code: [t("validation.currencyCodeInvalid")],
+        }
         return false
     }
 
@@ -147,43 +198,50 @@ function validateForm(): boolean {
 function handleSubmit() {
     if (!validateForm()) return
     // フォームの値が有効な場合、親コンポーネントの submit イベントを発火
-    emit('submit', { ...formData.value })
-    emit('update:visible', false)
+    emit("submit", { ...formData.value })
+    emit("update:visible", false)
 }
 
 // Watchers
-watch(() => props.visible, async (val) => {
-    // モーダルの表示状態を監視
-    if (val) {
-        // モーダルが表示されたときに初期値を設定
-        await initCurrencies()
-        formData.value = {...createAppDataFromApp(props.app)}
-        descLength.value = formData.value.description?.length ?? 0
-        /*
+watch(
+    () => props.visible,
+    async (val) => {
+        // モーダルの表示状態を監視
+        if (val) {
+            // モーダルが表示されたときに初期値を設定
+            await initCurrencies()
+            formData.value = { ...createAppDataFromApp(props.app) }
+            descLength.value = formData.value.description?.length ?? 0
+            /*
         if (!isEditMode.value) {
             // 新規登録モードの場合は、初期値を設定
             formData.value.rarity_defs = [...optionStore.rarityOptions]
             formData.value.marker_defs = [...optionStore.symbolOptions]
         }
         */
-    } else {
-        // モーダルが非表示になったときに初期値をリセット
-        formData.value = {...createAppDataFromApp()}
-        descLength.value = 0
-    }
-    //console.log(`AppEditModal: ${val ? 'shown' : 'hidden'} / mode: ${isEditMode.value ? 'edit' : 'register'}`, formData.value)
-}, { immediate: true })
+        } else {
+            // モーダルが非表示になったときに初期値をリセット
+            formData.value = { ...createAppDataFromApp() }
+            descLength.value = 0
+        }
+        //console.log(`AppEditModal: ${val ? 'shown' : 'hidden'} / mode: ${isEditMode.value ? 'edit' : 'register'}`, formData.value)
+    },
+    { immediate: true },
+)
 /*
 watch(() => formData.value, (val) => {
     // フォーム値が変更されたらバリデーション実行
     validateForm()
 }, { deep: true })
 */
-watch(() => rawDateUpdateTime.value, (val) => {
-    // 日付更新時間が変更されたら、rawDateUpdateTime を更新
-    formData.value.date_update_time = val ? toTimeString(val) : ''
-}, { immediate: true })
-
+watch(
+    () => rawDateUpdateTime.value,
+    (val) => {
+        // 日付更新時間が変更されたら、rawDateUpdateTime を更新
+        formData.value.date_update_time = val ? toTimeString(val) : ""
+    },
+    { immediate: true },
+)
 </script>
 
 <template>

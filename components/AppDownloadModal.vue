@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useOptionStore } from '~/stores/useOptionStore'
-import { DateTime } from 'luxon'
+import { DateTime } from "luxon"
+import { useI18n } from "vue-i18n"
+import { useOptionStore } from "~/stores/useOptionStore"
 
 // Props/Emits
 const props = defineProps<{
@@ -10,8 +10,8 @@ const props = defineProps<{
     stats?: StatsData
 }>()
 const emit = defineEmits<{
-    (e: 'update:visible', value: boolean): void
-    (e: 'download', value: HistoryDownloadSettings): void
+    (e: "update:visible", value: boolean): void
+    (e: "download", value: HistoryDownloadSettings): void
 }>()
 
 // Stores etc.
@@ -19,45 +19,50 @@ const optionStore = useOptionStore()
 const { t } = useI18n()
 
 // State
-const mode = ref<'all' | 'range'>('all')
+const mode = ref<"all" | "range">("all")
 const startDate = ref<CalenderDate>(null)
 const endDate = ref<CalenderDate>(null)
-const format = ref<'json' | 'csv'>('json')
+const format = ref<"json" | "csv">("json")
 
 // 型ガード
 const isValidDate = (d: unknown): d is string | Date =>
-    typeof d === 'string' || d instanceof Date
+    typeof d === "string" || d instanceof Date
 // 日付範囲のバリデーション
-const isDateRangeValid = computed(() =>
-    mode.value === 'all' ||
-    (
-        isValidDate(startDate.value) &&
-        isValidDate(endDate.value) &&
-        DateTime.fromJSDate(new Date(startDate.value)).startOf('day') <=
-        DateTime.fromJSDate(new Date(endDate.value)).startOf('day')
-    )
+const isDateRangeValid = computed(
+    () =>
+        mode.value === "all" ||
+        (isValidDate(startDate.value) &&
+            isValidDate(endDate.value) &&
+            DateTime.fromJSDate(new Date(startDate.value)).startOf("day") <=
+                DateTime.fromJSDate(new Date(endDate.value)).startOf("day")),
 )
 // ダウンロード実行
 function handleDownload() {
     if (!props.app) return
-    if (mode.value === 'range' && !isDateRangeValid.value) return
+    if (mode.value === "range" && !isDateRangeValid.value) return
 
     // 日付をYYYY-MM-DD形式に変換
-    const startYmd = mode.value === 'range' && isValidDate(startDate.value)
-        ? DateTime.fromJSDate(new Date(startDate.value)).toFormat('yyyy-MM-dd')
-        : ''
-    const endYmd = mode.value === 'range' && isValidDate(endDate.value)
-        ? DateTime.fromJSDate(new Date(endDate.value)).toFormat('yyyy-MM-dd')
-        : ''
-    emit('download', {
+    const startYmd =
+        mode.value === "range" && isValidDate(startDate.value)
+            ? DateTime.fromJSDate(new Date(startDate.value)).toFormat(
+                  "yyyy-MM-dd",
+              )
+            : ""
+    const endYmd =
+        mode.value === "range" && isValidDate(endDate.value)
+            ? DateTime.fromJSDate(new Date(endDate.value)).toFormat(
+                  "yyyy-MM-dd",
+              )
+            : ""
+    emit("download", {
         format: format.value,
         includeImages: false,
         dateRange: {
-            start: startYmd ?? '',
-            end: endYmd ?? '',
-        }
+            start: startYmd ?? "",
+            end: endYmd ?? "",
+        },
     } as HistoryDownloadSettings)
-    emit('update:visible', false)
+    emit("update:visible", false)
 }
 
 // Watchers
@@ -66,14 +71,13 @@ watch(
     (v) => {
         if (v) {
             // 初期化
-            mode.value = 'all'
+            mode.value = "all"
             startDate.value = null
             endDate.value = null
-            format.value = 'json'
+            format.value = "json"
         }
-    }
+    },
 )
-
 </script>
 
 <template>

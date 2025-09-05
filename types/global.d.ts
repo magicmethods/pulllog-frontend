@@ -2,7 +2,7 @@
  * その他、UIでの加工や表示用の補助型
  */
 /** 言語 */
-type Language = 'ja' | 'en' | 'zh' // 追加言語はここに: 'ko' | 'fr' | 'es' | 'de' | 'it' | 'ru' | 'pt'
+type Language = "ja" | "en" | "zh" // 追加言語はここに: 'ko' | 'fr' | 'es' | 'de' | 'it' | 'ru' | 'pt'
 /** Runtime Config */
 interface AppConfig {
     appName: string
@@ -19,12 +19,17 @@ interface AppConfig {
     mockMode: boolean
 }
 /** パースされたクエリ情報 */
-type QueryObject = string | string[][] | Record<string, string> | URLSearchParams | undefined
+type QueryObject =
+    | string
+    | string[][]
+    | Record<string, string>
+    | URLSearchParams
+    | undefined
 /** テーマ名 */
-type Theme = 'light' | 'dark'
+type Theme = "light" | "dark"
 /** カスタムコンポーネントから PrimeVue コンポーネントの PassThrough を取り扱うための型  */
 // biome-ignore lint:/suspicious/noExplicitAny
-type PassThroughValue = Record<string, any> | ((v: any) => Record<string, any>) 
+type PassThroughValue = Record<string, any> | ((v: any) => Record<string, any>)
 /** カレンダー用日付データ */
 type CalenderDate = Date | Date[] | (Date | null)[] | null | undefined
 /** 検索・フィルタ用の事前加工: フィルタリングUIや曖昧検索用 */
@@ -54,7 +59,7 @@ type CurrencyData = {
 }
 */
 type CurrencyResponse = {
-    status: 'success' | 'error'
+    status: "success" | "error"
     data?: CurrencyData[]
     message?: string
 }
@@ -83,7 +88,7 @@ type AdProps = {
     adHtml?: string
     adSlotName?: string
     adClient?: string
-    adType?: 'image' | 'carousel' | 'html' | 'slot' | 'none'
+    adType?: "image" | "carousel" | "html" | "slot" | "none"
     adFormat?: string
     adResponsive?: string
     adStyle?: string

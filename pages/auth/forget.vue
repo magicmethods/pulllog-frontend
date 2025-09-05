@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { z } from 'zod'
-import { useUserStore } from '~/stores/useUserStore'
-import { useI18n } from 'vue-i18n'
-import { useAuth } from '~/composables/useAuth'
+import { useI18n } from "vue-i18n"
+import { z } from "zod"
+import { useAuth } from "~/composables/useAuth"
+import { useUserStore } from "~/stores/useUserStore"
 
 definePageMeta({
-    layout: 'auth'
+    layout: "auth",
 })
 
 // Stores etc.
@@ -14,15 +14,19 @@ const { passwordReset } = useAuth()
 const { t } = useI18n()
 
 // Refs & Local variables
-const email = ref<string>('')
+const email = ref<string>("")
 const emailError = ref<string | null>(null)
 const globalError = ref<string | null>(null)
 const isTouched = ref<boolean>(false) // フィールドがタッチされたかどうか
 const isSubmitting = ref<boolean>(false)
 const isAccepted = ref<boolean>(false) // パスワードリセット申請受理状態
 // Schema for form validation
-const emailSchema = computed(() => z.string().email({ message: t('validation.emailInvalid') }))
-const isFormValid = computed(() => emailSchema.value.safeParse(email.value).success)
+const emailSchema = computed(() =>
+    z.string().email({ message: t("validation.emailInvalid") }),
+)
+const isFormValid = computed(
+    () => emailSchema.value.safeParse(email.value).success,
+)
 
 // Methods
 function validateEmail() {
@@ -42,15 +46,16 @@ async function handleSubmit() {
 
     try {
         const msg = await passwordReset(email.value)
-        if (!msg) throw new Error(t('auth.passwordReset.failed'))
+        if (!msg) throw new Error(t("auth.passwordReset.failed"))
         isAccepted.value = true
     } catch (e: unknown) {
-        globalError.value = e instanceof Error ? e.message : t('auth.passwordReset.failed')
-        console.error('Password reset failed:', e)
+        globalError.value =
+            e instanceof Error ? e.message : t("auth.passwordReset.failed")
+        console.error("Password reset failed:", e)
         isSubmitting.value = false
     } finally {
         if (!isAccepted.value) {
-            email.value = '' // フォームをリセット
+            email.value = "" // フォームをリセット
             emailError.value = null // エラーメッセージをリセット
             isTouched.value = false // タッチ状態をリセット
             await nextTick() // DOM更新を待つ
@@ -59,10 +64,8 @@ async function handleSubmit() {
     }
 }
 function handleBack() {
-    navigateTo({ path: '/' })
+    navigateTo({ path: "/" })
 }
-
-
 </script>
 
 <template>

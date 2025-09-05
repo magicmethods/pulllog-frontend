@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
 
 // Props & Emits
 const props = defineProps<{
     modelValue: number
 }>()
 const emit = defineEmits<{
-    (e: 'commit-add', value: number): void
-    (e: 'commit-overwrite', value: number): void
-    (e: 'close'): void
+    (e: "commit-add", value: number): void
+    (e: "commit-overwrite", value: number): void
+    (e: "close"): void
 }>()
 
 // i18n
@@ -16,12 +16,12 @@ const { t } = useI18n()
 
 // Ref & Local variables
 const visible = ref<boolean>(true)
-const inputExpression = ref<string>('')
+const inputExpression = ref<string>("")
 const result = ref<number | null>(null)
 
 // 小数点付きフォーマット（将来的に通貨対応も可能）
 const formattedResult = computed(() => {
-    if (result.value === null) return ''
+    if (result.value === null) return ""
     return result.value.toLocaleString(undefined, { maximumFractionDigits: 2 })
 })
 
@@ -35,7 +35,7 @@ const cloneAmount = () => {
 }
 
 const clearInput = () => {
-    inputExpression.value = ''
+    inputExpression.value = ""
     result.value = null
 }
 
@@ -46,7 +46,7 @@ const backspace = () => {
 const calculateResult = () => {
     try {
         // 安全に数式評価する
-        const sanitized = inputExpression.value.replace(/[^0-9+\-*/.]/g, '')
+        const sanitized = inputExpression.value.replace(/[^0-9+\-*/.]/g, "")
         const evalFunc = new Function(`return (${sanitized})`)
         const evaluated = evalFunc()
         result.value = Number(evaluated)
@@ -57,31 +57,31 @@ const calculateResult = () => {
 
 const commitAdd = () => {
     if (result.value !== null) {
-        emit('commit-add', result.value)
+        emit("commit-add", result.value)
         visible.value = false
     }
 }
 
 const commitOverwrite = () => {
     if (result.value !== null) {
-        emit('commit-overwrite', result.value)
+        emit("commit-overwrite", result.value)
         visible.value = false
     }
 }
 
 const close = () => {
-    emit('close')
+    emit("close")
     visible.value = false
 }
 
 // モーダル閉じたらemit（親コンポーネントでv-ifで制御する想定）
 watch(visible, (v) => {
-    if (!v) emit('close')
+    if (!v) emit("close")
 })
 
 // Class
-const modalCloseButton = 'h-8 w-8 m-0 p-0 rounded-full hover:bg-surface-200/50 hover:text-primary-500 dark:hover:bg-gray-700/40'
-
+const modalCloseButton =
+    "h-8 w-8 m-0 p-0 rounded-full hover:bg-surface-200/50 hover:text-primary-500 dark:hover:bg-gray-700/40"
 </script>
 
 <template>

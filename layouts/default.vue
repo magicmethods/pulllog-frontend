@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
-import { useI18n } from 'vue-i18n'
-import { StorageUtil } from '~/utils/storage'
+import { useI18n } from "vue-i18n"
+import { useUserStore } from "~/stores/useUserStore"
+import { StorageUtil } from "~/utils/storage"
 
 // Stores etc.
 const userStore = useUserStore()
@@ -9,7 +9,7 @@ const appConfig = useConfig()
 const { t } = useI18n()
 
 // Refs & Local variables
-const isDarkMode = ref<boolean>(userStore.user?.theme === 'dark')
+const isDarkMode = ref<boolean>(userStore.user?.theme === "dark")
 const isDrawerOpen = ref<boolean>(false)
 const mainContainer = ref<HTMLElement | null>(null)
 const headerReloadKey = ref<number>(0)
@@ -31,18 +31,18 @@ function handleThemeToggle(value: boolean) {
     isDarkMode.value = value
     // フロントUI更新
     const html = document.documentElement
-    html.classList.add('theme-switching')
-    html.classList.toggle('app-dark', value)
+    html.classList.add("theme-switching")
+    html.classList.toggle("app-dark", value)
     void html.offsetWidth // Force reflow
     requestAnimationFrame(() => {
-        html.classList.remove('theme-switching')
+        html.classList.remove("theme-switching")
     })
     // ユーザーストア更新
     if (userStore.user) {
-        userStore.user.theme = value ? 'dark' : 'light'
+        userStore.user.theme = value ? "dark" : "light"
     }
     // ローカルストレージ更新
-    storage.value.setItem('theme', value ? 'dark' : 'light')
+    storage.value.setItem("theme", value ? "dark" : "light")
 }
 function openDrawer() {
     isDrawerOpen.value = true
@@ -55,23 +55,25 @@ function closeDrawer() {
 onMounted(() => {
     storage.value = new StorageUtil()
     // マウント時のテーマ設定優先度は ローカルストレージ > ユーザーストア > ブラウザのレンダリングモード の順
-    const saved = storage.value.getItem('theme')
-    const prefersDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches
+    const saved = storage.value.getItem("theme")
+    const prefersDarkMode = window.matchMedia(
+        "(prefers-color-scheme: dark)",
+    ).matches
     const html = document.documentElement
-    html.classList.add('theme-switching')
+    html.classList.add("theme-switching")
     if (saved) {
-        isDarkMode.value = saved === 'dark'
-        html.classList.toggle('app-dark', isDarkMode.value)
+        isDarkMode.value = saved === "dark"
+        html.classList.toggle("app-dark", isDarkMode.value)
     } else if (userStore.user) {
-        isDarkMode.value = userStore.user.theme === 'dark'
-        html.classList.toggle('app-dark', isDarkMode.value)
+        isDarkMode.value = userStore.user.theme === "dark"
+        html.classList.toggle("app-dark", isDarkMode.value)
     } else if (prefersDarkMode) {
-        html.classList.add('app-dark')
+        html.classList.add("app-dark")
         isDarkMode.value = true
     }
     void html.offsetWidth // Force reflow
     requestAnimationFrame(() => {
-        html.classList.remove('theme-switching')
+        html.classList.remove("theme-switching")
         reloadFABKey.value++ // Reload FAB to ensure it reflects the theme
     })
 })
@@ -80,21 +82,20 @@ onMounted(() => {
 watch(
     () => userStore.user?.theme,
     (newTheme) => {
-        isDarkMode.value = newTheme === 'dark'
+        isDarkMode.value = newTheme === "dark"
         headerReloadKey.value++
         //  <html> のクラスを変更
         const html = document.documentElement
-        html.classList.add('theme-switching')
-        html.classList.toggle('app-dark', newTheme === 'dark')
+        html.classList.add("theme-switching")
+        html.classList.toggle("app-dark", newTheme === "dark")
         void html.offsetWidth // Force reflow
         requestAnimationFrame(() => {
-            html.classList.remove('theme-switching')
+            html.classList.remove("theme-switching")
         })
         // ローカルストレージも更新
-        storage.value.setItem('theme', newTheme ?? 'light')
-    }
+        storage.value.setItem("theme", newTheme ?? "light")
+    },
 )
-
 </script>
 
 <template>

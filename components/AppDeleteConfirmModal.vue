@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
 
 // Props/Emits
 const props = defineProps<{
@@ -8,8 +8,8 @@ const props = defineProps<{
     loading?: boolean
 }>()
 const emit = defineEmits<{
-    (e: 'update:visible', value: boolean): void
-    (e: 'confirm', value: AppData): void
+    (e: "update:visible", value: boolean): void
+    (e: "confirm", value: AppData): void
 }>()
 
 // i18n
@@ -19,9 +19,8 @@ const { t } = useI18n()
 // Confirm ハンドラ
 function handleConfirm() {
     if (!props.app) return
-    emit('confirm', props.app)
+    emit("confirm", props.app)
 }
-
 </script>
 
 <template>

@@ -1,4 +1,4 @@
-import { useRequestURL } from 'nuxt/app'
+import { useRequestURL } from "nuxt/app"
 
 /**
  * エラーページの絶対URLを生成するユーティリティ関数
@@ -6,7 +6,7 @@ import { useRequestURL } from 'nuxt/app'
  * @returns `{FQDN}/error/{num}/` の形式のURL
  */
 export const absoluteErrorUrl = (path: string): string => {
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
         // クライアント側では `window.location.origin` を利用
         return `${window.location.origin}${path}`
     }

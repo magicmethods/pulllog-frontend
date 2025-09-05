@@ -1,6 +1,6 @@
-import type { ThemeOptions } from '@primevue/nuxt-module'
+import type { ThemeOptions } from "@primevue/nuxt-module"
 
-declare module 'nuxt/schema' {
+declare module "nuxt/schema" {
     interface NuxtConfig {
         primevue?: {
             options?: ThemeOptions

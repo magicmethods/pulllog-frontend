@@ -4,9 +4,12 @@
 export class StorageUtil {
     private storage: Storage
 
-    constructor(storageType: 'local' | 'session' = 'local') {
-        if (typeof window !== 'undefined' && window[`${storageType}Storage`]) {
-            this.storage = storageType === 'local' ? window.localStorage : window.sessionStorage
+    constructor(storageType: "local" | "session" = "local") {
+        if (typeof window !== "undefined" && window[`${storageType}Storage`]) {
+            this.storage =
+                storageType === "local"
+                    ? window.localStorage
+                    : window.sessionStorage
         } else {
             throw new Error(`${storageType}Storage is not available`)
         }
@@ -24,9 +27,9 @@ export class StorageUtil {
 
     setItem(key: string, value: unknown): void {
         if (
-            typeof value === 'string' ||
-            typeof value === 'number' ||
-            typeof value === 'boolean' ||
+            typeof value === "string" ||
+            typeof value === "number" ||
+            typeof value === "boolean" ||
             value === null
         ) {
             this.storage.setItem(key, String(value))

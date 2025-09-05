@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { usePkce } from '~/composables/usePkce'
+import { endpoints } from "~/api/endpoints"
 //import { useAuth } from '~/composables/useAuth'
-import { useAPI } from '~/composables/useAPI'
-import { useUserStore } from '~/stores/useUserStore'
-import { useCsrfStore } from '~/stores/useCsrfStore'
-import { useGlobalStore } from '~/stores/globalStore'
-import { endpoints } from '~/api/endpoints'
-import { toUser, toUserPlanLimits } from '~/utils/user'
+import { useAPI } from "~/composables/useAPI"
+import { usePkce } from "~/composables/usePkce"
+import { useGlobalStore } from "~/stores/globalStore"
+import { useCsrfStore } from "~/stores/useCsrfStore"
+import { useUserStore } from "~/stores/useUserStore"
+import { toUser, toUserPlanLimits } from "~/utils/user"
 
 definePageMeta({
-    layout: 'auth'
+    layout: "auth",
 })
 
 const route = useRoute()
@@ -25,33 +25,38 @@ const globalStore = useGlobalStore()
 const error = ref<string | null>(null)
 
 onMounted(async () => {
-    const code = typeof route.query.code === 'string' ? route.query.code : null
-    const stateRaw = typeof route.query.state === 'string' ? route.query.state : null
+    const code = typeof route.query.code === "string" ? route.query.code : null
+    const stateRaw =
+        typeof route.query.state === "string" ? route.query.state : null
 
     if (!code || !stateRaw) {
-        error.value = t('auth.login.invalidResponse')
+        error.value = t("auth.login.invalidResponse")
         return
     }
 
     // state 照合 & remember 抽出
     let remember = true
     try {
-        const parsed = JSON.parse(stateRaw) as { s?: string, r?: number }
-        const stateFromGoogle = typeof parsed.s === 'string' ? parsed.s : null
+        const parsed = JSON.parse(stateRaw) as { s?: string; r?: number }
+        const stateFromGoogle = typeof parsed.s === "string" ? parsed.s : null
         const storedState = popState()
-        if (!storedState || !stateFromGoogle || storedState !== stateFromGoogle) {
-            error.value = t('auth.login.invalidResponse')
+        if (
+            !storedState ||
+            !stateFromGoogle ||
+            storedState !== stateFromGoogle
+        ) {
+            error.value = t("auth.login.invalidResponse")
             return
         }
         remember = parsed.r === 1
     } catch {
-        error.value = t('auth.login.invalidResponse')
+        error.value = t("auth.login.invalidResponse")
         return
     }
 
     const verifier = popVerifier()
     if (!verifier) {
-        error.value = t('auth.login.invalidResponse')
+        error.value = t("auth.login.invalidResponse")
         return
     }
 
@@ -59,7 +64,7 @@ onMounted(async () => {
         // APIプロキシ経由でコード交換
         const res = await callApi<ExchangeResponse>({
             endpoint: endpoints.auth.googleExchange(),
-            method: 'POST',
+            method: "POST",
             data: {
                 code,
                 code_verifier: verifier,
@@ -72,8 +77,8 @@ onMounted(async () => {
             retries: 0,
         })
 
-        if (!res || res.state !== 'success' || !res.user) {
-            throw new Error(res?.message || t('auth.login.failed'))
+        if (!res || res.state !== "success" || !res.user) {
+            throw new Error(res?.message || t("auth.login.failed"))
         }
 
         // サーバー側でセッション確立済み → 既存の autoLogin と同じ処理をここで実施
@@ -87,14 +92,15 @@ onMounted(async () => {
         if (res.rememberToken && res.rememberTokenExpires) {
             document.cookie = `remember_token=${res.rememberToken}; expires=${new Date(res.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
         } else {
-            document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
+            document.cookie =
+                "remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax"
         }
 
         globalStore.setInitialized(true)
-        navigateTo({ path: userStore.user?.homePage ?? '/apps' })
+        navigateTo({ path: userStore.user?.homePage ?? "/apps" })
     } catch (e) {
         // サーバーからのエラー応答メッセージを出す
-        const msg = e instanceof Error ? e.message : t('auth.login.failed')
+        const msg = e instanceof Error ? e.message : t("auth.login.failed")
         error.value = msg
     }
 })

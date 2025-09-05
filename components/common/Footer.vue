@@ -1,14 +1,12 @@
 <script setup lang="ts">
-
 const appConfig = useConfig()
 
 // Local variables
 const appName = appConfig.appName
 const appVersion = appConfig.appVersion
-const appAuthor = 'MAGIC METHODS'//appConfig.appAuthor
+const appAuthor = "MAGIC METHODS" //appConfig.appAuthor
 const appInfo = `${appName} v${appVersion}`
 const copyright = `${new Date().getFullYear()} ${appAuthor} All rights reserved.`
-
 </script>
 
 <template>

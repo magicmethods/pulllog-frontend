@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useCurrencyStore } from '~/stores/useCurrencyStore'
-import { useChartPalette } from '~/composables/useChart'
-import { strBytesTruncate } from '~/utils/string'
+import { useI18n } from "vue-i18n"
+import { useChartPalette } from "~/composables/useChart"
+import { useCurrencyStore } from "~/stores/useCurrencyStore"
+import { strBytesTruncate } from "~/utils/string"
 
 // Props
 const props = defineProps<{
@@ -35,14 +35,16 @@ const colorMap = computed<ColorMap>(() => {
     return map
 })
 
-const totalExpense = computed(() => props.data.reduce((sum, item) => sum + (item.value ?? 0), 0))
+const totalExpense = computed(() =>
+    props.data.reduce((sum, item) => sum + (item.value ?? 0), 0),
+)
 const isNoData = computed(() => totalExpense.value === 0)
 
 // 通貨コードごとに合算
 const totalsByCurrency = computed<Map<string, number>>(() => {
     const m = new Map<string, number>()
     for (const it of props.data) {
-        const code = (it.currency ?? '').toUpperCase()
+        const code = (it.currency ?? "").toUpperCase()
         if (!code) continue
         m.set(code, (m.get(code) ?? 0) + (it.value ?? 0))
     }
@@ -61,32 +63,42 @@ const totalChips = computed(() => {
 const chartData = computed(() => {
     if (isNoData.value) {
         return {
-            labels: [t('stats.chart.expenseRatio.noData')],
-            datasets: [{
-                label: t('stats.chart.expenseRatio.noData'),
-                currency: props.data.map(item => item.currency) ?? [''],
-                data: [1],
-                backgroundColor: [palette.value.grid],
-                hoverBackgroundColor: [palette.value.grid],
-                borderColor: [palette.value.grid],
-                borderWidth: 2,
-            }]
+            labels: [t("stats.chart.expenseRatio.noData")],
+            datasets: [
+                {
+                    label: t("stats.chart.expenseRatio.noData"),
+                    currency: props.data.map((item) => item.currency) ?? [""],
+                    data: [1],
+                    backgroundColor: [palette.value.grid],
+                    hoverBackgroundColor: [palette.value.grid],
+                    borderColor: [palette.value.grid],
+                    borderWidth: 2,
+                },
+            ],
         }
     }
     return {
-        labels: props.data.map(item => item.appName),
-        datasets: [{
-            label: t('stats.chart.expenseRatio.expenseLabel'),
-            currency: props.data.map(item => item.currency),
-            data: props.data.map(item => item.value),
-            backgroundColor: props.data.map(item => colorMap.value[item.appId].bg),
-            hoverBackgroundColor: props.data.map(item => colorMap.value[item.appId].hover),
-            borderColor: props.data.map(item => colorMap.value[item.appId].border),
-            borderWidth: 2,
-            borderAlign: 'center',
-            offset: 1,
-            hoverOffset: 2,
-        }]
+        labels: props.data.map((item) => item.appName),
+        datasets: [
+            {
+                label: t("stats.chart.expenseRatio.expenseLabel"),
+                currency: props.data.map((item) => item.currency),
+                data: props.data.map((item) => item.value),
+                backgroundColor: props.data.map(
+                    (item) => colorMap.value[item.appId].bg,
+                ),
+                hoverBackgroundColor: props.data.map(
+                    (item) => colorMap.value[item.appId].hover,
+                ),
+                borderColor: props.data.map(
+                    (item) => colorMap.value[item.appId].border,
+                ),
+                borderWidth: 2,
+                borderAlign: "center",
+                offset: 1,
+                hoverOffset: 2,
+            },
+        ],
     }
 })
 // グラフオプション
@@ -102,42 +114,58 @@ const chartOptions = computed(() => ({
             bodyColor: palette.value.tooltipText, // 本文文字色
             borderColor: palette.value.tooltipBorder, // ボーダー色
             borderWidth: 1,
-            callbacks: !isNoData.value ? {
-                title: (ctx: ContextModel) => {
-                    const titleString = ctx[0].label || ctx.dataset.label
-                    const maxWidth = (props.width ?? 160) * 0.5
-                    return strBytesTruncate(titleString, 7, maxWidth)
-                },
-                label: (ctx: ContextModel) => {
-                    const code = ctx.dataset.currency[ctx.dataIndex]
-                    return currencyStore.formatDecimal(ctx.parsed, code, locale.value)
-                },
-            } : {}
-        }
+            callbacks: !isNoData.value
+                ? {
+                      title: (ctx: ContextModel) => {
+                          const titleString = ctx[0].label || ctx.dataset.label
+                          const maxWidth = (props.width ?? 160) * 0.5
+                          return strBytesTruncate(titleString, 7, maxWidth)
+                      },
+                      label: (ctx: ContextModel) => {
+                          const code = ctx.dataset.currency[ctx.dataIndex]
+                          return currencyStore.formatDecimal(
+                              ctx.parsed,
+                              code,
+                              locale.value,
+                          )
+                      },
+                  }
+                : {},
+        },
     },
     responsive: true,
-    maintainAspectRatio: false
+    maintainAspectRatio: false,
 }))
 
 const decimalValue = computed(() => {
     return isNoData.value
-        ? currencyStore.formatDecimal(0, chartData.value.datasets[0].currency[0], locale.value)
-        : currencyStore.formatDecimal(chartData.value.datasets[0].data.reduce((sum, value) => sum + value, 0), chartData.value.datasets[0].currency[0], locale.value)
+        ? currencyStore.formatDecimal(
+              0,
+              chartData.value.datasets[0].currency[0],
+              locale.value,
+          )
+        : currencyStore.formatDecimal(
+              chartData.value.datasets[0].data.reduce(
+                  (sum, value) => sum + value,
+                  0,
+              ),
+              chartData.value.datasets[0].currency[0],
+              locale.value,
+          )
 })
 
 // ツールチップを表示する
 function showTooltip() {
     return {
-        value: t('stats.chart.expenseRatio.currencyNoteLong'),
+        value: t("stats.chart.expenseRatio.currencyNoteLong"),
         escape: false,
         pt: {
-            root: 'pt-1',
-            text: 'w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs',
-            arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
-        }
+            root: "pt-1",
+            text: "w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs",
+            arrow: "w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800",
+        },
     }
 }
-
 </script>
 
 <template>

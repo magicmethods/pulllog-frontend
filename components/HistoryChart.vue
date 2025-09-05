@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { DateTime } from 'luxon'
-import { useUserStore } from '~/stores/useUserStore'
-import { useAppStore } from '~/stores/useAppStore'
-import { useLogStore } from '~/stores/useLogStore'
+import { DateTime } from "luxon"
 import { useToast } from "primevue/usetoast"
+import { useI18n } from "vue-i18n"
+import { useAppStore } from "~/stores/useAppStore"
+import { useLogStore } from "~/stores/useLogStore"
+import { useUserStore } from "~/stores/useUserStore"
 
 // Props & Emits
 const props = defineProps<{
@@ -13,9 +13,7 @@ const props = defineProps<{
     /** 変更可能なチャート範囲の定義 */
     ranges?: RangeOption[] // 未指定時はデフォルト範囲 DEFAULT_RANGES
 }>()
-const emit = defineEmits<
-    (e: 'select-date', date: string) => void
->()
+const emit = defineEmits<(e: "select-date", date: string) => void>()
 
 // Stores etc.
 const userStore = useUserStore()
@@ -25,30 +23,36 @@ const toast = useToast()
 const { t } = useI18n()
 
 // Refs & Local variables
-const DEFAULT_RANGES = computed<RangeOption[]>(() => ([
-    { label: t('history.historyChart.month1'),  value: '1m', days: 30 },
-    { label: t('history.historyChart.month3'),  value: '3m', days: 91 },
-    { label: t('history.historyChart.month6'),  value: '6m', days: 182 },
-    { label: t('history.historyChart.month12'), value: '1y', days: 365 }
-]))
+const DEFAULT_RANGES = computed<RangeOption[]>(() => [
+    { label: t("history.historyChart.month1"), value: "1m", days: 30 },
+    { label: t("history.historyChart.month3"), value: "3m", days: 91 },
+    { label: t("history.historyChart.month6"), value: "6m", days: 182 },
+    { label: t("history.historyChart.month12"), value: "1y", days: 365 },
+])
 const internalAppId = computed(() => props.appId ?? appStore.app?.appId ?? null)
 const internalRanges = computed(() => props.ranges ?? DEFAULT_RANGES.value)
 const chartContainer = ref<HTMLElement | null>(null)
 const currentRange = ref<RangeOption>(internalRanges.value[0]) // 初期値は1ヶ月
 const chartData = ref<ChartDataPoint[]>([])
 const appCurrencyCode = computed(() => appStore.getAppCurrencyCode())
-const isChangeable = computed(() => internalRanges.value.length > 1 && internalAppId.value)
+const isChangeable = computed(
+    () => internalRanges.value.length > 1 && internalAppId.value,
+)
 const chartReloadKey = ref<number>(0)
 const guaranteeCount = computed<number | undefined>(() => {
     const appData = appStore.app
         ? appStore.app
-        : internalAppId.value ? appStore.appList?.find(app => app.appId === internalAppId.value) : undefined
+        : internalAppId.value
+          ? appStore.appList?.find((app) => app.appId === internalAppId.value)
+          : undefined
     if (!appData) return undefined
-    return appData.pity_system && appData.guarantee_count && appData.guarantee_count > 0
+    return appData.pity_system &&
+        appData.guarantee_count &&
+        appData.guarantee_count > 0
         ? appData.guarantee_count
         : undefined
 })
-const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
+const isDemoUser = computed(() => userStore.hasUserRole("demo")) // デモユーザーかどうか
 
 // Methods
 async function loadChartData() {
@@ -58,52 +62,59 @@ async function loadChartData() {
     }
     // 範囲計算（今日を終点）
     const toDate = DateTime.now().toISODate()
-    const fromDate = DateTime.now().minus({ days: currentRange.value.days - 1 }).toISODate()
+    const fromDate = DateTime.now()
+        .minus({ days: currentRange.value.days - 1 })
+        .toISODate()
     // ログデータを取得
-    const data = await logStore.fetchLogs(internalAppId.value, { fromDate, toDate })
+    const data = await logStore.fetchLogs(internalAppId.value, {
+        fromDate,
+        toDate,
+    })
     // データを整形してチャート用に設定
-    chartData.value = data.map(log => ({
+    chartData.value = data.map((log) => ({
         date: log.date,
         total_pulls: log.total_pulls,
         rare_pulls: log.discharge_items,
         expense: log.expense_decimal ?? 0, // expense_decimalを使用
     }))
     chartReloadKey.value++
-    console.log('HistoryChart::loadChartData:', chartData.value)
 }
 function changeRange(range: string) {
     if (isDemoUser.value) return abortDemo()
-    const found = internalRanges.value.find(r => r.value === range)
+    const found = internalRanges.value.find((r) => r.value === range)
     if (found) currentRange.value = found
 }
 function abortDemo() {
     // デモユーザーの場合は何もしない
     toast.add({
-        severity: 'warn',
-        summary: t('app.error.demoTitle'),
-        detail: t('app.error.demoDetail'),
-        group: 'notices',
+        severity: "warn",
+        summary: t("app.error.demoTitle"),
+        detail: t("app.error.demoDetail"),
+        group: "notices",
         life: 2500,
     })
     return
 }
 function onBarClick(date: string) {
-  emit('select-date', date) // 親（history.vue）へ
+    emit("select-date", date) // 親（history.vue）へ
 }
 
 // Watchers
 watch(
     // グラフの更新に依存する値の変更を監視
     [internalAppId, () => currentRange.value],
-    () => { loadChartData() },
-    { immediate: true }
+    () => {
+        loadChartData()
+    },
+    { immediate: true },
 )
 watch(
     // テーマ変更時にチャートを再描画
     () => userStore.user?.theme,
-    () => { chartReloadKey.value++ }
+    () => {
+        chartReloadKey.value++
+    },
 )
-
 </script>
 
 <template>

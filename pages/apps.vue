@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
-import { useAppStore } from '~/stores/useAppStore'
-import { useLogStore } from '~/stores/useLogStore'
-import { useStatsStore } from '~/stores/useStatsStore'
-import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useI18n } from 'vue-i18n'
-import type { ToastMessageOptions } from 'primevue/toast'
+import type { MenuItem } from "primevue/menuitem"
+import type { ToastMessageOptions } from "primevue/toast"
 import { useToast } from "primevue/usetoast"
-import { useWebIcon } from '~/composables/useWebIcon'
-import type { MenuItem } from 'primevue/menuitem'
-import { downloadFile } from '~/utils/file'
-import { formatText } from '~/utils/string'
+import { useI18n } from "vue-i18n"
+import { useWebIcon } from "~/composables/useWebIcon"
+import { useAppStore } from "~/stores/useAppStore"
+import { useLoaderStore } from "~/stores/useLoaderStore"
+import { useLogStore } from "~/stores/useLogStore"
+import { useStatsStore } from "~/stores/useStatsStore"
+import { useUserStore } from "~/stores/useUserStore"
+import { downloadFile } from "~/utils/file"
+import { formatText } from "~/utils/string"
 
 definePageMeta({ requiresCurrency: true })
 
@@ -42,20 +42,22 @@ const modalDownloadVisible = ref<boolean>(false)
 const modalUploadVisible = ref<boolean>(false)
 const editTarget = ref<AppData | undefined>(undefined)
 const maxApps = computed(() => userStore.planLimits?.maxApps ?? 5) // ユーザーが登録できる最大アプリ数
-const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
+const isDemoUser = computed(() => userStore.hasUserRole("demo")) // デモユーザーかどうか
 const menu = ref()
-const items = computed<MenuItem[]>(() => ([
+const items = computed<MenuItem[]>(() => [
     {
-        label: t('apps.menu.settings'),
+        label: t("apps.menu.settings"),
         items: [
             {
-                label: t('apps.menu.edit'),
-                icon: 'pi pi-pencil',
+                label: t("apps.menu.edit"),
+                icon: "pi pi-pencil",
                 command: () => {
                     if (configAppId.value) {
-                        editTarget.value = apps.value.find(app => app.appId === configAppId.value)
+                        editTarget.value = apps.value.find(
+                            (app) => app.appId === configAppId.value,
+                        )
                         if (!editTarget.value) {
-                            console.error('App not found:', configAppId.value)
+                            console.error("App not found:", configAppId.value)
                             return
                         }
                         //console.log('Edit app configuration:', editTarget.value)
@@ -64,13 +66,15 @@ const items = computed<MenuItem[]>(() => ([
                 },
             },
             {
-                label: t('apps.menu.export'),
-                icon: 'pi pi-download',
+                label: t("apps.menu.export"),
+                icon: "pi pi-download",
                 command: () => {
                     if (configAppId.value) {
-                        editTarget.value = apps.value.find(app => app.appId === configAppId.value)
+                        editTarget.value = apps.value.find(
+                            (app) => app.appId === configAppId.value,
+                        )
                         if (!editTarget.value) {
-                            console.error('App not found:', configAppId.value)
+                            console.error("App not found:", configAppId.value)
                             return
                         }
                         modalDownloadVisible.value = true
@@ -78,13 +82,15 @@ const items = computed<MenuItem[]>(() => ([
                 },
             },
             {
-                label: t('apps.menu.import'),
-                icon: 'pi pi-cloud-upload',
+                label: t("apps.menu.import"),
+                icon: "pi pi-cloud-upload",
                 command: () => {
                     if (configAppId.value) {
-                        editTarget.value = apps.value.find(app => app.appId === configAppId.value)
+                        editTarget.value = apps.value.find(
+                            (app) => app.appId === configAppId.value,
+                        )
                         if (!editTarget.value) {
-                            console.error('App not found:', configAppId.value)
+                            console.error("App not found:", configAppId.value)
                             return
                         }
                         modalUploadVisible.value = true
@@ -93,23 +99,25 @@ const items = computed<MenuItem[]>(() => ([
             },
             { separator: true },
             {
-                label: t('apps.menu.delete'),
-                icon: 'pi pi-trash',
-                class: 'p-menu-item-danger',
+                label: t("apps.menu.delete"),
+                icon: "pi pi-trash",
+                class: "p-menu-item-danger",
                 command: () => {
                     if (configAppId.value) {
-                        editTarget.value = apps.value.find(app => app.appId === configAppId.value)
+                        editTarget.value = apps.value.find(
+                            (app) => app.appId === configAppId.value,
+                        )
                         if (!editTarget.value) {
-                            console.error('App not found:', configAppId.value)
+                            console.error("App not found:", configAppId.value)
                             return
                         }
                         modalDeleteVisible.value = true
                     }
                 },
             },
-        ]
+        ],
     },
-]))
+])
 
 // Methods
 const toggleMenu = (event: Event, appId: string) => {
@@ -120,10 +128,10 @@ const toggleMenu = (event: Event, appId: string) => {
 }
 function showToast(notice: Partial<ToastMessageOptions>) {
     const defaultNotice: ToastMessageOptions = {
-        severity: 'info',
-        summary: t('apps.notice.infoTitle'),
-        detail: t('apps.notice.infoDetail'),
-        group: 'notices',
+        severity: "info",
+        summary: t("apps.notice.infoTitle"),
+        detail: t("apps.notice.infoDetail"),
+        group: "notices",
         life: 3000,
     }
     toast.add({ ...defaultNotice, ...notice })
@@ -131,12 +139,13 @@ function showToast(notice: Partial<ToastMessageOptions>) {
 async function loadAppStats() {
     if (apps.value.length === 0) return
 
-    const loaderId = loaderStore.show(t('apps.loading.stats'))
+    const loaderId = loaderStore.show(t("apps.loading.stats"))
     try {
         // 各アプリIDで非同期取得（ローダーなしで呼ぶ）
-        const fetches = apps.value.map(app =>
-            statsStore.fetchStats(app.appId, '', '', undefined, false)
-                .then(data => ({ appId: app.appId, data }))
+        const fetches = apps.value.map((app) =>
+            statsStore
+                .fetchStats(app.appId, "", "", undefined, false)
+                .then((data) => ({ appId: app.appId, data })),
         )
         const results = await Promise.all(fetches)
         // 統計データを更新
@@ -169,9 +178,9 @@ function addNewApp() {
 function abortDemo() {
     // デモユーザーの場合は何もしない
     showToast({
-        severity: 'warn',
-        summary: t('app.error.demoTitle'),
-        detail: t('app.error.demoDetail')
+        severity: "warn",
+        summary: t("app.error.demoTitle"),
+        detail: t("app.error.demoDetail"),
     })
     // モーダルを閉じる
     modalEditVisible.value = false
@@ -185,19 +194,27 @@ async function handleAppSubmit(app: AppData | undefined) {
     if (!app) return
     if (isDemoUser.value) return abortDemo()
 
-    let loaderId: string | undefined = undefined
+    let loaderId: string | undefined
     let notice: Partial<ToastMessageOptions> = {}
 
     try {
         // API通信
         const result = await appStore.saveApp(app)
-        loaderId = loaderStore.show(t('apps.loading.saving'))
+        loaderId = loaderStore.show(t("apps.loading.saving"))
         await nextTick()
         appStore.setAppById(result.appId)
-        notice = { severity: 'success', summary: t('apps.notice.saveTitle'), detail: t('apps.notice.saveDetail', { name: result.name }) }
+        notice = {
+            severity: "success",
+            summary: t("apps.notice.saveTitle"),
+            detail: t("apps.notice.saveDetail", { name: result.name }),
+        }
         //console.log('apps.vue::handleAppSubmit:result:', result, configAppId.value, editTarget.value)
     } catch (e) {
-        notice = { severity: 'error', summary: t('apps.notice.saveErrorTitle'), detail: t('apps.notice.saveErrorDetail') }
+        notice = {
+            severity: "error",
+            summary: t("apps.notice.saveErrorTitle"),
+            detail: t("apps.notice.saveErrorDetail"),
+        }
     } finally {
         editTarget.value = undefined
         // ローダーを非表示
@@ -213,18 +230,26 @@ async function handleAppDelete(app: AppData | undefined) {
     if (!app) return
     if (isDemoUser.value) return abortDemo()
 
-    let loaderId: string | undefined = undefined
+    let loaderId: string | undefined
     let notice: Partial<ToastMessageOptions> = {}
 
     deleting.value = true
     try {
         // API通信
         await appStore.deleteApp(app.appId)
-        loaderId = loaderStore.show(t('apps.loading.deleting'))
+        loaderId = loaderStore.show(t("apps.loading.deleting"))
 
-        notice = { severity: 'success', summary: t('apps.notice.deleteTitle'), detail: t('apps.notice.deleteDetail', { name: app.name }) }
+        notice = {
+            severity: "success",
+            summary: t("apps.notice.deleteTitle"),
+            detail: t("apps.notice.deleteDetail", { name: app.name }),
+        }
     } catch (e) {
-        notice = { severity: 'error', summary: t('apps.notice.deleteErrorTitle'), detail: t('apps.notice.deleteErrorDetail') }
+        notice = {
+            severity: "error",
+            summary: t("apps.notice.deleteErrorTitle"),
+            detail: t("apps.notice.deleteErrorDetail"),
+        }
     } finally {
         editTarget.value = undefined
         // ローダーを非表示
@@ -241,9 +266,9 @@ async function handleAppDownload(settings: HistoryDownloadSettings) {
     if (!editTarget.value) return
     if (isDemoUser.value) return abortDemo()
 
-    let loaderId: string | undefined = undefined
+    let loaderId: string | undefined
     let notice: Partial<ToastMessageOptions> = {}
-    loaderId = loaderStore.show(t('apps.loading.downloading'))
+    loaderId = loaderStore.show(t("apps.loading.downloading"))
 
     const options = {
         fromDate: settings.dateRange.start,
@@ -252,17 +277,30 @@ async function handleAppDownload(settings: HistoryDownloadSettings) {
     //console.log('apps.vue::handleAppDownload:', settings, options)
     try {
         // API通信して履歴をダウンロード
-        const response = await logStore.fetchLogs(editTarget.value.appId, options)
+        const response = await logStore.fetchLogs(
+            editTarget.value.appId,
+            options,
+        )
         const result = downloadFile(response, settings)
         await nextTick()
         //console.log('apps.vue::handleAppDownload:result:', result)
         if (!result) {
-            throw new Error(t('apps.notice.downloadErrorDetail'))
+            throw new Error(t("apps.notice.downloadErrorDetail"))
         }
-        notice = { severity: 'success', summary: t('apps.notice.downloadTitle'), detail: t('apps.notice.downloadDetail', { name: editTarget.value.name }) }
+        notice = {
+            severity: "success",
+            summary: t("apps.notice.downloadTitle"),
+            detail: t("apps.notice.downloadDetail", {
+                name: editTarget.value.name,
+            }),
+        }
     } catch (e: unknown) {
-        console.error('Download Error:', e)
-        notice = { severity: 'error', summary: t('apps.notice.downloadErrorTitle'), detail: t('apps.notice.downloadErrorDetail') }
+        console.error("Download Error:", e)
+        notice = {
+            severity: "error",
+            summary: t("apps.notice.downloadErrorTitle"),
+            detail: t("apps.notice.downloadErrorDetail"),
+        }
     } finally {
         // ローダーを非表示
         if (loaderId) loaderStore.hide(loaderId)
@@ -275,24 +313,37 @@ async function handleAppDownload(settings: HistoryDownloadSettings) {
 // 履歴アップロード処理
 async function handleAppUpload(uploadData: UploadData) {
     if (!editTarget.value || !uploadData.format || !uploadData.file) return
-    if (!['json', 'csv'].includes(uploadData.format) || uploadData.file.type.indexOf(uploadData.format) === -1) return
-    if (!['overwrite', 'merge'].includes(uploadData.mode)) return
+    if (
+        !["json", "csv"].includes(uploadData.format) ||
+        uploadData.file.type.indexOf(uploadData.format) === -1
+    )
+        return
+    if (!["overwrite", "merge"].includes(uploadData.mode)) return
     if (isDemoUser.value) return abortDemo()
 
-    let loaderId: string | undefined = undefined
+    let loaderId: string | undefined
     let notice: Partial<ToastMessageOptions> = {}
-    loaderId = loaderStore.show(t('apps.loading.uploading'))
+    loaderId = loaderStore.show(t("apps.loading.uploading"))
 
     //console.log('apps.vue::handleAppUpload:', uploadData)
     try {
         // API通信して履歴をアップロード
-        const result: boolean = await logStore.importLogsFile(editTarget.value.appId, uploadData)
+        const result: boolean = await logStore.importLogsFile(
+            editTarget.value.appId,
+            uploadData,
+        )
         if (!result) {
-            throw new Error(t('apps.notice.importErrorDetail'))
+            throw new Error(t("apps.notice.importErrorDetail"))
         }
         // 履歴統計データのキャッシュクリア後、再読み込み
         statsStore.clearStatsCache(editTarget.value.appId)
-        const newStats = await statsStore.fetchStats(editTarget.value.appId, '', '', undefined, false)
+        const newStats = await statsStore.fetchStats(
+            editTarget.value.appId,
+            "",
+            "",
+            undefined,
+            false,
+        )
         //console.log('apps.vue::handleAppUpload:result:', result, newStats)
         if (newStats) {
             appStats.value.set(editTarget.value.appId, newStats)
@@ -300,10 +351,20 @@ async function handleAppUpload(uploadData: UploadData) {
             appStats.value.delete(editTarget.value.appId) // データが取得できなかった場合は削除
         }
         await nextTick()
-        notice = { severity: 'success', summary: t('apps.notice.importTitle'), detail: t('apps.notice.importDetail', { name: editTarget.value.name }) }
+        notice = {
+            severity: "success",
+            summary: t("apps.notice.importTitle"),
+            detail: t("apps.notice.importDetail", {
+                name: editTarget.value.name,
+            }),
+        }
     } catch (e: unknown) {
-        console.error('Upload Error:', e)
-        notice = { severity: 'error', summary: t('apps.notice.importErrorTitle'), detail: t('apps.notice.importErrorDetail') }
+        console.error("Upload Error:", e)
+        notice = {
+            severity: "error",
+            summary: t("apps.notice.importErrorTitle"),
+            detail: t("apps.notice.importErrorDetail"),
+        }
     } finally {
         // ローダーを非表示
         if (loaderId) loaderStore.hide(loaderId)
@@ -316,7 +377,7 @@ async function handleAppUpload(uploadData: UploadData) {
 // 履歴登録画面へ遷移
 function handleToHistory(app: AppData) {
     appStore.setApp(app)
-    navigateTo({ path: '/history' })
+    navigateTo({ path: "/history" })
 }
 
 // Lifecycle Hooks
@@ -336,12 +397,12 @@ watch(
         }
         //console.log('apps.vue::watch:appStore.appList:', apps.value, appStats.value)
     },
-    { deep: true }
+    { deep: true },
 )
 
 // Styles
 const containerClass = (isActive: boolean) => {
-    const base = 'w-full border rounded-lg p-3'
+    const base = "w-full border rounded-lg p-3"
     const normal = `border-surface-400 dark:border-gray-700 p-3 bg-surface-50 dark:bg-gray-800
         hover:bg-surface-50/40 dark:hover:bg-gray-700/60 hover:border-surface-500/50 dark:hover:border-gray-600/60`
     const active = `bg-primary-50 dark:bg-primary-950/40 border-primary-400 dark:border-primary-900
@@ -351,23 +412,22 @@ const containerClass = (isActive: boolean) => {
 
 // PassThrough
 const tooltipPT = {
-    root: 'pb-1',
-    text: 'w-max max-w-[20rem] p-2 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs whitespace-nowrap break-words',
-    arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
+    root: "pb-1",
+    text: "w-max max-w-[20rem] p-2 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs whitespace-nowrap break-words",
+    arrow: "w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800",
 }
 
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        adType: 'none',
+        adType: "none",
         //adHeight: 90,
     },
     bottom: {
-        adType: 'none',
+        adType: "none",
         //adHeight: 90,
-    }
+    },
 }
-
 </script>
 
 <template>

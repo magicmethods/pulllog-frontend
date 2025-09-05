@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import type { SelectPassThroughOptions } from 'primevue'
-import { useI18n } from 'vue-i18n'
+import type { SelectPassThroughOptions } from "primevue"
+import { useI18n } from "vue-i18n"
 
 // Props & Emits
 const props = defineProps<{
@@ -8,7 +8,7 @@ const props = defineProps<{
     options: string[] | Record<string, string>[]
     optionLabel?: string
     filtering?: boolean
-    order?: 'asc' | 'desc'
+    order?: "asc" | "desc"
     defaultOptions?: string[] | Record<string, string>[]
     width?: number | string
     placeholder?: string
@@ -18,64 +18,69 @@ const props = defineProps<{
     pt?: PassThroughValue
 }>()
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: string | null): void
-    (e: 'update:options', value: string[]): void
+    (e: "update:modelValue", value: string | null): void
+    (e: "update:options", value: string[]): void
 }>()
 
 // i18n
 const { t } = useI18n()
 
 // State & Helpers
-const getLabel = (item: string | Record<string, string>): string => 
-    typeof item === 'string' ? item : item.label ?? ''
+const getLabel = (item: string | Record<string, string>): string =>
+    typeof item === "string" ? item : (item.label ?? "")
 const isRemoving = ref<boolean>(false)
 const defaultOptions = props.defaultOptions ?? []
-const isProtected = (option: string) => 
-    defaultOptions.some(opt => getLabel(opt).toLowerCase() === option.toLowerCase())
+const isProtected = (option: string) =>
+    defaultOptions.some(
+        (opt) => getLabel(opt).toLowerCase() === option.toLowerCase(),
+    )
 
 // Computed
-const passThroughOptions = computed<SelectPassThroughOptions>(() => props.pt ? { ...props.pt } : {}) 
+const passThroughOptions = computed<SelectPassThroughOptions>(() =>
+    props.pt ? { ...props.pt } : {},
+)
 const filteredOptions = computed(() => {
-    let base = props.options.map(opt => getLabel(opt))
+    let base = props.options.map((opt) => getLabel(opt))
 
     if (props.filtering && props.modelValue) {
-        base = base.filter(label =>
-            label.toLowerCase().includes((props.modelValue ?? '').toLowerCase())
+        base = base.filter((label) =>
+            label
+                .toLowerCase()
+                .includes((props.modelValue ?? "").toLowerCase()),
         )
     }
 
     const order = props.order?.toLowerCase()
-    if (props.order === 'asc') base.sort((a, b) => a.localeCompare(b))
-    if (props.order === 'desc') base.sort((a, b) => b.localeCompare(a))
+    if (props.order === "asc") base.sort((a, b) => a.localeCompare(b))
+    if (props.order === "desc") base.sort((a, b) => b.localeCompare(a))
     return base
 })
 const containerWidth = computed(() => ({
     minWidth: props.width
-        ? typeof props.width === 'number'
+        ? typeof props.width === "number"
             ? `${props.width}px`
             : props.width
-        : '100%'
+        : "100%",
 }))
 
 // Methods
 function addOption() {
     if (isRemoving.value) return
 
-    const trimmed = (props.modelValue ?? '').trim()
+    const trimmed = (props.modelValue ?? "").trim()
     if (!trimmed) return
 
-    const exists = props.options.some(opt =>
-        getLabel(opt).toLowerCase() === trimmed.toLowerCase()
+    const exists = props.options.some(
+        (opt) => getLabel(opt).toLowerCase() === trimmed.toLowerCase(),
     )
-    if (!exists) emit('update:options', [...filteredOptions.value, trimmed])
-    emit('update:modelValue', trimmed)
+    if (!exists) emit("update:options", [...filteredOptions.value, trimmed])
+    emit("update:modelValue", trimmed)
 }
 function removeOption(option: string) {
     if (isProtected(option)) return
-    const updated = filteredOptions.value.filter(o => o !== option)
-    emit('update:options', updated)
+    const updated = filteredOptions.value.filter((o) => o !== option)
+    emit("update:options", updated)
 }
-
 </script>
 
 <template>
