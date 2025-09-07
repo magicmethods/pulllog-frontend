@@ -1,13 +1,10 @@
 import { defineEventHandler, readBody } from "h3"
-import {
-    buildProxyHeaders,
-    proxyFetchAndReturn,
-} from "~/server/utils/apiProxyUtil"
+import { proxyFetchAndReturn } from "~/server/utils/apiProxyUtil"
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
     const apiBaseURL = config.apiBaseURL
-    const apiKey = config.secretApiKey
+    const _apiKey = config.secretApiKey
 
     // /user/profile ルートでのアカウント新規作成はあり得ないため封鎖
     const headers = null // buildProxyHeaders(event, apiKey)

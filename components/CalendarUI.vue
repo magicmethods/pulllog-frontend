@@ -159,7 +159,7 @@ watch(
 )
 watch(
     () => locale.value, // userStore.user?.language,
-    (newLang, prevLang) => {
+    (_newLang, _prevLang) => {
         //console.log('CalendarUI: Language changed from', prevLang, 'to', newLang)
         setLocale()
     },

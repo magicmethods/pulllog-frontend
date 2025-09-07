@@ -11,12 +11,7 @@ import { useAppStore } from "~/stores/useAppStore"
 import { useLoaderStore } from "~/stores/useLoaderStore"
 import { useLogStore } from "~/stores/useLogStore"
 import { useOptionStore } from "~/stores/useOptionStore"
-import {
-    type TileConfig,
-    type TileId,
-    type TileSpan,
-    useStatsLayoutStore,
-} from "~/stores/useStatsLayoutStore"
+import { type TileId, useStatsLayoutStore } from "~/stores/useStatsLayoutStore"
 import { useUserStore } from "~/stores/useUserStore"
 import { formatDate } from "~/utils/date"
 

@@ -11,6 +11,11 @@ export type ComposeOptions = {
     watermarkPadding?: number // 余白（既定 10）
     watermarkFont?: string // フォント指定（例 'bold 16px system-ui'）
     watermarkColor?: string // 明示カラー。未指定時は背景から自動算出
+    headerText?: string // 画像上部の見出し（未指定なら描画しない）
+    headerFont?: string // 見出しフォント
+    headerColor?: string // 見出し色
+    headerPadding?: number // 見出し周辺の余白（既定 8）
+    divider?: boolean | { color?: string; thickness?: number; inset?: number } // 各画像間の罫線
 }
 
 export async function blobToImage(blob: Blob): Promise<HTMLImageElement> {
@@ -71,6 +76,10 @@ export async function composeVertical(
     const width = opts.width ?? 640
     const margin = opts.margin ?? 15
     const gap = opts.gap ?? 15
+    const headerText = opts.headerText ?? ""
+    const headerPadding = opts.headerPadding ?? 8
+    const headerFont =
+        opts.headerFont ?? "700 16px system-ui, -apple-system, Segoe UI, Roboto"
     const watermarkText = opts.watermarkText ?? "PullLog.net"
     const watermarkPadding = opts.watermarkPadding ?? 10
     const watermarkFont =
@@ -97,7 +106,13 @@ export async function composeVertical(
         (sum, s, i) => sum + s.h + (i > 0 ? gap : 0),
         0,
     )
-    const height = innerHeight + margin * 2
+    // 見出しの高さ（テキストを描く場合のみ）
+    let headerHeight = 0
+    if (headerText && headerText.trim().length > 0) {
+        // 目安: フォントサイズの約1.6倍 + パディング
+        headerHeight = 24 + headerPadding * 2
+    }
+    const height = innerHeight + margin * 2 + headerHeight
 
     const canvas = document.createElement("canvas")
     canvas.width = width
@@ -111,13 +126,52 @@ export async function composeVertical(
         ctx.fillRect(0, 0, width, height)
     }
 
+    // 見出し
+    let yOffset = margin
+    if (headerText && headerHeight > 0) {
+        ctx.font = headerFont
+        ctx.fillStyle = opts.headerColor
+            ? opts.headerColor
+            : isDarkColor(opts.background)
+              ? "rgba(255,255,255,0.92)"
+              : "rgba(0,0,0,0.82)"
+        ctx.textBaseline = "top"
+        ctx.fillText(
+            headerText,
+            margin + headerPadding,
+            yOffset + headerPadding,
+        )
+        yOffset += headerHeight
+    }
+
     // 本体描画
-    let y = margin
+    let y = yOffset
     for (let i = 0; i < scaled.length; i++) {
         if (i > 0) y += gap
         const s = scaled[i]
         ctx.drawImage(s.im, margin, y, s.w, s.h)
         y += s.h
+        // 罫線
+        if (i < scaled.length - 1 && opts.divider) {
+            const cfg =
+                typeof opts.divider === "object" && opts.divider
+                    ? opts.divider
+                    : {}
+            const thickness = Math.max(1, Math.floor(cfg.thickness ?? 1))
+            const inset = Math.max(0, Math.floor(cfg.inset ?? 10))
+            ctx.fillStyle = cfg.color
+                ? cfg.color
+                : isDarkColor(opts.background)
+                  ? "rgba(255,255,255,0.25)"
+                  : "rgba(0,0,0,0.12)"
+            const lineY = y + Math.floor(gap / 2) - Math.floor(thickness / 2)
+            ctx.fillRect(
+                margin + inset,
+                lineY,
+                width - (margin + inset) * 2,
+                thickness,
+            )
+        }
     }
 
     // ウォーターマーク
@@ -131,7 +185,8 @@ export async function composeVertical(
     ctx.textBaseline = "bottom"
     const metrics = ctx.measureText(watermarkText)
     const wmX = width - margin - watermarkPadding - metrics.width
-    const wmY = height - margin - watermarkPadding
+    // ボトム寄せを強める（マージンにかかっても良い前提で、marginを引かずに配置）
+    const wmY = height - Math.max(2, watermarkPadding)
     ctx.fillText(watermarkText, wmX, wmY)
 
     const blob: Blob | null = await new Promise((resolve) =>

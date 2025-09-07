@@ -2,7 +2,6 @@ import { defineEventHandler } from "h3"
 import {
     buildProxyHeaders,
     buildUrlWithQuery,
-    getFileExtension,
     proxyFetchAndReturn,
 } from "~/server/utils/apiProxyUtil"
 
@@ -29,7 +28,6 @@ export default defineEventHandler(async (event) => {
         return { error: "Invalid parameters." }
     }
     if ("content-length" in headers) {
-        // biome-ignore lint:/performance/noDelete
         delete headers["content-length"]
     }
 

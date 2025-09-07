@@ -261,7 +261,7 @@ export function useAPI() {
         let errorJson: unknown = null
         try {
             errorJson = await response.json()
-        } catch (e) {
+        } catch (_e) {
             /* ignore */
         }
 

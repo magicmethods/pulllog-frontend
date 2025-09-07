@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Chart as ChartJS } from "chart.js"
+// biome-ignore lint/correctness/noUnusedImports: used in template via :plugins
 import ChartDataLabels from "chartjs-plugin-datalabels"
 import { useI18n } from "vue-i18n"
 

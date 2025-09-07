@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
         return { error: "Invalid parameters." }
     }
     if ("content-length" in headers) {
-        // biome-ignore lint:/performance/noDelete
         delete headers["content-length"]
     }
 
@@ -43,7 +42,6 @@ export default defineEventHandler(async (event) => {
         )
         newFormData.append("avatar", blob, tempFileName)
         if ("content-type" in headers) {
-            // biome-ignore lint:/performance/noDelete content-typeはfetchが自動で設定するため削除
             delete headers["content-type"]
         }
         const response = await proxyFetchAndReturn(

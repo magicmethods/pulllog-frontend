@@ -6,6 +6,7 @@ import { usePkce } from "~/composables/usePkce"
 import { useGlobalStore } from "~/stores/globalStore"
 import { useCsrfStore } from "~/stores/useCsrfStore"
 import { useUserStore } from "~/stores/useUserStore"
+import { deleteCookieAsync, setCookieAsync } from "~/utils/cookie"
 import { toUser, toUserPlanLimits } from "~/utils/user"
 
 definePageMeta({
@@ -90,10 +91,14 @@ onMounted(async () => {
         }
 
         if (res.rememberToken && res.rememberTokenExpires) {
-            document.cookie = `remember_token=${res.rememberToken}; expires=${new Date(res.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
+            await setCookieAsync("remember_token", res.rememberToken, {
+                expires: new Date(res.rememberTokenExpires),
+                path: "/",
+                secure: true,
+                sameSite: "lax",
+            })
         } else {
-            document.cookie =
-                "remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax"
+            await deleteCookieAsync("remember_token", "/")
         }
 
         globalStore.setInitialized(true)

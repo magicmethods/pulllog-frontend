@@ -10,7 +10,6 @@ import { useLogStore } from "~/stores/useLogStore"
 import { useStatsStore } from "~/stores/useStatsStore"
 import { useUserStore } from "~/stores/useUserStore"
 import { downloadFile } from "~/utils/file"
-import { formatText } from "~/utils/string"
 
 definePageMeta({ requiresCurrency: true })
 

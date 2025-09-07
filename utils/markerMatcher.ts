@@ -1,6 +1,6 @@
 import {
-    type Marker,
     aggregateSynonyms,
+    type Marker,
     markerSynonyms,
 } from "~/config/markerSynonyms"
 import { stripEmoji } from "~/utils/string"

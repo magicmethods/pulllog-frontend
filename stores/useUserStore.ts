@@ -1,6 +1,7 @@
 import { endpoints } from "~/api/endpoints"
 //import { useI18n } from 'vue-i18n'
 import { useAPI } from "~/composables/useAPI"
+import { deleteCookieAsync } from "~/utils/cookie"
 import { toUser } from "~/utils/user"
 import { useGlobalStore } from "./globalStore"
 import { useAppStore } from "./useAppStore"
@@ -161,8 +162,7 @@ export const useUserStore = defineStore("user", () => {
                 useLogStore().clearLogs()
                 useStatsStore().clearStatsCacheAll()
                 // 既にあるRememberトークンのCookieを削除して自動ログインを無効化
-                document.cookie =
-                    "remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax"
+                await deleteCookieAsync("remember_token", "/")
             }
         } finally {
             global.setLoading(false)

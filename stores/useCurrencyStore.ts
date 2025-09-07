@@ -172,7 +172,7 @@ export const useCurrencyStore = defineStore("currency", () => {
      * セレクト用オプションを生成（並び順: JPY/USD/CNY → EUR/INR/KRW → アルファベット）
      * - localeで初期選択コードを決めるときにも利用想定
      */
-    function optionsForSelect(locale?: string): CurrencyOption[] {
+    function optionsForSelect(_locale?: string): CurrencyOption[] {
         const top1 = ["JPY", "USD", "CNY"]
         const top2 = ["EUR", "INR", "KRW"]
 

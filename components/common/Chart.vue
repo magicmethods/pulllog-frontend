@@ -7,14 +7,15 @@ import {
     Chart as ChartJS,
     type ChartType,
     Legend,
+    LinearScale,
     LineController,
     LineElement,
-    LinearScale,
     PieController,
     PointElement,
     Tooltip,
 } from "chart.js"
 import annotationPlugin from "chartjs-plugin-annotation"
+// biome-ignore lint/correctness/noUnusedImports: used in template
 import { Chart as VueChart } from "vue-chartjs"
 
 // Chart.jsのコンポーネントを一括登録

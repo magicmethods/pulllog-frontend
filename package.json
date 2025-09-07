@@ -1,6 +1,6 @@
 {
     "name": "pulllog",
-    "version": "1.0.2",
+    "version": "1.1.0",
     "description": "Manage Your Gacha History and Analyze Statistics.",
     "author": "MAGIC METHODS",
     "license": "UNLICENSED",
@@ -21,7 +21,9 @@
         "prepare": "husky"
     },
     "lint-staged": {
-        "*.{ts,vue,js,json}": ["biome check --write"]
+        "*.{ts,vue,js,json}": [
+            "biome check --write"
+        ]
     },
     "dependencies": {
         "@loadingio/loading.css": "^3.2.1",
@@ -49,7 +51,7 @@
         "zod": "^3.24.3"
     },
     "devDependencies": {
-        "@biomejs/biome": "^1.9.4",
+        "@biomejs/biome": "^2.2.3",
         "@nuxt/types": "^2.18.1",
         "@nuxt/typescript-build": "^3.0.2",
         "@primevue/auto-import-resolver": "^4.3.3",

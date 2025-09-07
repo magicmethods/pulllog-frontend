@@ -9,12 +9,12 @@ export async function copySelectedText(): Promise<boolean> {
     try {
         await navigator.clipboard.writeText(text)
         return true
-    } catch (e) {
+    } catch (_e) {
         // クリップボードAPI未対応時は従来のexecCommandで対応
         try {
             document.execCommand("copy")
             return true
-        } catch (err) {
+        } catch (_err) {
             return false
         }
     }

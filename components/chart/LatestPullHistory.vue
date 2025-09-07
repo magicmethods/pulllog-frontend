@@ -12,6 +12,10 @@ const props = defineProps<{
     range: number // グラフ範囲の日数
     currencyCode: string // アプリごとの通貨コード
     guaranteeCount?: number // 天井回数（オプション、指定があれば表示）
+    /** 強調表示する対象日のISO（points[].dateと一致する想定）。未指定時は末尾を強調 */
+    highlightDate?: string
+    /** ラベル生成の開始日（YYYY-MM-DD）。指定時はこの日付からrange日分を描画し、末尾が開始日+range-1日になる */
+    startDate?: string
 }>()
 const emit = defineEmits<(e: "bar-click", date: string) => void>()
 
@@ -23,9 +27,10 @@ const { t } = useI18n()
 const { palette } = useChartPalette()
 
 // X軸ラベル・グラフ用データ配列
-//const { labels, points } = getLabelsAndMap(props.chartData, props.range)
-// ラベルとプロット点は props 依存で再計算
-const mapped = computed(() => getLabelsAndMap(props.chartData, props.range))
+// ラベルとプロット点は props 依存で再計算（startDate指定時は軸の末尾= startDate + range - 1）
+const mapped = computed(() =>
+    getLabelsAndMap(props.chartData, props.range, props.startDate),
+)
 const labels = computed(() => mapped.value.labels)
 const points = computed(() => mapped.value.points)
 
@@ -48,37 +53,76 @@ const currencySymbol = computed(() => {
     return cd ? cd.symbol_native : ""
 })
 // グラフデータ
-const datasets = computed(() => [
-    {
-        type: "line" as const,
-        label: t("history.historyChart.expense", {
-            currency: currencySymbol.value,
-        }),
-        yAxisID: "y1",
-        data: points.value.map((d) => Number(d.expense || 0)),
-        borderColor: palette.value.expense,
-        backgroundColor: palette.value.expense,
-        tension: 0.1,
-        fill: false,
-        pointRadius: 0, // ポイントサイズ（0: 非表示）
-    },
-    {
-        type: "bar" as const,
-        label: t("history.historyChart.other"),
-        stack: "pulls",
-        data: points.value.map(
-            (d) => Number(d.total_pulls || 0) - Number(d.rare_pulls || 0),
-        ),
-        backgroundColor: palette.value.other,
-    },
-    {
-        type: "bar" as const,
-        label: t("history.historyChart.rare"),
-        stack: "pulls",
-        data: points.value.map((d) => Number(d.rare_pulls || 0)),
-        backgroundColor: palette.value.rare,
-    },
-])
+function oklchSaturate(color: string, ratio = 1.2): string {
+    // oklch( L% C H / A? ) 形式のみ簡易対応
+    const m = color.match(
+        /oklch\(\s*([0-9.]+)%\s+([0-9.]+)\s+([0-9.]+)(?:\s*\/\s*([0-9.]+))?\s*\)/i,
+    )
+    if (!m) return color
+    const l = Number(m[1])
+    const c = Number(m[2])
+    const h = Number(m[3])
+    const a = m[4] ? Number(m[4]) : null
+    const newC = Math.min(c * ratio, 0.37) // 安全上限（経験値）
+    return a === null
+        ? `oklch(${l}% ${newC} ${h})`
+        : `oklch(${l}% ${newC} ${h} / ${a})`
+}
+
+const datasets = computed(() => {
+    const idx = (() => {
+        if (props.highlightDate) {
+            const i = points.value.findIndex(
+                (p) => p.date === props.highlightDate,
+            )
+            if (i >= 0) return i
+        }
+        return labels.value.length > 0 ? labels.value.length - 1 : -1
+    })()
+    const rareBase = palette.value.rare
+    const otherBase = palette.value.other
+    const rareHi = oklchSaturate(rareBase, 1.2)
+    const otherHi = oklchSaturate(otherBase, 1.2)
+
+    const otherColors = points.value.map((_, i) =>
+        i === idx ? otherHi : otherBase,
+    )
+    const rareColors = points.value.map((_, i) =>
+        i === idx ? rareHi : rareBase,
+    )
+
+    return [
+        {
+            type: "line" as const,
+            label: t("history.historyChart.expense", {
+                currency: currencySymbol.value,
+            }),
+            yAxisID: "y1",
+            data: points.value.map((d) => Number(d.expense || 0)),
+            borderColor: palette.value.expense,
+            backgroundColor: palette.value.expense,
+            tension: 0.1,
+            fill: false,
+            pointRadius: 0, // ポイントサイズ（0: 非表示）
+        },
+        {
+            type: "bar" as const,
+            label: t("history.historyChart.other"),
+            stack: "pulls",
+            data: points.value.map(
+                (d) => Number(d.total_pulls || 0) - Number(d.rare_pulls || 0),
+            ),
+            backgroundColor: otherColors,
+        },
+        {
+            type: "bar" as const,
+            label: t("history.historyChart.rare"),
+            stack: "pulls",
+            data: points.value.map((d) => Number(d.rare_pulls || 0)),
+            backgroundColor: rareColors,
+        },
+    ]
+})
 
 // 天井補助線のannotations計算
 const pityAnnotations = computed(() => {
@@ -151,7 +195,7 @@ function handleChartClick(evt: ChartEvent, active: ActiveElement[], chart?: Char
     }
 }*/
 function handleChartClick(
-    evt: ChartEvent,
+    _evt: ChartEvent,
     active: ActiveElement[],
     chart?: ChartJS,
 ) {
@@ -166,7 +210,7 @@ function handleChartClick(
     if (chart?.canvas) chart.canvas.style.cursor = "default"
 }
 function handleChartHover(
-    evt: ChartEvent,
+    _evt: ChartEvent,
     active: ActiveElement[],
     chart?: ChartJS,
 ) {

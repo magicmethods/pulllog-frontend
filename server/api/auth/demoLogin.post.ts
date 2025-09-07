@@ -23,7 +23,6 @@ export default defineEventHandler(async (event) => {
         return { error: "An unexpected error has occurred." }
     }
     headers["content-type"] = "application/json"
-    // biome-ignore lint:/performance/noDelete
     delete headers["content-length"]
 
     // ログインpayload（必要に応じてRemember等を付与）

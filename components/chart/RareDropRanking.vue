@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ChartDataset } from "chart.js"
+// biome-ignore lint/correctness/noUnusedImports: used in template via :plugins
 import ChartDataLabels from "chartjs-plugin-datalabels"
 import { useI18n } from "vue-i18n"
 import { useChartPalette } from "~/composables/useChart"
@@ -187,7 +188,7 @@ const chartData = computed(() => {
     const labels = sortedNames.value.map((item) => item.label) // アイテム名のラベル
 
     // markerのスタックBar
-    const datasets: ChartDataset[] = PRESET_MARKER_LABELS.map((marker, i) => ({
+    const datasets: ChartDataset[] = PRESET_MARKER_LABELS.map((marker, _i) => ({
         label: labelMap.value[marker],
         data: sortedNames.value.map(
             (item) => markerKeys.value[item.name]?.[marker] ?? 0,

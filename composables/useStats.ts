@@ -6,7 +6,7 @@ import { stripEmoji } from "~/utils/string"
 
 export function useStats() {
     const SYSTEM_OTHER_KEY = computed(() => useOptionStore().otherPlaceholder)
-    const { locale } = useI18n()
+    const { locale: _locale } = useI18n()
 
     /**
      * 複数アプリ合計課金額に占める各アプリの割合（Pieチャート用）

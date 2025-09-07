@@ -257,7 +257,6 @@ async function handleConfirmSave() {
     if (!pendingLogData.value) return
     try {
         // API送信処理
-        // biome-ignore lint:/performance/noDelete リクエストに小数値は不要
         delete pendingLogData.value.expense_decimal
         const saved = await logStore.saveLog(pendingLogData.value as DateLog)
         if (!saved) {

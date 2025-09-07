@@ -5,6 +5,7 @@ import { useGlobalStore } from "~/stores/globalStore"
 import { useCsrfStore } from "~/stores/useCsrfStore"
 import { useCurrencyStore } from "~/stores/useCurrencyStore"
 import { useUserStore } from "~/stores/useUserStore"
+import { deleteCookieAsync, setCookieAsync } from "~/utils/cookie"
 import { toUser, toUserPlanLimits } from "~/utils/user"
 
 export function useAuth() {
@@ -242,12 +243,16 @@ export function useAuth() {
 
         //console.log('Remember token in login:', response.rememberToken, response.rememberTokenExpires)
         if (response.rememberToken && response.rememberTokenExpires) {
-            // RememberトークンをCookieにセット
-            document.cookie = `remember_token=${response.rememberToken}; expires=${new Date(response.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
+            // RememberトークンをCookieにセット（Cookie Store API）
+            await setCookieAsync("remember_token", response.rememberToken, {
+                expires: new Date(response.rememberTokenExpires),
+                path: "/",
+                secure: true,
+                sameSite: "lax",
+            })
         } else {
             // 既にあるRememberトークンのCookieを削除
-            document.cookie =
-                "remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax"
+            await deleteCookieAsync("remember_token", "/")
         }
 
         // 通貨データをロード

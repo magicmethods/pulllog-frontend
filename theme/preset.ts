@@ -2,25 +2,7 @@
  * Customized theme preset definitions for "PullLog".
  */
 import { definePreset } from "@primeuix/themes"
-/**
- * Aura is a dark theme that is designed to be easy on the eyes and provide a more immersive experience.
- * It is based on the Material Design guidelines and uses a dark color palette with vibrant accent colors.
- */
 import Aura from "@primeuix/themes/aura"
-/**
- * Lara is the default theme for PrimeVue, and it is used in the documentation and examples.
- * It is a light theme with a clean and modern design based on Bootstrap.
- */
-import Lara from "@primeuix/themes/lara"
-/**
- * This theme is follows Google Material Design v2.
- */
-import Material from "@primeuix/themes/material"
-/**
- * This theme is inspired by the design of the iOS operating system.
- * It uses a light color palette with soft gradients and rounded corners.
- */
-import Nora from "@primeuix/themes/nora"
 
 // The theme to reference as the base for customization:
 const refTheme = Aura
