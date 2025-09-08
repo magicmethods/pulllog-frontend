@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
+import { useUserStore } from "~/stores/useUserStore"
 
 // Props & Emits
 const props = defineProps<{
     isDarkMode: boolean
 }>()
 const emit = defineEmits<{
-    (e: 'update:isDarkMode', value: boolean): void
-    (e: 'open-settings'): void
+    (e: "update:isDarkMode", value: boolean): void
+    (e: "open-settings"): void
 }>()
 
 // Stores
@@ -19,42 +19,77 @@ const { t } = useI18n()
 
 // Refs & Local variables
 const animationClass = computed(() => {
-    const classes = ['beat', 'bounce', 'breath', 'metronome', 'swing', 'spin', 'swim', 'tick', 'jelly', 'jingle', 'wrench' ]
+    const classes = [
+        "beat",
+        "bounce",
+        "breath",
+        "metronome",
+        "swing",
+        "spin",
+        "swim",
+        "tick",
+        "jelly",
+        "jingle",
+        "wrench",
+    ]
     return `ld-${classes[Math.floor(Math.random() * classes.length)]}`
 })
-const naviLinks = computed(() => ([
-    { name: t('options.homepage.apps'), icon: 'pi pi-crown', symbol: '🎮', prefix: 'symbol', path: '/apps' },
-    { name: t('options.homepage.history'), icon: 'pi pi-trophy', symbol: '📝', prefix: 'symbol', path: '/history' },
-    { name: t('options.homepage.stats'), icon: 'pi pi-chart-line', symbol: '📈', prefix: 'symbol', path: '/stats' },
-]))
-const homePage = computed(() => userStore.user?.homePage ?? naviLinks.value[0].path)
+const naviLinks = computed(() => [
+    {
+        name: t("options.homepage.apps"),
+        icon: "pi pi-crown",
+        symbol: "🎮",
+        prefix: "symbol",
+        path: "/apps",
+    },
+    {
+        name: t("options.homepage.history"),
+        icon: "pi pi-trophy",
+        symbol: "📝",
+        prefix: "symbol",
+        path: "/history",
+    },
+    {
+        name: t("options.homepage.stats"),
+        icon: "pi pi-chart-line",
+        symbol: "📈",
+        prefix: "symbol",
+        path: "/stats",
+    },
+])
+const homePage = computed(
+    () => userStore.user?.homePage ?? naviLinks.value[0].path,
+)
 
 // Methods
 const avatarProps = () => {
     const avatarProps = {
-        size: 'normal',
-        shape: 'circle',
+        size: "normal",
+        shape: "circle",
     }
     if (userStore.user?.avatarUrl) {
         return { ...avatarProps, image: userStore.user.avatarUrl }
     }
     if (userStore.user?.name) {
-        return { ...avatarProps, label: userStore.user.name.substring(0, 1).toLocaleUpperCase() }
+        return {
+            ...avatarProps,
+            label: userStore.user.name.substring(0, 1).toLocaleUpperCase(),
+        }
     }
-    return { ...avatarProps, icon: 'pi pi-user' }
+    return { ...avatarProps, icon: "pi pi-user" }
 }
 
 // Pass Through
-const toggleButtonPT = (content: 'label' | 'icon') => {
+const toggleButtonPT = (content: "label" | "icon") => {
     return {
-        icon: content === 'label' ? '!hidden': '',
-        label: content === 'icon' ? '!hidden' : '',
+        icon: content === "label" ? "!hidden" : "",
+        label: content === "icon" ? "!hidden" : "",
     }
 }
 
 // Classes
-const navLinkClass = 'inline-flex gap-2 items-center -my-1 py-1 px-2 rounded text-sm text-surface-100 hover:text-white hover:bg-primary-400/40 dark:hover:bg-primary-500/40'
-
+const navLinkClass =
+    "inline-flex gap-2 items-center -my-1 py-1 px-2 rounded text-sm text-surface-100 hover:text-white hover:bg-primary-400/40 dark:hover:bg-primary-500/40"
 </script>
 
 <template>

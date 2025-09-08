@@ -5,9 +5,12 @@ type Arguments = any[]
  * Restrict a function to be executed only once within a certain time interval
  * @param {Function} func - The function to throttle
  * @param {number} delay - The time interval in milliseconds
- * @returns 
+ * @returns
  */
-export function throttle<T extends (...args: Arguments) => void>(func: T, delay: number): (...args: Parameters<T>) => void {
+export function throttle<T extends (...args: Arguments) => void>(
+    func: T,
+    delay: number,
+): (...args: Parameters<T>) => void {
     let lastCall = 0
 
     return (...args: Parameters<T>) => {
@@ -21,11 +24,14 @@ export function throttle<T extends (...args: Arguments) => void>(func: T, delay:
 
 /**
  * Delays a function call for a certain amount of time, and resets the delay if a new call occurs during that time
- * @param {Function} func - The function to debounce 
- * @param {number} delay - The time interval in milliseconds 
- * @returns 
+ * @param {Function} func - The function to debounce
+ * @param {number} delay - The time interval in milliseconds
+ * @returns
  */
-export function debounce<T extends (...args: Arguments) => void>(func: T, delay: number): (...args: Parameters<T>) => void {
+export function debounce<T extends (...args: Arguments) => void>(
+    func: T,
+    delay: number,
+): (...args: Parameters<T>) => void {
     let timeoutId: ReturnType<typeof setTimeout> | null = null
 
     return (...args: Parameters<T>) => {
@@ -43,5 +49,5 @@ export function debounce<T extends (...args: Arguments) => void>(func: T, delay:
  * @returns {Promise<void>} A promise that resolves after the specified time
  */
 export async function sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms))
+    return new Promise((resolve) => setTimeout(resolve, ms))
 }

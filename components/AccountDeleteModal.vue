@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useUserStore } from '~/stores/useUserStore'
+import { useI18n } from "vue-i18n"
+import { useUserStore } from "~/stores/useUserStore"
 
 const props = defineProps<{
     visible: boolean
 }>()
 const emit = defineEmits<{
-    (e: 'update:visible', value: boolean): void
-    (e: 'deleted'): void
+    (e: "update:visible", value: boolean): void
+    (e: "deleted"): void
 }>()
 
 const { t } = useI18n()
@@ -20,16 +20,19 @@ async function handleDelete() {
     error.value = null
     try {
         await userStore.deleteUser()
-        emit('deleted')
-        emit('update:visible', false)
+        emit("deleted")
+        emit("update:visible", false)
     } catch (err: unknown) {
-        error.value = err instanceof Error ? err.message : t('settings.withdrawalModal.userDeleteFailed')
+        error.value =
+            err instanceof Error
+                ? err.message
+                : t("settings.withdrawalModal.userDeleteFailed")
     } finally {
         loading.value = false
     }
 }
 function handleCancel() {
-    emit('update:visible', false)
+    emit("update:visible", false)
 }
 </script>
 

@@ -1,9 +1,14 @@
 <script setup lang="ts">
-import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useLoaderStore } from "~/stores/useLoaderStore"
+
 const loader = useLoaderStore()
 const loaderEntries = computed(() => Array.from(loader.loaderMap.entries()))
-const globalLoaders = computed(() => loaderEntries.value.filter(([_, info]) => !info.target))
-const targetLoaders = computed(() => loaderEntries.value.filter(([_, info]) => info.target))
+const globalLoaders = computed(() =>
+    loaderEntries.value.filter(([_, info]) => !info.target),
+)
+const targetLoaders = computed(() =>
+    loaderEntries.value.filter(([_, info]) => info.target),
+)
 </script>
 
 <template>

@@ -55,7 +55,7 @@ declare global {
     }
     /** ログインレスポンス */
     type LoginResponse = {
-        state: 'success' | 'error'
+        state: "success" | "error"
         message?: string
         user: UserResponse | null
         csrfToken: string | null
@@ -64,7 +64,7 @@ declare global {
     } | null
     /** 登録レスポンス */
     type RegisterResponse = {
-        state: 'success' | 'error'
+        state: "success" | "error"
         message?: string
     } | null
     /** パスワードリセットレスポンス */
@@ -76,24 +76,23 @@ declare global {
     } | null
     /** ユーザー情報更新レスポンス */
     type UserUpdateResponse = {
-        state: 'success' | 'error'
+        state: "success" | "error"
         message?: string
         user: UserResponse | null
     } | null
     /** ユーザー削除レスポンス */
     type UserDeleteResponse = {
-        state: 'success' | 'error'
+        state: "success" | "error"
         message?: string
     } | null
     /** OAuth 認証レスポンス */
     type ExchangeResponse = {
-        state: 'success' | 'error' | 'warn'
+        state: "success" | "error" | "warn"
         message?: string | null
         user?: UserResponse
         csrfToken?: string
         rememberToken?: string | null
         rememberTokenExpires?: string | null
     }
-
 }
 export {}

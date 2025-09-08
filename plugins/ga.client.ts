@@ -6,23 +6,25 @@ declare global {
 }
 
 export default defineNuxtPlugin((nuxtApp) => {
-    const { public: { gaId, isDebug } } = useRuntimeConfig()
+    const {
+        public: { gaId, isDebug },
+    } = useRuntimeConfig()
 
     // ID未設定なら何もしない（開発・プレビューでの誤送信防止）
     if (!gaId) {
         if (import.meta.env.DEV) {
-            console.warn('[GA] gaId is not set. Skipped.')
+            console.warn("[GA] gaId is not set. Skipped.")
         }
         return
     }
 
     // gtag.js を挿入
-    const s1 = document.createElement('script')
+    const s1 = document.createElement("script")
     s1.async = true
     s1.src = `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(gaId)}`
     document.head.appendChild(s1)
 
-    const s2 = document.createElement('script')
+    const s2 = document.createElement("script")
     s2.innerHTML = `
         window.dataLayer = window.dataLayer || [];
         function gtag(){ dataLayer.push(arguments); }
@@ -44,22 +46,27 @@ export default defineNuxtPlugin((nuxtApp) => {
     const sendPageView = () => {
         const gtag = window.gtag
         if (!gtag) return
-        gtag('event', 'page_view', {
+        gtag("event", "page_view", {
             page_path: window.location.pathname + window.location.search,
             page_title: document.title,
         })
     }
 
     // 初回
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    if (
+        document.readyState === "complete" ||
+        document.readyState === "interactive"
+    ) {
         sendPageView()
     } else {
-        window.addEventListener('DOMContentLoaded', sendPageView, { once: true })
+        window.addEventListener("DOMContentLoaded", sendPageView, {
+            once: true,
+        })
     }
 
     // ルート遷移ごと（Nuxt 3）
     // - page:finish はクライアント側でページ描画完了後に呼ばれる
-    nuxtApp.hook('page:finish', () => {
+    nuxtApp.hook("page:finish", () => {
         sendPageView()
     })
 })

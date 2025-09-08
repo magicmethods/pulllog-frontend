@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Sortable from 'sortablejs'
-import { useI18n } from 'vue-i18n'
+import Sortable from "sortablejs"
+import { useI18n } from "vue-i18n"
 
 // Types
 // biome-ignore lint:/suspicious/noExplicitAny: Property values ​​for object arrays remain flexible
@@ -26,8 +26,8 @@ const props = defineProps<{
     multiSelect?: boolean
 }>()
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: GenericItem[]): void
-    (e: 'select', value: GenericItem | GenericItem[] | null): void
+    (e: "update:modelValue", value: GenericItem[]): void
+    (e: "select", value: GenericItem | GenericItem[] | null): void
 }>()
 
 // i18n
@@ -41,16 +41,24 @@ let sortable: Sortable | null = null
 // Computed
 const items = computed<GenericItem[]>({
     get: () => props.modelValue,
-    set: (val) => emit('update:modelValue', val)
+    set: (val) => emit("update:modelValue", val),
 })
 const labelName = computed(() => props.labelKey ?? props.uniqueKey)
-const scrollHeight = computed(() => 
-    typeof props.scrollHeight === 'number' ? `${props.scrollHeight}px` : props.scrollHeight ?? 'max-content'
+const scrollHeight = computed(() =>
+    typeof props.scrollHeight === "number"
+        ? `${props.scrollHeight}px`
+        : (props.scrollHeight ?? "max-content"),
 )
 const minHeight = computed(() => {
-    if (props.minHeight) return typeof props.minHeight === 'number' ? `${props.minHeight}px` : props.minHeight
-    if (props.scrollHeight) return typeof props.scrollHeight === 'number' ? `${props.scrollHeight}px` : props.scrollHeight
-    return 'auto'
+    if (props.minHeight)
+        return typeof props.minHeight === "number"
+            ? `${props.minHeight}px`
+            : props.minHeight
+    if (props.scrollHeight)
+        return typeof props.scrollHeight === "number"
+            ? `${props.scrollHeight}px`
+            : props.scrollHeight
+    return "auto"
 })
 
 // Methods
@@ -65,7 +73,7 @@ function toggleSelect(item: GenericItem, event?: MouseEvent) {
     } else {
         if (selectedKeys.value.has(key) && selectedKeys.value.size === 1) {
             selectedKeys.value.clear()
-            emit('select', null)
+            emit("select", null)
             return
         }
         selectedKeys.value.clear()
@@ -73,16 +81,19 @@ function toggleSelect(item: GenericItem, event?: MouseEvent) {
     }
 
     const selectedItems = [...selectedKeys.value]
-        .map(k => props.modelValue.find(i => i[props.uniqueKey] === k))
+        .map((k) => props.modelValue.find((i) => i[props.uniqueKey] === k))
         .filter(Boolean) as GenericItem[]
-    emit('select', props.multiSelect ? selectedItems : selectedItems[0] ?? null)
+    emit(
+        "select",
+        props.multiSelect ? selectedItems : (selectedItems[0] ?? null),
+    )
 }
 
 function removeItem(item: GenericItem) {
     const key = item[props.uniqueKey]
-    const filtered = props.modelValue.filter(i => i[props.uniqueKey] !== key)
+    const filtered = props.modelValue.filter((i) => i[props.uniqueKey] !== key)
     selectedKeys.value.delete(key)
-    emit('update:modelValue', filtered)
+    emit("update:modelValue", filtered)
 }
 
 function setupSortable() {
@@ -91,24 +102,28 @@ function setupSortable() {
 
     sortable = Sortable.create(listRef.value, {
         animation: 150,
-        handle: '.draggable-item',
-        ghostClass: 'drag-ghost',
-        chosenClass: 'drag-chosen',
+        handle: ".draggable-item",
+        ghostClass: "drag-ghost",
+        chosenClass: "drag-chosen",
         onEnd: ({ oldIndex, newIndex }) => {
-            if (oldIndex === undefined || newIndex === undefined || oldIndex === newIndex) return
+            if (
+                oldIndex === undefined ||
+                newIndex === undefined ||
+                oldIndex === newIndex
+            )
+                return
 
             const moved = [...props.modelValue]
             const movedItem = moved.splice(oldIndex, 1)[0]
             moved.splice(newIndex, 0, movedItem)
-            emit('update:modelValue', moved)
-        }
+            emit("update:modelValue", moved)
+        },
     })
 }
 
 // Lifecycle Hooks
 onMounted(setupSortable)
 onBeforeUnmount(() => sortable?.destroy())
-
 </script>
 
 <template>

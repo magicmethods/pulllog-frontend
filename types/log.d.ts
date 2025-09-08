@@ -50,7 +50,7 @@ declare global {
     type LogsListMap = Map<string, Map<string, DateLog[]>> // appId -> queryKey -> DateLog[]
     /** 履歴ダウンロード用設定 */
     type HistoryDownloadSettings = {
-        format: 'csv' | 'json'
+        format: "csv" | "json"
         includeImages: boolean
         dateRange: {
             start: string
@@ -59,11 +59,9 @@ declare global {
     }
     /** 履歴アップロード用データ型 */
     type UploadData = {
-        format: 'json' | 'csv'
-        mode: 'overwrite' | 'merge'
+        format: "json" | "csv"
+        mode: "overwrite" | "merge"
         file: File
     }
-
-
 }
 export {}

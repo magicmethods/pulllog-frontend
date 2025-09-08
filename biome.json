@@ -1,0 +1,58 @@
+{
+    "$schema": "https://biomejs.dev/schemas/2.2.3/schema.json",
+    "files": {
+        "ignoreUnknown": false,
+        "includes": [
+            "**",
+            "!**/node_modules",
+            "!**/.git",
+            "!**/dist",
+            "!**/.output",
+            "!**/.nuxt",
+            "!**/public",
+            "!**/components.d.ts"
+        ]
+    },
+    "formatter": {
+        "enabled": true,
+        "indentStyle": "space",
+        "indentWidth": 4
+    },
+    "javascript": {
+        "formatter": {
+            "enabled": true,
+            "semicolons": "asNeeded"
+        }
+    },
+    "linter": {
+        "enabled": true,
+        "rules": {
+            "recommended": true,
+            "suspicious": {
+                "noConsole": {
+                    "level": "warn",
+                    "options": {
+                        "allow": ["assert", "warn", "error", "info"]
+                    }
+                },
+                "noDocumentCookie": "off",
+                "noExplicitAny": "error"
+            },
+            "style": {
+                "noNonNullAssertion": "error"
+            }
+        }
+    },
+    "overrides": [
+        {
+            "includes": ["**/*.vue"],
+            "linter": {
+                "rules": {
+                    "correctness": {
+                        "noUnusedVariables": "off"
+                    }
+                }
+            }
+        }
+    ]
+}

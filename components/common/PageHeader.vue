@@ -1,11 +1,9 @@
 <script setup lang="ts">
-
 defineProps<{
     title?: string
     // 以下は必要に応じてadPropsにまとめて渡すことも可
     adProps?: AdProps
 }>()
-
 </script>
 
 <template>

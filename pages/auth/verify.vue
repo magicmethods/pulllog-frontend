@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { z } from 'zod'
-import { useI18n } from 'vue-i18n'
-import { useAuth }  from '~/composables/useAuth'
+import { useI18n } from "vue-i18n"
+import { z } from "zod"
+import { useAuth } from "~/composables/useAuth"
 
 definePageMeta({
-    layout: 'auth'
+    layout: "auth",
 })
 
 // Stores & Composables etc.
@@ -13,10 +13,10 @@ const { t } = useI18n()
 
 // Refs & Local variables
 const route = useRoute()
-const token = ref<string>(route.query.token as string || '')
-const type = ref<VerifyType | ''>(route.query.type as VerifyType || '')
-const code = ref<string>('')
-const password = ref<string>('')
+const token = ref<string>((route.query.token as string) || "")
+const type = ref<VerifyType | "">((route.query.type as VerifyType) || "")
+const code = ref<string>("")
+const password = ref<string>("")
 const isInitialized = ref<boolean>(false)
 const verifying = ref<boolean>(false)
 const verified = ref<boolean>(false)
@@ -25,11 +25,12 @@ const error = ref<string | null>(null)
 const codeError = ref<string | null>(null)
 const passwordError = ref<string | null>(null)
 // Schema for form validation
-const verifySchema = computed(() => z.object({
-    code: z.string().length(6, { message: t('validation.invalidCode') }),
-    password: z.string().min(8, { message: t('validation.shortPassword') }),
-}))
-
+const verifySchema = computed(() =>
+    z.object({
+        code: z.string().length(6, { message: t("validation.invalidCode") }),
+        password: z.string().min(8, { message: t("validation.shortPassword") }),
+    }),
+)
 
 // Methods
 async function handleUpdatePassword() {
@@ -38,32 +39,35 @@ async function handleUpdatePassword() {
         // 認証コードの検証処理
         verifySchema.value.parse({
             code: code.value,
-            password: password.value
+            password: password.value,
         })
         codeError.value = null
         passwordError.value = null
 
         const res: boolean = await updatePassword(
             token.value,
-            type.value as 'signup' | 'reset',
+            type.value as "signup" | "reset",
             code.value,
-            password.value
+            password.value,
         )
         if (!res) {
-            throw new Error(t('auth.verify.passwordResetFailed'))
+            throw new Error(t("auth.verify.passwordResetFailed"))
         }
         verifiedCode.value = true
     } catch (e: unknown) {
         if (e instanceof z.ZodError) {
             // Zodのバリデーションエラー
-            if (e.issues.some(issue => issue.path.includes('code'))) {
+            if (e.issues.some((issue) => issue.path.includes("code"))) {
                 codeError.value = e.message
-            } else if (e.issues.some(issue => issue.path.includes('password'))) {
+            } else if (
+                e.issues.some((issue) => issue.path.includes("password"))
+            ) {
                 passwordError.value = e.message
             }
         } else {
-            console.error('Reset Password Error:', e)
-            codeError.value = e instanceof Error ? e.message : t('auth.verify.unknownError')
+            console.error("Reset Password Error:", e)
+            codeError.value =
+                e instanceof Error ? e.message : t("auth.verify.unknownError")
         }
         return
     } finally {
@@ -71,33 +75,35 @@ async function handleUpdatePassword() {
     }
 }
 function handleBack() {
-  navigateTo({ path: '/' })
+    navigateTo({ path: "/" })
 }
 
 // Lifecycle hooks
 onMounted(async () => {
     // クエリパラメータの検証
-    if (!token.value || (type.value !== 'signup' && type.value !== 'reset')) {
-        error.value = t('auth.verify.invalidAccess')
+    if (!token.value || (type.value !== "signup" && type.value !== "reset")) {
+        error.value = t("auth.verify.invalidAccess")
         return
     }
     verifying.value = true
     try {
         // バックエンドAPIへtoken, typeで認証リクエスト
-        const res: boolean = await verifyToken(token.value, type.value as 'signup' | 'reset')
+        const res: boolean = await verifyToken(
+            token.value,
+            type.value as "signup" | "reset",
+        )
         if (!res) {
-            throw new Error(t('auth.verify.failed'))
+            throw new Error(t("auth.verify.failed"))
         }
         verified.value = true
     } catch (e: unknown) {
-        console.error('Verification error:', e)
-        error.value = `${t('auth.verify.invalidAccess')}<br>${e instanceof Error ? e.message : ''}`
+        console.error("Verification error:", e)
+        error.value = `${t("auth.verify.invalidAccess")}<br>${e instanceof Error ? e.message : ""}`
     } finally {
         verifying.value = false
         isInitialized.value = true
     }
 })
-
 </script>
 
 <template>

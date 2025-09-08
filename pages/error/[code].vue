@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
-import { useAppStore } from '~/stores/useAppStore'
-import { useUserStore } from '~/stores/useUserStore'
-import { useCsrfStore } from '~/stores/useCsrfStore'
-import { useLogStore } from '~/stores/useLogStore'
-import { useStatsStore } from '~/stores/useStatsStore'
+import { useI18n } from "vue-i18n"
+import { useRoute } from "vue-router"
+import { useAppStore } from "~/stores/useAppStore"
+import { useCsrfStore } from "~/stores/useCsrfStore"
+import { useLogStore } from "~/stores/useLogStore"
+import { useStatsStore } from "~/stores/useStatsStore"
+import { useUserStore } from "~/stores/useUserStore"
 
 definePageMeta({
-    layout: 'error'
+    layout: "error",
 })
 
 const route = useRoute()
@@ -23,60 +23,75 @@ const statsStore = useStatsStore()
 const statusCode = Number(route.params.code || 500)
 const copy = computed(() => {
     switch (statusCode) {
-        case 400: return {
-            title: t('app.error.badRequestTitle'),
-            message: t('app.error.badRequestMessage'),
-            primary: {
-                label: t('app.backToHome'),
-                action: () => navigateTo('/', { replace: true })
+        case 400:
+            return {
+                title: t("app.error.badRequestTitle"),
+                message: t("app.error.badRequestMessage"),
+                primary: {
+                    label: t("app.backToHome"),
+                    action: () => navigateTo("/", { replace: true }),
+                },
             }
-        }
-        case 401: return {
-            title: t('app.error.unauthorizedTitle'),
-            message: t('app.error.unauthorizedMessage'),
-            primary: {
-                label: t('app.goToLogin'),
-                action: () => navigateTo(`/auth/login?redirect=${encodeURIComponent('/')}`, { replace: true })
+        case 401:
+            return {
+                title: t("app.error.unauthorizedTitle"),
+                message: t("app.error.unauthorizedMessage"),
+                primary: {
+                    label: t("app.goToLogin"),
+                    action: () =>
+                        navigateTo(
+                            `/auth/login?redirect=${encodeURIComponent("/")}`,
+                            {
+                                replace: true,
+                            },
+                        ),
+                },
             }
-        }
-        case 403: return {
-            title: t('app.error.forbiddenTitle'),
-            message: t('app.error.forbiddenMessage'),
-            primary: {
-                label: t('app.backToHome'),
-                action: () => navigateTo('/', { replace: true })
+        case 403:
+            return {
+                title: t("app.error.forbiddenTitle"),
+                message: t("app.error.forbiddenMessage"),
+                primary: {
+                    label: t("app.backToHome"),
+                    action: () => navigateTo("/", { replace: true }),
+                },
             }
-        }
-        case 404: return {
-            title: t('app.error.notFound'),
-            message: t('app.error.pageNotFoundMessage'),
-            primary: {
-                label: t('app.backToHome'),
-                action: () => navigateTo('/', { replace: true })
+        case 404:
+            return {
+                title: t("app.error.notFound"),
+                message: t("app.error.pageNotFoundMessage"),
+                primary: {
+                    label: t("app.backToHome"),
+                    action: () => navigateTo("/", { replace: true }),
+                },
             }
-        }
-        case 419: return {
-            title: t('app.error.sessionExpiredTitle'),
-            message: t('app.error.sessionExpiredMessage'),
-            primary: {
-                label: t('app.goToLogin'),
-                action: () => {
-                    // ストアのCSRFトークンをクリア
-                    //csrfStore.clearToken()
-                    // RememberトークンのCookieがあれば削除
-                    //document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
-                    navigateTo(`/auth/login?redirect=${encodeURIComponent(route.query.from as string || '/')}`, { replace: true })
-                }
+        case 419:
+            return {
+                title: t("app.error.sessionExpiredTitle"),
+                message: t("app.error.sessionExpiredMessage"),
+                primary: {
+                    label: t("app.goToLogin"),
+                    action: () => {
+                        // ストアのCSRFトークンをクリア
+                        //csrfStore.clearToken()
+                        // RememberトークンのCookieがあれば削除
+                        //document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
+                        navigateTo(
+                            `/auth/login?redirect=${encodeURIComponent((route.query.from as string) || "/")}`,
+                            { replace: true },
+                        )
+                    },
+                },
             }
-        }
-        default: return {
-            title: t('app.error.errorOccurred'),
-            message: t('app.error.sorrySomethingWentWrong'),
-            primary: {
-                label: t('app.backToHome'),
-                action: () => navigateTo('/', { replace: true })
+        default:
+            return {
+                title: t("app.error.errorOccurred"),
+                message: t("app.error.sorrySomethingWentWrong"),
+                primary: {
+                    label: t("app.backToHome"),
+                    action: () => navigateTo("/", { replace: true }),
+                },
             }
-        }
     }
 })
 
@@ -95,16 +110,15 @@ onMounted(() => {
     // エラー時はフロント側状態をクリア
     clearUserData()
     // ヘッダーを非表示にして全画面表示
-    const headerElement = document.querySelector('header')
+    const headerElement = document.querySelector("header")
     if (headerElement) {
-        headerElement.classList.add('hidden')
-        const mainElement = document.querySelector('main')
+        headerElement.classList.add("hidden")
+        const mainElement = document.querySelector("main")
         if (mainElement) {
-            mainElement.setAttribute('style', 'height: 100vh; overflow: hidden')
+            mainElement.setAttribute("style", "height: 100vh; overflow: hidden")
         }
     }
 })
-
 </script>
 
 <template>

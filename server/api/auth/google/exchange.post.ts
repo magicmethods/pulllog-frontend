@@ -1,5 +1,8 @@
-import { defineEventHandler, readBody } from 'h3'
-import { buildProxyHeaders, proxyFetchAndReturn } from '~/server/utils/apiProxyUtil'
+import { defineEventHandler, readBody } from "h3"
+import {
+    buildProxyHeaders,
+    proxyFetchAndReturn,
+} from "~/server/utils/apiProxyUtil"
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -10,7 +13,7 @@ export default defineEventHandler(async (event) => {
     const headers = buildProxyHeaders(event, apiKey, [], false)
     if (!headers) {
         event.node.res.statusCode = 500
-        return { error: 'An unexpected error has occurred.' }
+        return { error: "An unexpected error has occurred." }
     }
 
     const body = await readBody(event)
@@ -19,7 +22,7 @@ export default defineEventHandler(async (event) => {
         event,
         `${apiBaseURL}/auth/google/exchange`,
         headers,
-        'POST',
-        body
+        "POST",
+        body,
     )
 })

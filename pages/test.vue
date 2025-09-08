@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
 
 // i18n
 const { t } = useI18n()
 
 // Refs & Local variables
 const statusCode: number = 500
-const title: string = statusCode === 404 ? t('app.error.notFound') : t('app.error.errorOccurred')
-const message: string = t('app.error.sorrySomethingWentWrong')
+const title: string =
+    statusCode === 404 ? t("app.error.notFound") : t("app.error.errorOccurred")
+const message: string = t("app.error.sorrySomethingWentWrong")
 
 const goHome = () => {
-    window.location.href = '/'
+    window.location.href = "/"
 }
 
 onMounted(() => {
-    const headerElement = document.querySelector('header')
+    const headerElement = document.querySelector("header")
     if (headerElement) {
-        headerElement.classList.add('hidden')
-        const mainElement = document.querySelector('main')
+        headerElement.classList.add("hidden")
+        const mainElement = document.querySelector("main")
         if (mainElement) {
-            mainElement.setAttribute('style', 'height: 100vh; overflow: hidden')
+            mainElement.setAttribute("style", "height: 100vh; overflow: hidden")
         }
     }
 })
-
 </script>
 
 <template>

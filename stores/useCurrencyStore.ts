@@ -1,12 +1,12 @@
-import { useAPI } from '~/composables/useAPI'
-import { endpoints } from '~/api/endpoints'
+import { endpoints } from "~/api/endpoints"
+import { useAPI } from "~/composables/useAPI"
 
 /**
  * 通貨データを管理するストア
  * - 旧 `utils/currency.ts` の機能を統合
  * - 通貨データはAPIでDBのcurrenciesテーブルから取得し、Mapにキャッシュ
  */
-export const useCurrencyStore = defineStore('currency', () => {
+export const useCurrencyStore = defineStore("currency", () => {
     // composables
     const { callApi } = useAPI()
 
@@ -26,20 +26,27 @@ export const useCurrencyStore = defineStore('currency', () => {
         inflight.value = (async () => {
             const response = await callApi<CurrencyResponse>({
                 endpoint: endpoints.currency.list(),
-                method: 'GET',
+                method: "GET",
             })
-            if (!response || response.status === 'error' || !Array.isArray(response.data)) {
+            if (
+                !response ||
+                response.status === "error" ||
+                !Array.isArray(response.data)
+            ) {
                 throw createError({
                     statusCode: 500,
-                    statusMessage: response?.message ?? t('app.error.loadCurrencyFailed')
+                    statusMessage:
+                        response?.message ?? t("app.error.loadCurrencyFailed"),
                 })
             }
             map.value.clear() // 既存のデータをクリア
-            for (const c of response.data) map.value.set(c.code.toUpperCase(), c)
+            for (const c of response.data)
+                map.value.set(c.code.toUpperCase(), c)
             loadedAt.value = Date.now()
-            console.log('Loaded currencies:', map.value.size)
         })()
-        try { await inflight.value } finally {
+        try {
+            await inflight.value
+        } finally {
             inflight.value = null // 読み込み完了後はnullに戻す
         }
     }
@@ -54,7 +61,11 @@ export const useCurrencyStore = defineStore('currency', () => {
      */
     function get(codeLike: string): CurrencyData | undefined {
         if (!codeLike) return undefined
-        const code = codeLike.trim().toUpperCase().match(/[A-Z]{3}/)?.[0] ?? null
+        const code =
+            codeLike
+                .trim()
+                .toUpperCase()
+                .match(/[A-Z]{3}/)?.[0] ?? null
         return code ? map.value.get(code) : undefined
     }
 
@@ -70,11 +81,16 @@ export const useCurrencyStore = defineStore('currency', () => {
         // console.log('Default currency code for locale:', useNuxtApp().$i18n.locale.value)
         // デフォルトの通貨コードをロケールに基づいて決定
         switch (true) {
-            case /ja/i.test(ls): return 'JPY'
-            case /en/i.test(ls): return 'USD'
-            case /zh/i.test(ls): return 'CNY'
-            case /ko/i.test(ls): return 'KRW'
-            default: return 'USD' // その他はデフォルトでUSD
+            case /ja/i.test(ls):
+                return "JPY"
+            case /en/i.test(ls):
+                return "USD"
+            case /zh/i.test(ls):
+                return "CNY"
+            case /ko/i.test(ls):
+                return "KRW"
+            default:
+                return "USD" // その他はデフォルトでUSD
         }
     }
 
@@ -95,10 +111,17 @@ export const useCurrencyStore = defineStore('currency', () => {
      * formatDecimal(1234.56, 'XYZ') -> "1,234.56 XYZ"
      * ```
      */
-    function formatDecimal(valueDecimal: number, code: string, locale = 'en-US'): string {
+    function formatDecimal(
+        valueDecimal: number,
+        code: string,
+        locale = "en-US",
+    ): string {
         const cur = get(code)
         if (!cur) return `${valueDecimal.toLocaleString(locale)} ${code}`
-        return new Intl.NumberFormat(locale, { style: 'currency', currency: cur.code }).format(valueDecimal)
+        return new Intl.NumberFormat(locale, {
+            style: "currency",
+            currency: cur.code,
+        }).format(valueDecimal)
     }
 
     /**
@@ -110,12 +133,12 @@ export const useCurrencyStore = defineStore('currency', () => {
     function getStepSize(code: string): number {
         const cur = get(code)
         if (!cur) return 1000
-        if (cur.code === 'KRW') return 5000
-        if (cur.code === 'JPY') return 1000
-        if (cur.code === 'CNY') return 50
-        if (cur.code === 'USD' || cur.code === 'EUR') return 10
+        if (cur.code === "KRW") return 5000
+        if (cur.code === "JPY") return 1000
+        if (cur.code === "CNY") return 50
+        if (cur.code === "USD" || cur.code === "EUR") return 10
         // 基本は 10^(-minor_unit) * rounding (rounding=0のときは1扱い)
-        let base = (10 ** -cur.minor_unit) * (cur.rounding || 1)
+        let base = 10 ** -cur.minor_unit * (cur.rounding || 1)
         if (base < 1) base = 1
         if (base < 0.01) base = 0.01
         return base
@@ -129,7 +152,11 @@ export const useCurrencyStore = defineStore('currency', () => {
      * @param alwaysUpper - trueならば、maxValueと同じ値のときも1つ上げる
      * @return 繰り上げたY軸最大値
      */
-    function getYAxisMax(maxValue: number, code: string, alwaysUpper = true): number {
+    function getYAxisMax(
+        maxValue: number,
+        code: string,
+        alwaysUpper = true,
+    ): number {
         const step = getStepSize(code)
         if (maxValue === 0) return step
         let yMax = Math.ceil(maxValue / step) * step
@@ -145,9 +172,9 @@ export const useCurrencyStore = defineStore('currency', () => {
      * セレクト用オプションを生成（並び順: JPY/USD/CNY → EUR/INR/KRW → アルファベット）
      * - localeで初期選択コードを決めるときにも利用想定
      */
-    function optionsForSelect(locale?: string): CurrencyOption[] {
-        const top1 = ['JPY', 'USD', 'CNY']
-        const top2 = ['EUR', 'INR', 'KRW']
+    function optionsForSelect(_locale?: string): CurrencyOption[] {
+        const top1 = ["JPY", "USD", "CNY"]
+        const top2 = ["EUR", "INR", "KRW"]
 
         // Map -> 配列
         const all = Array.from(map.value.values())
@@ -155,17 +182,22 @@ export const useCurrencyStore = defineStore('currency', () => {
         // 存在する通貨コードだけに限定
         const pick = (codes: string[]) =>
             codes
-            .map(c => c.toUpperCase())
-            .map(code => map.value.get(code))
-            .filter(Boolean) as CurrencyData[]
+                .map((c) => c.toUpperCase())
+                .map((code) => map.value.get(code))
+                .filter(Boolean) as CurrencyData[]
 
         const group1 = pick(top1)
         const group2 = pick(top2)
         const others = all
-            .filter(c => ![...group1, ...group2].some(g => g.code === c.code))
+            .filter(
+                (c) => ![...group1, ...group2].some((g) => g.code === c.code),
+            )
             .sort((a, b) => a.code.localeCompare(b.code))
 
-        return [...group1, ...group2, ...others].map(c => ({ value: c.code, label: toLabel(c) }))
+        return [...group1, ...group2, ...others].map((c) => ({
+            value: c.code,
+            label: toLabel(c),
+        }))
     }
 
     return {

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useUserStore } from '~/stores/useUserStore'
-import { useAppStore } from '~/stores/useAppStore'
-import { useStatsStore } from '~/stores/useStatsStore'
-import { useOptionStore } from '~/stores/useOptionStore'
-import { useCurrencyStore } from '~/stores/useCurrencyStore'
+import { useI18n } from "vue-i18n"
+import { useAppStore } from "~/stores/useAppStore"
+import { useCurrencyStore } from "~/stores/useCurrencyStore"
+import { useOptionStore } from "~/stores/useOptionStore"
+import { useStatsStore } from "~/stores/useStatsStore"
+import { useUserStore } from "~/stores/useUserStore"
 
 // Props & Emits
 const props = defineProps<{
@@ -21,19 +21,24 @@ const currencyStore = useCurrencyStore()
 const { t } = useI18n()
 
 // Refs & Local variables
-const internalAppId = ref<string | null>(props.appId ?? appStore.app?.appId ?? null)
+const internalAppId = ref<string | null>(
+    props.appId ?? appStore.app?.appId ?? null,
+)
 const isLoading = computed<boolean>(() => statsStore.isLoading)
 const error = computed<string | null>(() => statsStore.error)
 const displayLabel = computed<string>(() => {
-    if (props.label && props.label !== '') {
+    if (props.label && props.label !== "") {
         return props.label
     }
-    const appName = appStore.app?.name ?? t('history.historyStats.targetApp')
-    return t('history.historyStats.label', { appName })
+    const appName = appStore.app?.name ?? t("history.historyStats.targetApp")
+    return t("history.historyStats.label", { appName })
 })
 const statsData = ref<StatsData | null>(null)
 const currencyUnit = computed<string>(() => {
-    return currencyStore.get(appStore.app?.currency_code ?? 'JPY')?.symbol_native ?? '¥'
+    return (
+        currencyStore.get(appStore.app?.currency_code ?? "JPY")
+            ?.symbol_native ?? "¥"
+    )
 })
 const reloadStatsChartKey = ref<number>(0)
 
@@ -43,25 +48,32 @@ async function fetchStats() {
         statsData.value = null
         return
     }
-    const targetElement = document.getElementById('statsContainer') ?? undefined
-    const data = await statsStore.fetchStats(internalAppId.value, '', '', targetElement)
-    console.log('HistoryStats::fetchStats:', data, targetElement)
-    statsData.value = data ? {...data} : null
+    const targetElement = document.getElementById("statsContainer") ?? undefined
+    const data = await statsStore.fetchStats(
+        internalAppId.value,
+        "",
+        "",
+        targetElement,
+    )
+    statsData.value = data ? { ...data } : null
 }
 
 // Watchers
 watch(
     // 依存propsが変わったら取得
     internalAppId,
-    () => { fetchStats() },
-    { immediate: true }
+    () => {
+        fetchStats()
+    },
+    { immediate: true },
 )
 watch(
     // テーマ変更時にチャートを再描画
     () => userStore.user?.theme,
-    () => { reloadStatsChartKey.value++ }
+    () => {
+        reloadStatsChartKey.value++
+    },
 )
-
 </script>
 
 <template>

@@ -1,9 +1,6 @@
 <script setup lang="ts">
-
 // Emits
-const emit = defineEmits<
-    (e: 'input', value: string) => void
->()
+const emit = defineEmits<(e: "input", value: string) => void>()
 
 /**
  * テンキー配置（4x4）
@@ -15,38 +12,36 @@ const emit = defineEmits<
  * ```
  */
 const keys = [
-    { label: '7', value: '7' },
-    { label: '8', value: '8' },
-    { label: '9', value: '9' },
-    { icon: 'pi pi-percentage', value: '/', iconClass: 'rotate-45 text-sm' },
+    { label: "7", value: "7" },
+    { label: "8", value: "8" },
+    { label: "9", value: "9" },
+    { icon: "pi pi-percentage", value: "/", iconClass: "rotate-45 text-sm" },
 
-    { label: '4', value: '4' },
-    { label: '5', value: '5' },
-    { label: '6', value: '6' },
-    { icon: 'pi pi-times', value: '*' },
+    { label: "4", value: "4" },
+    { label: "5", value: "5" },
+    { label: "6", value: "6" },
+    { icon: "pi pi-times", value: "*" },
 
-    { label: '1', value: '1' },
-    { label: '2', value: '2' },
-    { label: '3', value: '3' },
-    { icon: 'pi pi-minus', value: '-' },
+    { label: "1", value: "1" },
+    { label: "2", value: "2" },
+    { label: "3", value: "3" },
+    { icon: "pi pi-minus", value: "-" },
 
-    { label: '0', value: '0' },
-    { label: '00', value: '00' },
-    { label: '.', value: '.' },
-    { icon: 'pi pi-plus', value: '+' }
+    { label: "0", value: "0" },
+    { label: "00", value: "00" },
+    { label: ".", value: "." },
+    { icon: "pi pi-plus", value: "+" },
 ]
-
 
 // Methods
 const handleInput = (key: string) => {
-    emit('input', key)
+    emit("input", key)
 }
 
 // Pass Through
 const keypadPT = (iconClass: string | null) => {
-    return { icon: iconClass ?? '' }
+    return { icon: iconClass ?? "" }
 }
-
 </script>
 
 <template>

@@ -1,5 +1,8 @@
-import { defineEventHandler } from 'h3'
-import { buildProxyHeaders, proxyFetchAndReturn } from '~/server/utils/apiProxyUtil'
+import { defineEventHandler } from "h3"
+import {
+    buildProxyHeaders,
+    proxyFetchAndReturn,
+} from "~/server/utils/apiProxyUtil"
 
 export default defineEventHandler(async (event) => {
     const config = useRuntimeConfig()
@@ -10,29 +13,27 @@ export default defineEventHandler(async (event) => {
 
     if (!apiBaseURL || !apiKey || !email || !password) {
         event.node.res.statusCode = 500
-        return { error: 'Demo login is not configured.' }
+        return { error: "Demo login is not configured." }
     }
 
     // ログイン時はCSRFトークン不要
     const headers = buildProxyHeaders(event, apiKey, [], false)
     if (!headers) {
         event.node.res.statusCode = 500
-        return { error: 'An unexpected error has occurred.' }
+        return { error: "An unexpected error has occurred." }
     }
-    headers['content-type'] = 'application/json'
-    // biome-ignore lint:/performance/noDelete
-    delete headers['content-length']
+    headers["content-type"] = "application/json"
+    delete headers["content-length"]
 
     // ログインpayload（必要に応じてRemember等を付与）
     const payload = { email, password, remember: false }
 
-    
     // fetch&レスポンス返却
     return await proxyFetchAndReturn(
         event,
         `${apiBaseURL}/auth/login`,
         headers,
-        'POST',
-        payload
+        "POST",
+        payload,
     )
 })

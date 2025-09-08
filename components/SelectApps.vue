@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
-import { useAppStore } from '~/stores/useAppStore'
-import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useI18n } from 'vue-i18n'
-import type { ToastMessageOptions } from 'primevue/toast'
+import type { ToastMessageOptions } from "primevue/toast"
 import { useToast } from "primevue/usetoast"
-import { useWebIcon } from '~/composables/useWebIcon'
+import { useI18n } from "vue-i18n"
+import { useWebIcon } from "~/composables/useWebIcon"
+import { useAppStore } from "~/stores/useAppStore"
+import { useLoaderStore } from "~/stores/useLoaderStore"
+import { useUserStore } from "~/stores/useUserStore"
 
 // Stores & Plugins
 const userStore = useUserStore()
@@ -20,66 +20,74 @@ const { fetchWebIcon } = useWebIcon()
 // Refs & Local variables
 const modalVisible = ref<boolean>(false)
 const editTarget = ref<AppData | undefined>(undefined)
-const isDemoUser = computed(() => userStore.hasUserRole('demo')) // デモユーザーかどうか
+const isDemoUser = computed(() => userStore.hasUserRole("demo")) // デモユーザーかどうか
 
 // Computed
 const selectedApp = computed<AppData | null>({
     get: () => appStore.app,
-    set: (val: AppData | null) => appStore.setApp(val)
+    set: (val: AppData | null) => appStore.setApp(val),
 })
-const registeredApps = computed<AppData[]>(() => 
-    appStore.appList.filter(app => !!app && !!app.appId && !!app.name)
+const registeredApps = computed<AppData[]>(() =>
+    appStore.appList.filter((app) => !!app && !!app.appId && !!app.name),
 )
 const isMaxApps = computed(() => {
     const maxApps = userStore.planLimits?.maxApps ?? 5
     return registeredApps.value.length >= maxApps
 })
 const placeholderText = computed(() => {
-    return appStore.appList.length === 0 ? t('component.selectApps.addPlaceholder') : t('component.selectApps.selectPlaceholder')
+    return appStore.appList.length === 0
+        ? t("component.selectApps.addPlaceholder")
+        : t("component.selectApps.selectPlaceholder")
 })
 const emptyText = computed(() => {
-    return appStore.appList.length === 0 ? t('component.selectApps.emptyMessage') : ''
+    return appStore.appList.length === 0
+        ? t("component.selectApps.emptyMessage")
+        : ""
 })
 
 // Methods
 function handleChangeApp(app: AppData | null) {
     appStore.setApp(app)
 }
-function openModal(mode: 'edit' | 'add', e: Event) {
+function openModal(mode: "edit" | "add", e: Event) {
     const targetElm = e.target as HTMLElement
-    if (targetElm?.closest('button')) {
-        (targetElm.closest('button') as HTMLButtonElement).blur()
+    if (targetElm?.closest("button")) {
+        ;(targetElm.closest("button") as HTMLButtonElement).blur()
     }
     editTarget.value = undefined
-    if (mode === 'edit') {
+    if (mode === "edit") {
         if (!selectedApp.value) {
             e.preventDefault()
             modalVisible.value = false
             return false
         }
         // 最新内容で上書き
-        const latest = registeredApps.value.find(app => app.appId === selectedApp.value?.appId)
+        const latest = registeredApps.value.find(
+            (app) => app.appId === selectedApp.value?.appId,
+        )
         if (!latest) {
             toast.add({
-                severity: 'warn',
-                summary: t('component.selectApps.dataMismatch'),
-                detail: t('component.selectApps.appNotFound'),
-                group: 'notices',
-                life: 3000
+                severity: "warn",
+                summary: t("component.selectApps.dataMismatch"),
+                detail: t("component.selectApps.appNotFound"),
+                group: "notices",
+                life: 3000,
             })
             return
         }
         editTarget.value = { ...latest }
         //console.log('openModal::handleAppEdit:', registeredApps.value, selectedApp.value, editTarget.value)
-    } else if (mode === 'add') {
+    } else if (mode === "add") {
         // 新規追加モード
         if (isMaxApps.value) {
             toast.add({
-                severity: 'warn',
-                summary: t('component.selectApps.maxAppsReached'),
-                detail: t('component.selectApps.maxAppsReachedDetail', { max: userStore.planLimits?.maxApps ?? 5 }),
-                group: 'notices',
-                life: 3000
+                severity: "warn",
+                summary: t("component.selectApps.maxAppsReached"),
+                detail: t("component.selectApps.maxAppsReachedDetail", {
+                    max: userStore.planLimits?.maxApps ?? 5,
+                }),
+                group: "notices",
+                life: 3000,
             })
             return
         }
@@ -89,11 +97,11 @@ function openModal(mode: 'edit' | 'add', e: Event) {
 function abortDemo() {
     // デモユーザーの場合は何もしない
     toast.add({
-        severity: 'warn',
-        summary: t('app.error.demoTitle'),
-        detail: t('app.error.demoDetail'),
-        group: 'notices',
-        life: 3000
+        severity: "warn",
+        summary: t("app.error.demoTitle"),
+        detail: t("app.error.demoDetail"),
+        group: "notices",
+        life: 3000,
     })
     // モーダルを閉じる
     modalVisible.value = false
@@ -103,30 +111,32 @@ async function handleAppSubmit(app: AppData | undefined) {
     if (!app) return undefined
     if (isDemoUser.value) return abortDemo()
 
-    let loaderId: string | undefined = undefined
+    let loaderId: string | undefined
     let notices: ToastMessageOptions = {}
 
     try {
         // API通信
         const result = await appStore.saveApp(app)
-        loaderId = loaderStore.show(t('component.selectApps.savingChanges'))
+        loaderId = loaderStore.show(t("component.selectApps.savingChanges"))
         await nextTick()
         appStore.setAppById(result.appId)
         notices = {
-            severity: 'success',
-            summary: t('component.selectApps.saveApp'),
-            detail: t('component.selectApps.saveAppDetail', { name: result.name }),
-            group: 'notices',
-            life: 3000
+            severity: "success",
+            summary: t("component.selectApps.saveApp"),
+            detail: t("component.selectApps.saveAppDetail", {
+                name: result.name,
+            }),
+            group: "notices",
+            life: 3000,
         }
         //console.log('SelectApps.vue::handleAppSubmit:result:', result, registeredApps.value, selectedApp.value)
     } catch (e) {
         notices = {
-            severity: 'error',
-            summary: t('component.selectApps.saveError'),
-            detail: t('component.selectApps.saveErrorDetail'),
-            group: 'notices',
-            life: 3000
+            severity: "error",
+            summary: t("component.selectApps.saveError"),
+            detail: t("component.selectApps.saveErrorDetail"),
+            group: "notices",
+            life: 3000,
         }
     } finally {
         // ローダーを非表示
@@ -140,9 +150,8 @@ async function handleAppSubmit(app: AppData | undefined) {
 
 // PassThrough
 const selectPT = {
-    root: 'w-full md:w-1/2 h-max',
+    root: "w-full md:w-1/2 h-max",
 }
-
 </script>
 
 <template>

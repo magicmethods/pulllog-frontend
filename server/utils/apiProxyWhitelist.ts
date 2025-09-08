@@ -8,5 +8,5 @@ export const API_PROXY_ALLOW_LIST = [
     // 必要に応じて追加
 ]
 export function isAllowedApiPath(path: string): boolean {
-    return API_PROXY_ALLOW_LIST.some(re => re.test(path))
+    return API_PROXY_ALLOW_LIST.some((re) => re.test(path))
 }

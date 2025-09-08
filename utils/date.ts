@@ -1,4 +1,4 @@
-import { DateTime } from 'luxon'
+import { DateTime } from "luxon"
 
 /**
  * カレンダー日付型を YYYY-MM-DD 形式の文字列に変換
@@ -9,17 +9,17 @@ import { DateTime } from 'luxon'
  * - luxon 非依存のメソッド
  */
 export function formatDate(dateValue: CalenderDate): string {
-  let _d = null
-  if (Array.isArray(dateValue)) {
-    for (const v of dateValue) {
-      if (v instanceof Date) _d = v
-      break
+    let _d = null
+    if (Array.isArray(dateValue)) {
+        for (const v of dateValue) {
+            if (v instanceof Date) _d = v
+            break
+        }
+    } else if (dateValue instanceof Date) {
+        _d = dateValue
     }
-  } else if (dateValue instanceof Date) {
-    _d = dateValue
-  }
-  if (!_d) return '' // 日付が無効な場合は空文字を返す
-  return `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`
+    if (!_d) return "" // 日付が無効な場合は空文字を返す
+    return `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, "0")}-${String(_d.getDate()).padStart(2, "0")}`
 }
 
 /**
@@ -37,15 +37,17 @@ export function formatDate(dateValue: CalenderDate): string {
  */
 export function strFromDate(
     date: string | number | Date,
-    format = '%Y-%m-%d',
-    utc = false
+    format = "%Y-%m-%d",
+    utc = false,
 ): string {
     // 入力の正規化
     let dt: DateTime
-    if (typeof date === 'string' || typeof date === 'number') {
-        dt = DateTime.fromJSDate(new Date(date), { zone: utc ? 'utc' : 'local' })
+    if (typeof date === "string" || typeof date === "number") {
+        dt = DateTime.fromJSDate(new Date(date), {
+            zone: utc ? "utc" : "local",
+        })
     } else if (date instanceof Date) {
-        dt = DateTime.fromJSDate(date, { zone: utc ? 'utc' : 'local' })
+        dt = DateTime.fromJSDate(date, { zone: utc ? "utc" : "local" })
     } else {
         throw new Error(`Invalid date: ${date}`)
     }
@@ -53,25 +55,31 @@ export function strFromDate(
     //const d = new Date(date)
     //if (Number.isNaN(d.getTime())) throw new Error(`Invalid date: ${date}`)
 
-    const year = dt.year.toString()// d.getFullYear().toString()
+    const year = dt.year.toString() // d.getFullYear().toString()
     const symbol: { [key: string]: string } = {
-        '%Y': year,
-        '%y': year.slice(-2),
-        '%m': dt.month.toString().padStart(2, '0'),// (d.getMonth() + 1).toString().padStart(2, '0'),
-        '%d': dt.day.toString().padStart(2, '0'),// d.getDate().toString().padStart(2, '0'),
-        '%H': dt.hour.toString().padStart(2, '0'),// d.getHours().toString().padStart(2, '0'),
-        '%M': dt.minute.toString().padStart(2, '0'),// d.getMinutes().toString().padStart(2, '0'),
-        '%S': dt.second.toString().padStart(2, '0'),// d.getSeconds().toString().padStart(2, '0'),
+        "%Y": year,
+        "%y": year.slice(-2),
+        "%m": dt.month.toString().padStart(2, "0"), // (d.getMonth() + 1).toString().padStart(2, '0'),
+        "%d": dt.day.toString().padStart(2, "0"), // d.getDate().toString().padStart(2, '0'),
+        "%H": dt.hour.toString().padStart(2, "0"), // d.getHours().toString().padStart(2, '0'),
+        "%M": dt.minute.toString().padStart(2, "0"), // d.getMinutes().toString().padStart(2, '0'),
+        "%S": dt.second.toString().padStart(2, "0"), // d.getSeconds().toString().padStart(2, '0'),
     }
 
     // 未知のフォーマットの場合
-    const unknownFormats = format.match(/%[a-zA-Z]/g)?.filter(f => !(f in symbol))
+    const unknownFormats = format
+        .match(/%[a-zA-Z]/g)
+        ?.filter((f) => !(f in symbol))
     if (unknownFormats?.length) {
-        throw new Error(`Unsupported format specifiers: ${unknownFormats.join(', ')}`)
+        throw new Error(
+            `Unsupported format specifiers: ${unknownFormats.join(", ")}`,
+        )
     }
 
     // `%%` で `%*` をエスケープ可能
-    return format.replace(/%%/g, '%').replace(/%[a-zA-Z]/g, v => symbol[v as keyof typeof symbol] || v)
+    return format
+        .replace(/%%/g, "%")
+        .replace(/%[a-zA-Z]/g, (v) => symbol[v as keyof typeof symbol] || v)
 }
 
 // Private: 合計ユーティリティ
@@ -80,14 +88,17 @@ function sum(arr: number[]) {
 }
 
 // Private: ラベル整形ユーティリティ
-function formatLabel(format: string, context: Record<string, string | number>): string {
+function formatLabel(
+    format: string,
+    context: Record<string, string | number>,
+): string {
     return format
-        .replace(/%d/g,  String(context.day ?? ''))
-        .replace(/%1d/g, String(context.startDay ?? ''))
-        .replace(/%2d/g, String(context.endDay ?? ''))
-        .replace(/%w/g,  String(context.week ?? ''))
-        .replace(/%Y/g,  String(context.year ?? ''))
-        .replace(/%m/g,  String(context.month ?? ''))
+        .replace(/%d/g, String(context.day ?? ""))
+        .replace(/%1d/g, String(context.startDay ?? ""))
+        .replace(/%2d/g, String(context.endDay ?? ""))
+        .replace(/%w/g, String(context.week ?? ""))
+        .replace(/%Y/g, String(context.year ?? ""))
+        .replace(/%m/g, String(context.month ?? ""))
 }
 
 /**
@@ -105,7 +116,7 @@ function formatLabel(format: string, context: Record<string, string | number>): 
  * ```ts
  * import { getLabelsAndMap } from '~/utils/date'
  * const { labels, points } = getLabelsAndMap(data, 30, '2025-01-01', 7, '%1d～%2d週')
- * 
+ *
  * getLabelsAndMap(data, 30) // 1日ごと30日分（本日を終点）
  * getLabelsAndMap(data, 91, undefined, 7, '第%w週') // 7日ごとに91日分（本日を終点）で週番号をラベルに
  * getLabelsAndMap(data, 182, undefined, 14, '%1d〜%2d週') // 14日ごとに182日分（本日を終点）で週番号をラベルに
@@ -117,7 +128,7 @@ export function getLabelsAndMap(
     range: number, // 日数
     startDate?: string, // YYYY-MM-DD
     step = 1, // 日数ごとのグループ化単位（1=日次, 7=週次, 30=月次など）
-    labelFormat?: string // 例: "%d", "%1d～%2d週", "%m月"
+    labelFormat?: string, // 例: "%d", "%1d～%2d週", "%m月"
 ): { labels: string[]; points: ChartDataPoint[] } {
     // 範囲の始点・終点算出
     let end: DateTime
@@ -126,53 +137,63 @@ export function getLabelsAndMap(
         start = DateTime.fromISO(startDate)
         end = start.plus({ days: range - 1 })
     } else {
-        end = DateTime.now().endOf('day')
+        end = DateTime.now().endOf("day")
         start = end.minus({ days: range - 1 })
     }
 
     // グリッド生成
-    const grids: { start: DateTime; end: DateTime; context: Record<string, string | number> }[] = []
+    const grids: {
+        start: DateTime
+        end: DateTime
+        context: Record<string, string | number>
+    }[] = []
     for (let s = start; s <= end; s = s.plus({ days: step })) {
-        const e = s.plus({ days: step - 1 }).startOf('day')
+        const e = s.plus({ days: step - 1 }).startOf("day")
         const gridEnd = e > end ? end : e
         const ctx: Record<string, string | number> = {
-            startDay: s.toFormat('M/d'),
-            endDay: gridEnd.toFormat('M/d'),
-            day: s.toFormat('M/d'),
+            startDay: s.toFormat("M/d"),
+            endDay: gridEnd.toFormat("M/d"),
+            day: s.toFormat("M/d"),
             week: s.weekNumber,
             year: s.year,
-            month: s.month
+            month: s.month,
         }
         grids.push({ start: s, end: gridEnd, context: ctx })
     }
 
     // データグループ化＆集計
-    const points = grids.map(g => {
-        const group = data.filter(d => {
-            const dt = DateTime.fromISO(d.date).startOf('day')
-            return dt >= g.start.startOf('day') && dt <= g.end.endOf('day')
+    const points = grids.map((g) => {
+        const group = data.filter((d) => {
+            const dt = DateTime.fromISO(d.date).startOf("day")
+            return dt >= g.start.startOf("day") && dt <= g.end.endOf("day")
         })
         // 日次データの場合、合計値を算出
-        const total_pulls = group.length ? sum(group.map(x => Number(x.total_pulls))) : 0
-        const rare_pulls = group.length ? sum(group.map(x => Number(x.rare_pulls))) : 0
-        const expense = group.length ? sum(group.map(x => Number(x.expense))) : 0
+        const total_pulls = group.length
+            ? sum(group.map((x) => Number(x.total_pulls)))
+            : 0
+        const rare_pulls = group.length
+            ? sum(group.map((x) => Number(x.rare_pulls)))
+            : 0
+        const expense = group.length
+            ? sum(group.map((x) => Number(x.expense)))
+            : 0
         const other_pulls = total_pulls - rare_pulls
         return {
             date: g.start.toISODate(),
             total_pulls,
             rare_pulls,
             other_pulls,
-            expense
+            expense,
         }
     }) as ChartDataPoint[]
 
     // ラベル生成
-    const labels = grids.map(g =>
+    const labels = grids.map((g) =>
         labelFormat
             ? formatLabel(labelFormat, g.context)
             : step === 1
-                ? g.start.toFormat('M/d')
-                : `${g.start.toFormat('M/d')}～${g.end.toFormat('M/d')}`
+              ? g.start.toFormat("M/d")
+              : `${g.start.toFormat("M/d")}～${g.end.toFormat("M/d")}`,
     )
 
     //console.log('getLabelsAndMap', labels, points)

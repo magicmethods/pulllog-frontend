@@ -1,9 +1,9 @@
-import { useUserStore } from '~/stores/useUserStore'
-import { useAppStore } from '~/stores/useAppStore'
-import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
+import { useAppStore } from "~/stores/useAppStore"
+import { useLoaderStore } from "~/stores/useLoaderStore"
+import { useUserStore } from "~/stores/useUserStore"
 
-export const useGlobalStore = defineStore('global', () => {
+export const useGlobalStore = defineStore("global", () => {
     // i18n
     const { t, locale, setLocale } = useI18n()
 
@@ -20,7 +20,9 @@ export const useGlobalStore = defineStore('global', () => {
             appStore.clearApp()
             // ユーザー言語設定を適用
             const userStore = useUserStore()
-            const initialLocale = (userStore.user?.language ?? locale.value ?? useConfig().defaultLocale) as Language
+            const initialLocale = (userStore.user?.language ??
+                locale.value ??
+                useConfig().defaultLocale) as Language
             setLocale(initialLocale)
         }
     }
@@ -31,7 +33,7 @@ export const useGlobalStore = defineStore('global', () => {
         if (show) {
             // ローディング開始時にローダーストアを表示
             const loaderStore = useLoaderStore()
-            loadingId.value = loaderStore.show(loadingText || t('app.loading'))
+            loadingId.value = loaderStore.show(loadingText || t("app.loading"))
         } else if (loadingId.value) {
             // ローディング終了時にローダーストアを非表示
             const loaderStore = useLoaderStore()
@@ -44,6 +46,6 @@ export const useGlobalStore = defineStore('global', () => {
         isInitialized,
         isLoading,
         setInitialized,
-        setLoading
+        setLoading,
     }
 })

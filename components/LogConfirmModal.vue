@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useAppStore } from '~/stores/useAppStore'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
+import { useAppStore } from "~/stores/useAppStore"
 
 // Props & Emits
 const props = defineProps<{
@@ -9,9 +9,9 @@ const props = defineProps<{
     validationErrors: Record<string, string[]> | null
 }>()
 const emit = defineEmits<{
-    (e: 'update:visible', value: boolean): void
-    (e: 'close'): void
-    (e: 'confirm'): void
+    (e: "update:visible", value: boolean): void
+    (e: "close"): void
+    (e: "confirm"): void
 }>()
 
 // Stores etc.
@@ -21,7 +21,6 @@ const { t } = useI18n()
 // Refs
 const prevData = ref<DateLog | null>(null)
 const isSuccessfullySaved = ref<boolean>(false)
-
 </script>
 
 <template>

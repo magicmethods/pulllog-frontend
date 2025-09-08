@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useAppStore } from '~/stores/useAppStore'
-import { useCurrencyStore } from '~/stores/useCurrencyStore'
-import { useChartPalette } from '~/composables/useChart'
-import { strBytesTruncate } from '~/utils/string'
+import { useI18n } from "vue-i18n"
+import { useChartPalette } from "~/composables/useChart"
+import { useAppStore } from "~/stores/useAppStore"
+import { useCurrencyStore } from "~/stores/useCurrencyStore"
+import { strBytesTruncate } from "~/utils/string"
 
 // Props
 const props = defineProps<{
@@ -24,22 +24,24 @@ const appIds = computed<string[]>(() => {
     // 最初のrowでアプリIDを抽出（'month'以外）
     const row = props.data[0]
     if (!row) return []
-    return Object.keys(row).filter(k => k !== 'month')
+    return Object.keys(row).filter((k) => k !== "month")
 })
 
 // アプリ名リスト（表示用ラベル）
 const appLabels = computed<string[]>(() => {
-    return appIds.value.map(appId => {
-        const appName = appStore.appList.find(app => app.appId === appId)?.name || appId
+    return appIds.value.map((appId) => {
+        const appName =
+            appStore.appList.find((app) => app.appId === appId)?.name || appId
         return strBytesTruncate(appName, 7, 80)
     })
 })
 
 // グラフの通貨単位を取得・定義する
 const fixCurrency = computed<string>(() => {
-    const defaultCurrency = locale.value === 'ja' ? 'JPY' : (locale.value === 'zh' ? 'CNY' : 'USD') // デフォルトの通過単位
-    const appCurrencyCodes = appIds.value.map(appId => {
-        const app = appStore.appList.find(app => app.appId === appId)
+    const defaultCurrency =
+        locale.value === "ja" ? "JPY" : locale.value === "zh" ? "CNY" : "USD" // デフォルトの通過単位
+    const appCurrencyCodes = appIds.value.map((appId) => {
+        const app = appStore.appList.find((app) => app.appId === appId)
         if (!app || !app.currency_code) return defaultCurrency
         const currencyData = currencyStore.get(app.currency_code)
         return currencyData ? currencyData.code : defaultCurrency
@@ -63,9 +65,9 @@ const colorMap = computed<ColorMap>(() => {
 // 平均課金額（全アプリ合計額の平均）
 const averageExpense = computed(() => {
     // 各行(month)ごとに全アプリの合計
-    const monthSums = props.data.map(row => {
+    const monthSums = props.data.map((row) => {
         return Object.entries(row)
-            .filter(([key]) => key !== 'month')
+            .filter(([key]) => key !== "month")
             .reduce((sum, [, val]) => sum + Number(val || 0), 0)
     })
     return monthSums.length > 0
@@ -75,17 +77,17 @@ const averageExpense = computed(() => {
 
 // 全月・全アプリの最大課金額
 const maxExpense = computed(() => {
-    const allValues = props.data.flatMap(row =>
-        appIds.value.map(appId => Number(row[appId] ?? 0))
+    const allValues = props.data.flatMap((row) =>
+        appIds.value.map((appId) => Number(row[appId] ?? 0)),
     )
     return allValues.length ? Math.max(...allValues) : 0
 })
 
 // 最低課金額（0以外の最小値、なければ0）
 const minExpense = computed(() => {
-    const values = props.data.flatMap(row =>
-        appIds.value.map(appId => Number(row[appId] ?? 0))
-    ).filter(val => val > 0)
+    const values = props.data
+        .flatMap((row) => appIds.value.map((appId) => Number(row[appId] ?? 0)))
+        .filter((val) => val > 0)
     return values.length ? Math.min(...values) : 0
 })
 
@@ -98,7 +100,7 @@ const yAxisConfig = computed(() => {
     if (maxExpense.value === 0) {
         // JPYなら1000円
         //const appCurrency = currencyStore.get(appStore.app?.currency_code || 'JPY')?.code
-        if (fixCurrency.value === 'JPY') {
+        if (fixCurrency.value === "JPY") {
             max = 1000
             step = 500
         } else {
@@ -117,17 +119,17 @@ const yAxisConfig = computed(() => {
 
 // グラフデータ
 const chartData = computed(() => ({
-    labels: props.data.map(row => row.month), // X軸（月）
+    labels: props.data.map((row) => row.month), // X軸（月）
     datasets: appIds.value.map((appId, i) => ({
         label: appLabels.value[i], // 本来はアプリ名
-        data: props.data.map(row => Number(row[appId] ?? 0)),
+        data: props.data.map((row) => Number(row[appId] ?? 0)),
         backgroundColor: colorMap.value[appId].bg,
         hoverBackgroundColor: colorMap.value[appId].hover,
         borderColor: colorMap.value[appId].border,
-        stack: 'stack-0',
+        stack: "stack-0",
         barPercentage: 0.7,
         borderWidth: 1,
-    }))
+    })),
 }))
 
 // グラフオプション
@@ -135,7 +137,7 @@ const chartOptions = computed(() => ({
     plugins: {
         legend: {
             display: false,
-            position: 'bottom',
+            position: "bottom",
         },
         tooltip: {
             enabled: true,
@@ -155,27 +157,36 @@ const chartOptions = computed(() => ({
                     const value = ctx.parsed.y
                     return `${appLabel}: ${currencyStore.formatDecimal(value, fixCurrency.value, locale.value)}`
                 },
-            }
+            },
         },
         annotation: {
             annotations: {
                 avgLine: {
-                    type: 'line',
+                    type: "line",
                     yMin: averageExpense.value,
                     yMax: averageExpense.value,
-                    borderColor: averageExpense.value > 0 ? palette.value.annotationBorder : 'transparent',
+                    borderColor:
+                        averageExpense.value > 0
+                            ? palette.value.annotationBorder
+                            : "transparent",
                     borderWidth: 2,
                     borderDash: [4, 4],
                     label: {
                         display: averageExpense.value > 0,
-                        content: t('stats.chart.monthlyExpenseStack.average', { value: currencyStore.formatDecimal(averageExpense.value, fixCurrency.value, locale.value) }),
-                        position: 'start',
+                        content: t("stats.chart.monthlyExpenseStack.average", {
+                            value: currencyStore.formatDecimal(
+                                averageExpense.value,
+                                fixCurrency.value,
+                                locale.value,
+                            ),
+                        }),
+                        position: "start",
                         color: palette.value.annotationText,
                         backgroundColor: palette.value.annotationBg,
-                        font: { weight: 'bold', size: 10 }
-                    }
-                }
-            }
+                        font: { weight: "bold", size: 10 },
+                    },
+                },
+            },
         },
     },
     responsive: true,
@@ -185,7 +196,7 @@ const chartOptions = computed(() => ({
             stacked: true,
             grid: { display: false },
             ticks: { color: palette.value.text },
-            border: { color: palette.value.axis }
+            border: { color: palette.value.axis },
         },
         y: {
             stacked: true,
@@ -194,14 +205,19 @@ const chartOptions = computed(() => ({
             max: maxExpense.value === 0 ? yAxisConfig.value.max : undefined,
             ticks: {
                 color: palette.value.text,
-                stepSize: maxExpense.value === 0 ? yAxisConfig.value.step: undefined,
-                callback: (val: number) => currencyStore.formatDecimal(Number(val), fixCurrency.value, locale.value)
+                stepSize:
+                    maxExpense.value === 0 ? yAxisConfig.value.step : undefined,
+                callback: (val: number) =>
+                    currencyStore.formatDecimal(
+                        Number(val),
+                        fixCurrency.value,
+                        locale.value,
+                    ),
             },
-            border: { color: palette.value.axis }
-        }
-    }
+            border: { color: palette.value.axis },
+        },
+    },
 }))
-
 </script>
 
 <template>
