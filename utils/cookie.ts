@@ -26,6 +26,8 @@ export function setCookie(
     value: string,
     days?: number,
     path = "/",
+    secure = true,
+    sameSite: "lax" | "strict" | "none" = "lax",
 ) {
     let expires = ""
     if (days) {
@@ -33,7 +35,9 @@ export function setCookie(
         date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000)
         expires = `; expires=${date.toUTCString()}`
     }
-    document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=${path}`
+    document.cookie = `${name}=${encodeURIComponent(value)}${expires}; path=${path}${
+        secure ? "; secure" : ""
+    }; samesite=${sameSite}`
 }
 
 /**
@@ -42,7 +46,7 @@ export function setCookie(
  * @param {string} [path] - Cookieのパス（デフォルトは'/'）
  */
 export function deleteCookie(name: string, path = "/") {
-    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}`
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${path}; secure; samesite=lax`
 }
 
 // Cookie Store API based async helpers (with graceful fallback)
@@ -91,7 +95,7 @@ export async function setCookieAsync(
         await cookieStore.set({ name, value, path, sameSite, secure, expires })
         return
     }
-    // Fallback
+    // Fallback（セキュリティ属性も保持）
     const days =
         options.days ??
         (expires instanceof Date
@@ -99,7 +103,7 @@ export async function setCookieAsync(
                   (expires.getTime() - Date.now()) / (24 * 60 * 60 * 1000),
               )
             : undefined)
-    setCookie(name, value, days, path)
+    setCookie(name, value, days, path, secure, sameSite)
 }
 
 export async function deleteCookieAsync(
