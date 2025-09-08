@@ -42,7 +42,5 @@ declare global {
     }
     /** 統計キャッシュのMap型 */
     type StatsMap = Map<string, Map<string, StatsData>> // appId -> queryKey -> StatsData
-
-
 }
 export {}

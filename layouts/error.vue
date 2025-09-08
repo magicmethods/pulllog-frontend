@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useRoute } from 'vue-router'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
+import { useRoute } from "vue-router"
 
 // i18n
 const route = useRoute()
@@ -8,7 +8,6 @@ const { t } = useI18n()
 
 // Refs & Local variables
 const statusCode = Number(route.params.code || 500)
-
 </script>
 
 <template>

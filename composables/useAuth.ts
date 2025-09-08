@@ -1,11 +1,12 @@
-import { useUserStore } from '~/stores/useUserStore'
-import { useCsrfStore } from '~/stores/useCsrfStore'
-import { useGlobalStore } from '~/stores/globalStore'
-import { useCurrencyStore } from '~/stores/useCurrencyStore'
-import { useI18n } from 'vue-i18n'
-import { useAPI } from '~/composables/useAPI'
-import { endpoints } from '~/api/endpoints'
-import { toUser, toUserPlanLimits } from '~/utils/user'
+import { useI18n } from "vue-i18n"
+import { endpoints } from "~/api/endpoints"
+import { useAPI } from "~/composables/useAPI"
+import { useGlobalStore } from "~/stores/globalStore"
+import { useCsrfStore } from "~/stores/useCsrfStore"
+import { useCurrencyStore } from "~/stores/useCurrencyStore"
+import { useUserStore } from "~/stores/useUserStore"
+import { deleteCookieAsync, setCookieAsync } from "~/utils/cookie"
+import { toUser, toUserPlanLimits } from "~/utils/user"
 
 export function useAuth() {
     const error = ref<string | null>(null)
@@ -27,14 +28,15 @@ export function useAuth() {
         try {
             const response: LoginResponse = await callApi({
                 endpoint: endpoints.auth.login(),
-                method: 'POST',
+                method: "POST",
                 data: { email, password, remember },
             })
 
             await afterLogin(response)
         } catch (err: unknown) {
-            console.error('Login error:', err)
-            error.value = err instanceof Error ? err.message : t('auth.login.error')
+            console.error("Login error:", err)
+            error.value =
+                err instanceof Error ? err.message : t("auth.login.error")
             throw err
         } finally {
             isLoading.value = false
@@ -48,13 +50,14 @@ export function useAuth() {
         try {
             const response: LoginResponse = await callApi({
                 endpoint: endpoints.auth.autoLogin(),
-                method: 'POST', // Cookieはリクエストヘッダに付与され送信される
+                method: "POST", // Cookieはリクエストヘッダに付与され送信される
             })
 
             await afterLogin(response)
         } catch (err: unknown) {
             //console.error('Auto-login error:', err)
-            error.value = err instanceof Error ? err.message : t('auth.login.error')
+            error.value =
+                err instanceof Error ? err.message : t("auth.login.error")
             throw err
         } finally {
             isLoading.value = false
@@ -68,15 +71,16 @@ export function useAuth() {
         try {
             const response: LoginResponse = await callApi({
                 endpoint: endpoints.auth.demoLogin(),
-                method: 'POST',
+                method: "POST",
             })
 
             await afterLogin(response)
 
-            await navigateTo('/apps', { replace: true })
+            await navigateTo("/apps", { replace: true })
         } catch (err: unknown) {
-            console.error('Demo login error:', err)
-            error.value = err instanceof Error ? err.message : t('auth.login.error')
+            console.error("Demo login error:", err)
+            error.value =
+                err instanceof Error ? err.message : t("auth.login.error")
             throw err
         } finally {
             //isLoading.value = false
@@ -91,19 +95,22 @@ export function useAuth() {
         try {
             const response: RegisterResponse = await callApi({
                 endpoint: endpoints.auth.register(),
-                method: 'POST',
+                method: "POST",
                 data: { name, email, password, language },
             })
             //console.log('Registration response:', response)
 
-            if (!response || response.state !== 'success') {
-                throw new Error(response?.message || t('auth.register.invalidResponse'))
+            if (!response || response.state !== "success") {
+                throw new Error(
+                    response?.message || t("auth.register.invalidResponse"),
+                )
             }
 
             globalStore.setInitialized(true)
         } catch (err: unknown) {
-            console.error('Registration error:', err)
-            error.value = err instanceof Error ? err.message : t('auth.register.error')
+            console.error("Registration error:", err)
+            error.value =
+                err instanceof Error ? err.message : t("auth.register.error")
             throw err
         } finally {
             isLoading.value = false
@@ -117,43 +124,52 @@ export function useAuth() {
         try {
             const response: PasswordResetResponse = await callApi({
                 endpoint: endpoints.auth.password(),
-                method: 'POST',
+                method: "POST",
                 data: { email },
             })
 
             if (!response || !response.success) {
-                throw new Error(response?.message || t('auth.passwordReset.error'))
+                throw new Error(
+                    response?.message || t("auth.passwordReset.error"),
+                )
             }
 
-            return response.message || t('auth.passwordReset.success')
+            return response.message || t("auth.passwordReset.success")
         } catch (err: unknown) {
-            console.error('Password reset error:', err)
-            error.value = err instanceof Error ? err.message : t('auth.passwordReset.error')
+            console.error("Password reset error:", err)
+            error.value =
+                err instanceof Error
+                    ? err.message
+                    : t("auth.passwordReset.error")
             throw err
         } finally {
             isLoading.value = false
         }
     }
 
-    async function verifyToken(token: string, type: 'signup' | 'reset'): Promise<boolean> {
+    async function verifyToken(
+        token: string,
+        type: "signup" | "reset",
+    ): Promise<boolean> {
         isLoading.value = true
         error.value = null
 
         try {
             const response: VerifyResponse | null = await callApi({
                 endpoint: endpoints.auth.verify(),
-                method: 'POST',
+                method: "POST",
                 data: { token, type },
             })
 
             if (!response || !response.success) {
-                throw new Error(response?.message || t('auth.verify.error'))
+                throw new Error(response?.message || t("auth.verify.error"))
             }
 
             return response.success
         } catch (err: unknown) {
-            console.error('Token verification error:', err)
-            error.value = err instanceof Error ? err.message : t('auth.verify.error')
+            console.error("Token verification error:", err)
+            error.value =
+                err instanceof Error ? err.message : t("auth.verify.error")
             throw err
         } finally {
             isLoading.value = false
@@ -162,9 +178,9 @@ export function useAuth() {
 
     async function updatePassword(
         token: string,
-        type: 'signup' | 'reset',
+        type: "signup" | "reset",
         code: string,
-        password: string
+        password: string,
     ): Promise<boolean> {
         isLoading.value = true
         error.value = null
@@ -172,18 +188,23 @@ export function useAuth() {
         try {
             const response: VerifyResponse | null = await callApi({
                 endpoint: endpoints.auth.updatePassword(),
-                method: 'PUT',
+                method: "PUT",
                 data: { token, type, code, password },
             })
 
             if (!response || !response.success) {
-                throw new Error(response?.message || t('auth.updatePassword.error'))
+                throw new Error(
+                    response?.message || t("auth.updatePassword.error"),
+                )
             }
 
             return response.success
         } catch (err: unknown) {
-            console.error('Update password error:', err)
-            error.value = err instanceof Error ? err.message : t('auth.updatePassword.error')
+            console.error("Update password error:", err)
+            error.value =
+                err instanceof Error
+                    ? err.message
+                    : t("auth.updatePassword.error")
             throw err
         } finally {
             isLoading.value = false
@@ -196,16 +217,24 @@ export function useAuth() {
 
     // Private methods
     async function afterLogin(response: LoginResponse): Promise<void> {
-        if (!response || !response.state || response.state !== 'success') {
-            throw new Error(response?.message || t('auth.login.invalidResponse'))
+        if (!response || !response.state || response.state !== "success") {
+            throw new Error(
+                response?.message || t("auth.login.invalidResponse"),
+            )
         }
-        if (!response.user || response.user.is_deleted || !response.user.is_verified) {
-            throw new Error(response?.message || t('auth.login.accountNotAvailable'))
+        if (
+            !response.user ||
+            response.user.is_deleted ||
+            !response.user.is_verified
+        ) {
+            throw new Error(
+                response?.message || t("auth.login.accountNotAvailable"),
+            )
         }
 
         userStore.setUser(
             toUser(response.user),
-            toUserPlanLimits(response.user)
+            toUserPlanLimits(response.user),
         )
 
         if (response.csrfToken) {
@@ -214,11 +243,16 @@ export function useAuth() {
 
         //console.log('Remember token in login:', response.rememberToken, response.rememberTokenExpires)
         if (response.rememberToken && response.rememberTokenExpires) {
-            // RememberトークンをCookieにセット
-            document.cookie = `remember_token=${response.rememberToken}; expires=${new Date(response.rememberTokenExpires).toUTCString()}; path=/; secure; samesite=lax`
+            // RememberトークンをCookieにセット（Cookie Store API）
+            await setCookieAsync("remember_token", response.rememberToken, {
+                expires: new Date(response.rememberTokenExpires),
+                path: "/",
+                secure: true,
+                sameSite: "lax",
+            })
         } else {
             // 既にあるRememberトークンのCookieを削除
-            document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
+            await deleteCookieAsync("remember_token", "/")
         }
 
         // 通貨データをロード

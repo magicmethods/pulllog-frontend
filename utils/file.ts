@@ -1,4 +1,4 @@
-import { ulid } from 'ulid'
+import { ulid } from "ulid"
 
 /*
 type DateLog = {
@@ -33,10 +33,12 @@ function createCSVRow(log: DateLog): string {
         //tasks: log.tasks.join(';'),
         //last_updated: log.last_updated || ''
     }
-    return Object.values(rowData).map(value => {
-        // CSVの値はダブルクオートで囲み、内部のダブルクオートはエスケープする
-        return `"${String(value).replace(/"/g, '""')}"`
-    }).join(',')
+    return Object.values(rowData)
+        .map((value) => {
+            // CSVの値はダブルクオートで囲み、内部のダブルクオートはエスケープする
+            return `"${String(value).replace(/"/g, '""')}"`
+        })
+        .join(",")
 }
 
 /**
@@ -45,13 +47,20 @@ function createCSVRow(log: DateLog): string {
  * @param settings ダウンロード設定
  * @returns 成功した場合はtrue、失敗した場合はfalse
  */
-export function downloadFile(data: DateLog[], settings: HistoryDownloadSettings): boolean {
+export function downloadFile(
+    data: DateLog[],
+    settings: HistoryDownloadSettings,
+): boolean {
     if (!data || data.length === 0) {
-        console.error('No data available for download.')
+        console.error("No data available for download.")
         return false
     }
-    if (!settings || !settings.format || !['json', 'csv'].includes(settings.format)) {
-        console.error('Invalid settings provided for download.')
+    if (
+        !settings ||
+        !settings.format ||
+        !["json", "csv"].includes(settings.format)
+    ) {
+        console.error("Invalid settings provided for download.")
         return false
     }
 
@@ -59,37 +68,41 @@ export function downloadFile(data: DateLog[], settings: HistoryDownloadSettings)
     let blob: Blob
     let url: string | null = null
     let fileName: string | null = null
-    if (settings.format === 'csv') {
+    if (settings.format === "csv") {
         // CSVフォーマットのダウンロード処理
         const headerRow = `"${[
-            'date',
-            'totalPulls',
-            'dischargeItems',
-            'expense',
-            'dropDetails',
-            'tags',
-            'freeText',
+            "date",
+            "totalPulls",
+            "dischargeItems",
+            "expense",
+            "dropDetails",
+            "tags",
+            "freeText",
         ].join('","')}"\n`
-        const csvContent = data.map(log => {
-            return createCSVRow(log)
-        }).join('\n')
-        const charset = 'utf-8'
+        const csvContent = data
+            .map((log) => {
+                return createCSVRow(log)
+            })
+            .join("\n")
+        const charset = "utf-8"
 
-        blob = new Blob([`${headerRow}${csvContent}`], { type: `text/csv;charset=${charset}` })
+        blob = new Blob([`${headerRow}${csvContent}`], {
+            type: `text/csv;charset=${charset}`,
+        })
         url = URL.createObjectURL(blob)
         fileName = `pulllog-${ulid()}.csv`
-    } else if (settings.format === 'json') {
+    } else if (settings.format === "json") {
         // JSONフォーマットのダウンロード処理
-        blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
+        blob = new Blob([JSON.stringify(data)], { type: "application/json" })
         url = URL.createObjectURL(blob)
         fileName = `pulllog-${ulid()}.json`
     }
-    
+
     if (!url || !fileName) {
-        console.error('Failed to generate file for download.')
+        console.error("Failed to generate file for download.")
         return false
     }
-    const a = document.createElement('a')
+    const a = document.createElement("a")
     a.href = url
     a.download = fileName
     document.body.appendChild(a)

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useI18n } from "vue-i18n"
+import { useLoaderStore } from "~/stores/useLoaderStore"
 
 const loaderStore = useLoaderStore()
 const { t } = useI18n()
@@ -16,7 +16,7 @@ const sectionRef = ref<HTMLElement | null>(null)
 const ver = computed(() => `?v=${encodeURIComponent(props.imageCacheParam)}`)
 
 onMounted(async () => {
-    loaderId.value = loaderStore.show('', sectionRef.value ?? undefined)
+    loaderId.value = loaderStore.show("", sectionRef.value ?? undefined)
     await nextTick()
     loaderStore.hide(loaderId.value)
     isLoading.value = false
@@ -24,14 +24,13 @@ onMounted(async () => {
 
 // PassThrough
 const imagePT = (rootSizeClass?: string | null) => ({
-  root: rootSizeClass ?? 'w-full h-auto',
-  image: 'w-auto h-auto rounded-lg shadow-md',
-  previewIcon: 'text-primary-500 hover:text-primary-400',
-  zoomInButton: 'hidden',
-  zoomOutButton: 'hidden',
-  originalContainer: 'mx-4 md:mx-auto rounded-lg shadow-lg overflow-hidden',
+    root: rootSizeClass ?? "w-full h-auto",
+    image: "w-auto h-auto rounded-lg shadow-md",
+    previewIcon: "text-primary-500 hover:text-primary-400",
+    zoomInButton: "hidden",
+    zoomOutButton: "hidden",
+    originalContainer: "mx-4 md:mx-auto rounded-lg shadow-lg overflow-hidden",
 })
-
 </script>
 
 <template>

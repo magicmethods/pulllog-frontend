@@ -1,19 +1,19 @@
 <script setup lang="ts">
-import { useUserStore } from '~/stores/useUserStore'
-import { useAppStore } from '~/stores/useAppStore'
-import { useLogStore } from '~/stores/useLogStore'
-import { useLoaderStore } from '~/stores/useLoaderStore'
-import { useOptionStore } from '~/stores/useOptionStore'
-import { type TileSpan, type TileId, type TileConfig, useStatsLayoutStore } from '~/stores/useStatsLayoutStore'
-import { useI18n } from 'vue-i18n'
-import { formatDate } from '~/utils/date'
+import { useI18n } from "vue-i18n"
+import ChartAppPullStats from "~/components/chart/AppPullStats.vue"
+import ChartCumulativeRareRate from "~/components/chart/CumulativeRareRate.vue"
 // Components
-import ChartExpenseRatio from '~/components/chart/ExpenseRatio.vue'
-import ChartMonthlyExpenseStack from '~/components/chart/MonthlyExpenseStack.vue'
-import ChartCumulativeRareRate from '~/components/chart/CumulativeRareRate.vue'
-import ChartAppPullStats from '~/components/chart/AppPullStats.vue'
-import ChartRareDropBreakdownRatio from '~/components/chart/RareDropBreakdownRatio.vue'
-import ChartRareDropRanking from '~/components/chart/RareDropRanking.vue'
+import ChartExpenseRatio from "~/components/chart/ExpenseRatio.vue"
+import ChartMonthlyExpenseStack from "~/components/chart/MonthlyExpenseStack.vue"
+import ChartRareDropBreakdownRatio from "~/components/chart/RareDropBreakdownRatio.vue"
+import ChartRareDropRanking from "~/components/chart/RareDropRanking.vue"
+import { useAppStore } from "~/stores/useAppStore"
+import { useLoaderStore } from "~/stores/useLoaderStore"
+import { useLogStore } from "~/stores/useLogStore"
+import { useOptionStore } from "~/stores/useOptionStore"
+import { type TileId, useStatsLayoutStore } from "~/stores/useStatsLayoutStore"
+import { useUserStore } from "~/stores/useUserStore"
+import { formatDate } from "~/utils/date"
 
 definePageMeta({ requiresCurrency: true })
 
@@ -44,34 +44,42 @@ const statsData = useStats()
 const stats = ref<StatsPageData>(null)
 const userApps = computed<AppData[]>(() => appStore.appList) // ユーザーが登録しているアプリのリスト
 const selectedApps = ref<AppData[]>([]) // 選択されたアプリのリスト
-const period = ref<'all' | 'range'>('all')
+const period = ref<"all" | "range">("all")
 const startDate = ref<CalenderDate>(null)
 const endDate = ref<CalenderDate>(null)
 const maxSelection = computed(() => userStore.planLimits?.maxApps ?? 5) // 最大選択数=ユーザーの登録最大数
-const selectedAppId = computed<string>(() => selectedApps.value.length > 0 ? selectedApps.value[0].appId : '')
+const selectedAppId = computed<string>(() =>
+    selectedApps.value.length > 0 ? selectedApps.value[0].appId : "",
+)
 const selectedAppsLabel = computed(() => {
-    const isSelectedMax = userApps.value.length <= maxSelection.value
-        ? selectedApps.value.length === userApps.value.length
-        : selectedApps.value.length === maxSelection.value
+    const isSelectedMax =
+        userApps.value.length <= maxSelection.value
+            ? selectedApps.value.length === userApps.value.length
+            : selectedApps.value.length === maxSelection.value
     return isSelectedMax
-        ? selectedApps.value.length === userApps.value.length ? t('stats.allAppsSelected') : t('stats.maxSelectionReached')
-        : t('stats.appsSelected', { count: selectedApps.value.length })
+        ? selectedApps.value.length === userApps.value.length
+            ? t("stats.allAppsSelected")
+            : t("stats.maxSelectionReached")
+        : t("stats.appsSelected", { count: selectedApps.value.length })
 })
 const isReadyCondition = computed(() => {
     // 選択アプリがあり、期間が指定されている場合に更新ボタンを有効化
-    return selectedApps.value.length > 0 && (period.value === 'all' || (startDate.value && endDate.value))
+    return (
+        selectedApps.value.length > 0 &&
+        (period.value === "all" || (startDate.value && endDate.value))
+    )
 })
 const layoutKey = ref<number>(0) // リサイズ対応：再マウント用キー
 let resizeTimer: number | undefined
 // 動的解決マップ（文字列ではなくコンポーネント参照を使う）
-// biome-ignore lint:/suspicious/noExplicitAny 
+// biome-ignore lint:/suspicious/noExplicitAny
 const tileComponentMap: Record<TileId, any> = {
-  'expense-ratio':        ChartExpenseRatio,
-  'monthly-expense':      ChartMonthlyExpenseStack,
-  'cumulative-rare-rate': ChartCumulativeRareRate,
-  'app-pull-stats':       ChartAppPullStats,
-  'rare-breakdown':       ChartRareDropBreakdownRatio,
-  'rare-ranking':         ChartRareDropRanking,
+    "expense-ratio": ChartExpenseRatio,
+    "monthly-expense": ChartMonthlyExpenseStack,
+    "cumulative-rare-rate": ChartCumulativeRareRate,
+    "app-pull-stats": ChartAppPullStats,
+    "rare-breakdown": ChartRareDropBreakdownRatio,
+    "rare-ranking": ChartRareDropRanking,
 }
 
 // Methods
@@ -102,19 +110,23 @@ async function handleAggregation() {
     if (!isReadyCondition.value) return
 
     // 集計条件を定義
-    const targetApps = selectedApps.value.map(app => app.appId)
-    const useRange = period.value === 'range'
-    const start = useRange && startDate.value ? formatDate(startDate.value) : undefined
-    const end = useRange && endDate.value ? formatDate(endDate.value) : undefined
+    const targetApps = selectedApps.value.map((app) => app.appId)
+    const useRange = period.value === "range"
+    const start =
+        useRange && startDate.value ? formatDate(startDate.value) : undefined
+    const end =
+        useRange && endDate.value ? formatDate(endDate.value) : undefined
 
-    const statsElement = document.getElementById('stats-content') ?? null
-    const loaderId = loaderStore.show(t('stats.aggregating'), statsElement)
+    const statsElement = document.getElementById("stats-content") ?? null
+    const loaderId = loaderStore.show(t("stats.aggregating"), statsElement)
 
     try {
         // 対象アプリの履歴全件取得（並列処理）
         const logStore = useLogStore()
         await Promise.all(
-            targetApps.map(appId => logStore.fetchLogs(appId, {}, undefined, false))
+            targetApps.map((appId) =>
+                logStore.fetchLogs(appId, {}, undefined, false),
+            ),
         )
 
         // 期間抽出
@@ -122,7 +134,7 @@ async function handleAggregation() {
         let logCount = 0
         for (const appId of targetApps) {
             const allLogs = Array.from(logStore.logs.get(appId)?.values() ?? [])
-            filteredLogs[appId] = allLogs.filter(log => {
+            filteredLogs[appId] = allLogs.filter((log) => {
                 if (useRange) {
                     if (start && log.date < start) return false
                     if (end && log.date > end) return false
@@ -138,21 +150,43 @@ async function handleAggregation() {
 
         // 集計ロジック（統計・グラフ用データ生成）
         // 複数アプリ合計課金額に占める各アプリの割合（Pieチャート用）
-        const expenseRatio = statsData.getExpenseRatioPie(filteredLogs, selectedApps.value)
+        const expenseRatio = statsData.getExpenseRatioPie(
+            filteredLogs,
+            selectedApps.value,
+        )
         // 全指定アプリの月次合計課金額（積み上げ棒グラフ用）
-        const monthlyExpenseStack = statsData.getMonthlyExpenseStack(filteredLogs, selectedApps.value)
+        const monthlyExpenseStack = statsData.getMonthlyExpenseStack(
+            filteredLogs,
+            selectedApps.value,
+        )
         // 日次/月次累計レアドロップ率推移（折れ線グラフ用）
-        const cumulativeRareRate = statsData.getMultiCumulativeRareRate(targetApps.map(appId => ({
-            appId,
-            logs: filteredLogs[appId]
-        })), start, end)
-        const cumulativeRareRateMaxValue = statsData.calcMaxRareRate(cumulativeRareRate, 2)
+        const cumulativeRareRate = statsData.getMultiCumulativeRareRate(
+            targetApps.map((appId) => ({
+                appId,
+                logs: filteredLogs[appId],
+            })),
+            start,
+            end,
+        )
+        const cumulativeRareRateMaxValue = statsData.calcMaxRareRate(
+            cumulativeRareRate,
+            2,
+        )
         // アプリごとの引き当て数・レアドロップ数・レア率を集計しランキング（横型棒グラフ）
-        const appPullStats = statsData.getAppPullStats(filteredLogs, selectedApps.value)
+        const appPullStats = statsData.getAppPullStats(
+            filteredLogs,
+            selectedApps.value,
+        )
         // アプリごとのレアドロップ内訳を集計（Pieチャート用）
-        const appRareDropBreakdown = statsData.getAppRareDropRates(filteredLogs, selectedApps.value)
+        const appRareDropBreakdown = statsData.getAppRareDropRates(
+            filteredLogs,
+            selectedApps.value,
+        )
         // アプリごとのレアドロップランキング
-        const appRareDrops = statsData.getAppRareDrops(filteredLogs, selectedApps.value)
+        const appRareDrops = statsData.getAppRareDrops(
+            filteredLogs,
+            selectedApps.value,
+        )
 
         // stats.valueに集計結果をセットし、表示更新
         stats.value = null
@@ -171,7 +205,7 @@ async function handleAggregation() {
         //console.log('Aggregation Results:', stats.value, layoutKey.value)
     } catch (e: unknown) {
         // エラーハンドリング
-        console.error('Aggregation Error:', e)
+        console.error("Aggregation Error:", e)
         stats.value = null // エラー時は集計結果をクリア
     } finally {
         loaderStore.hide(loaderId) // ローダーを非表示
@@ -181,10 +215,10 @@ async function handleAggregation() {
 // Lifecycle Hooks
 onMounted(() => {
     initialize()
-    window.addEventListener('resize', onWindowResize, { passive: true })
+    window.addEventListener("resize", onWindowResize, { passive: true })
 })
 onBeforeUnmount(() => {
-    window.removeEventListener('resize', onWindowResize)
+    window.removeEventListener("resize", onWindowResize)
     if (resizeTimer !== undefined) {
         window.clearTimeout(resizeTimer)
     }
@@ -198,42 +232,41 @@ watch(
             clearSelectedApps() // アプリがない場合、選択アプリリストをクリア
         }
     },
-    { deep: true }
+    { deep: true },
 )
 watch(
-  () => userApps.value,
-  (list) => {
-    if (list.length === 0) {
-      clearSelectedApps()
-      return
-    }
-    const byId = new Map(list.map(a => [a.appId, a]))
-    // 既存選択を新しい参照に差し替え（見つからないものは除外）
-    selectedApps.value = selectedApps.value
-      .map(a => byId.get(a.appId))
-      .filter((a): a is AppData => !!a)
-  },
-  { deep: true }
+    () => userApps.value,
+    (list) => {
+        if (list.length === 0) {
+            clearSelectedApps()
+            return
+        }
+        const byId = new Map(list.map((a) => [a.appId, a]))
+        // 既存選択を新しい参照に差し替え（見つからないものは除外）
+        selectedApps.value = selectedApps.value
+            .map((a) => byId.get(a.appId))
+            .filter((a): a is AppData => !!a)
+    },
+    { deep: true },
 )
 
 // PassThrough
 const clearButtonPT = {
-    root: 'h-6 w-6 p-0 rounded-full text-surface-400 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-500 hover:bg-surface-100 dark:hover:bg-gray-800',
-    icon: 'p-0',
+    root: "h-6 w-6 p-0 rounded-full text-surface-400 dark:text-gray-400 hover:text-primary-500 dark:hover:text-primary-500 hover:bg-surface-100 dark:hover:bg-gray-800",
+    icon: "p-0",
 }
 
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        adType: 'none',
+        adType: "none",
         //adHeight: 90,
     },
     bottom: {
-        adType: 'none',
+        adType: "none",
         //adHeight: 90,
-    }
+    },
 }
-
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useI18n } from "vue-i18n"
+import { useLoaderStore } from "~/stores/useLoaderStore"
 
 const loaderStore = useLoaderStore()
 const { t } = useI18n()
@@ -16,7 +16,7 @@ const sectionRef = ref<HTMLElement | null>(null)
 const ver = computed(() => `?v=${encodeURIComponent(props.imageCacheParam)}`)
 
 onMounted(async () => {
-    loaderId.value = loaderStore.show('', sectionRef.value ?? undefined)
+    loaderId.value = loaderStore.show("", sectionRef.value ?? undefined)
     await nextTick()
     loaderStore.hide(loaderId.value)
     isLoading.value = false
@@ -24,28 +24,28 @@ onMounted(async () => {
 
 // PassThrough
 const imagePT = (rootSizeClass?: string | null) => ({
-  root: rootSizeClass ?? 'w-full h-auto',
-  image: 'w-auto h-auto rounded-lg shadow-md',
-  previewIcon: 'text-primary-500 hover:text-primary-400',
-  zoomInButton: 'hidden',
-  zoomOutButton: 'hidden',
-  originalContainer: 'mx-4 md:mx-auto rounded-lg shadow-lg overflow-hidden',
+    root: rootSizeClass ?? "w-full h-auto",
+    image: "w-auto h-auto rounded-lg shadow-md",
+    previewIcon: "text-primary-500 hover:text-primary-400",
+    zoomInButton: "hidden",
+    zoomOutButton: "hidden",
+    originalContainer: "mx-4 md:mx-auto rounded-lg shadow-lg overflow-hidden",
 })
-const stepItemPT = { root: 'mb-2' }
+const stepItemPT = { root: "mb-2" }
 const stepPT = {
-    number: 'text-primary-400 dark:text-surface-500 font-bold text-xl border-2 border-primary-400 dark:border-surface-600 bg-white dark:bg-gray-50/90',
-    title: 'text-primary-600 dark:text-primary-300 font-bold text-2xl'
+    number: "text-primary-400 dark:text-surface-500 font-bold text-xl border-2 border-primary-400 dark:border-surface-600 bg-white dark:bg-gray-50/90",
+    title: "text-primary-600 dark:text-primary-300 font-bold text-2xl",
 }
 const stepPanelPT = {
-    root: 'bg-transparent mr-auto pl-4 py-2',
-    content: 'pl-6 pr-2 w-full flex flex-col justify-start items-start',
+    root: "bg-transparent mr-auto pl-4 py-2",
+    content: "pl-6 pr-2 w-full flex flex-col justify-start items-start",
 }
 // Styles
-const stepButtonClass = 'btn btn-primary w-auto sm:w-max hover:bg-primary-600/60 dark:hover:bg-primary-500/50 shadow-sm'
-const stepPanelBody   = 'flex justify-between items-start gap-4 h-max p-2'
-const stepPanelPClass = 'w-full flex-grow text-primary-600 dark:text-primary-50'
-const stepPanelFooter = 'pt-6 pb-2 px-2 flex gap-4'
-
+const stepButtonClass =
+    "btn btn-primary w-auto sm:w-max hover:bg-primary-600/60 dark:hover:bg-primary-500/50 shadow-sm"
+const stepPanelBody = "flex justify-between items-start gap-4 h-max p-2"
+const stepPanelPClass = "w-full flex-grow text-primary-600 dark:text-primary-50"
+const stepPanelFooter = "pt-6 pb-2 px-2 flex gap-4"
 </script>
 
 <template>

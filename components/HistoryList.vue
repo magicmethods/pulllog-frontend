@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useAppStore } from '~/stores/useAppStore'
-import { useLogStore } from '~/stores/useLogStore'
-import { useToast } from 'primevue/usetoast'
-import { copySelectedText } from '~/utils/clipboard'
+import { useToast } from "primevue/usetoast"
+import { useI18n } from "vue-i18n"
+import { useAppStore } from "~/stores/useAppStore"
+import { useLogStore } from "~/stores/useLogStore"
+import { copySelectedText } from "~/utils/clipboard"
 
 // Types
-type HistoryListColumn = 
-    'date' | 'total_pulls' | 'discharge_items' | 'drop_details' | 
-    'expense' | 'tags' | 'free_text' | 'images' | 'tasks'
+type HistoryListColumn =
+    | "date"
+    | "total_pulls"
+    | "discharge_items"
+    | "drop_details"
+    | "expense"
+    | "tags"
+    | "free_text"
+    | "images"
+    | "tasks"
 // Mapキーは log.date
 type TagItem = {
     text: string
@@ -34,9 +41,7 @@ const props = defineProps<{
     /** 強調表示する日付（YYYY-MM-DD） */
     highlightDate?: string
 }>()
-const emit = defineEmits<
-    (e: 'clone-tag', tagText: string) => void
->()
+const emit = defineEmits<(e: "clone-tag", tagText: string) => void>()
 
 // Stores etc.
 const appStore = useAppStore()
@@ -47,7 +52,12 @@ const { t } = useI18n()
 // Refs & Local variables
 const logs = ref<DateLog[]>([])
 const DEFAULT_COLUMNS: HistoryListColumn[] = [
-    'date', 'total_pulls', 'discharge_items', 'expense', 'tags', 'free_text'
+    "date",
+    "total_pulls",
+    "discharge_items",
+    "expense",
+    "tags",
+    "free_text",
 ]
 const MAX_LIMIT: number = 30
 const tagsMap = ref<TagsMap>(new Map())
@@ -57,12 +67,14 @@ const internalAppId = computed(() => props.appId ?? appStore.app?.appId ?? null)
 const loading = computed(() => logStore.isLoading)
 //const error = computed(() => logStore.error)
 const totalColumns = computed(() => (props.columns ?? DEFAULT_COLUMNS).length)
-const displayEmptyText = computed(() => props.emptyText ?? t('history.historyList.empty'))
+const displayEmptyText = computed(
+    () => props.emptyText ?? t("history.historyList.empty"),
+)
 // ストアキャッシュ取得用キャッシュキー
 const fetchOptions = computed(() => ({
     fromDate: props.fromDate,
     toDate: props.toDate,
-    limit: props.limit && props.limit <= MAX_LIMIT ? props.limit : MAX_LIMIT
+    limit: props.limit && props.limit <= MAX_LIMIT ? props.limit : MAX_LIMIT,
 }))
 
 // Methods
@@ -76,10 +88,10 @@ function createTagsMap(logs: DateLog[]): void {
         const tagList: TagItem[] = []
         for (const tag of log.tags) {
             const tagText = tag.trim()
-            if (tagText === '') continue
+            if (tagText === "") continue
             // タグ要素を生成してセット
-            const tagElement = document.createElement('span')
-            tagElement.className = 'tag-chips'
+            const tagElement = document.createElement("span")
+            tagElement.className = "tag-chips"
             tagElement.innerHTML = `<i class="pi pi-tag text-muted"></i><span class="text-antialiasing">${tagText}</span>`
             tagList.push({
                 text: tagText,
@@ -101,8 +113,13 @@ async function fetchLogs() {
         logs.value = []
         return
     }
-    const targetElement = document.getElementById('HistoryListContainer') ?? undefined
-    const data = await logStore.fetchLogs(internalAppId.value, fetchOptions.value, targetElement)
+    const targetElement =
+        document.getElementById("HistoryListContainer") ?? undefined
+    const data = await logStore.fetchLogs(
+        internalAppId.value,
+        fetchOptions.value,
+        targetElement,
+    )
     if (data) {
         // 日付でソート（降順）
         data.sort((a, b) => {
@@ -117,14 +134,19 @@ async function fetchLogs() {
 function resizeHandler() {
     // ウィンドウサイズが640px未満（Breakpoint: sm）の場合は、列の表示を調整
     if (window.innerWidth < 640) {
-        const tableElm = document.querySelector<HTMLTableElement>('.list-table-container table')
+        const tableElm = document.querySelector<HTMLTableElement>(
+            ".list-table-container table",
+        )
         if (tableElm && logs.value.length === 0) {
-            const tbody = tableElm.getElementsByTagName('tbody')[0]
-            const rows = tbody.getElementsByTagName('tr')
+            const tbody = tableElm.getElementsByTagName("tbody")[0]
+            const rows = tbody.getElementsByTagName("tr")
             for (const row of rows) {
-                const cells = row.getElementsByTagName('td')
+                const cells = row.getElementsByTagName("td")
                 if (cells.length === 1) {
-                    cells[0].setAttribute('colspan', String(totalColumns.value - 1))
+                    cells[0].setAttribute(
+                        "colspan",
+                        String(totalColumns.value - 1),
+                    )
                 }
             }
         }
@@ -135,11 +157,11 @@ async function handleSelectionCopy() {
     const success = await copySelectedText()
     if (success) {
         toast.add({
-            severity: 'success',
-            summary: t('history.historyList.copyToClipboard'),
-            detail: t('history.historyList.copyToClipboardSuccess'),
-            group: 'notices',
-            life: 2000
+            severity: "success",
+            summary: t("history.historyList.copyToClipboard"),
+            detail: t("history.historyList.copyToClipboardSuccess"),
+            group: "notices",
+            life: 2000,
         })
         // ブラウザによっては選択解除してもよい（不要なら省略）
         window.getSelection()?.removeAllRanges()
@@ -147,31 +169,38 @@ async function handleSelectionCopy() {
 }
 function cloneToCurrentLog(tagText: string) {
     // 親コンポーネントの history.vue へクローンするタグテキストをemitする
-    emit('clone-tag', tagText)
+    emit("clone-tag", tagText)
 }
 
 // Lifecycle hooks
 onMounted(() => {
     resizeHandler()
-    window.addEventListener('resize', resizeHandler)
+    window.addEventListener("resize", resizeHandler)
 })
 onBeforeUnmount(() => {
-    window.removeEventListener('resize', resizeHandler)
+    window.removeEventListener("resize", resizeHandler)
 })
 
 // Watchers
 watch(
     // 依存propsが変わったら取得
-    [internalAppId, () => props.fromDate, () => props.toDate, () => props.limit, () => props.logs],
-    () => { fetchLogs() },
-    { immediate: true }
+    [
+        internalAppId,
+        () => props.fromDate,
+        () => props.toDate,
+        () => props.limit,
+        () => props.logs,
+    ],
+    () => {
+        fetchLogs()
+    },
+    { immediate: true },
 )
 
 // PassThrough
 const scrollPanelPT = {
-    contentContainer: 'pr-6 text-xs whitespace-nowrap text-antialiasing',
+    contentContainer: "pr-6 text-xs whitespace-nowrap text-antialiasing",
 }
-
 </script>
 
 <template>

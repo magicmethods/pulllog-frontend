@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useLoaderStore } from '~/stores/useLoaderStore'
+import { useI18n } from "vue-i18n"
+import { useLoaderStore } from "~/stores/useLoaderStore"
 
 const loaderStore = useLoaderStore()
 const { t } = useI18n()
@@ -15,53 +15,76 @@ const sectionRef = ref<HTMLElement | null>(null)
 
 const ver = computed(() => `?v=${encodeURIComponent(props.imageCacheParam)}`)
 
-const statItems = computed(() => ([
+const statItems = computed(() => [
     {
-        title: t('landing.statistics.stat1.title'),
-        desc: t('landing.statistics.stat1.describe'),
+        title: t("landing.statistics.stat1.title"),
+        desc: t("landing.statistics.stat1.describe"),
         image: `/images/chart-image1.webp${ver.value}`,
-        animate: { enterClass: 'animate-enter fade-in-10 zoom-in-50 animate-duration-1000' },
+        animate: {
+            enterClass:
+                "animate-enter fade-in-10 zoom-in-50 animate-duration-1000",
+        },
     },
     {
-        title: t('landing.statistics.stat2.title'),
-        desc: t('landing.statistics.stat2.describe'),
+        title: t("landing.statistics.stat2.title"),
+        desc: t("landing.statistics.stat2.describe"),
         image: `/images/chart-image2.webp${ver.value}`,
-        animate: { enterClass: 'animate-enter fade-in-10 zoom-in-75 animate-duration-1000' },
+        animate: {
+            enterClass:
+                "animate-enter fade-in-10 zoom-in-75 animate-duration-1000",
+        },
     },
     {
-        title: t('landing.statistics.stat3.title'),
-        desc: t('landing.statistics.stat3.describe'),
+        title: t("landing.statistics.stat3.title"),
+        desc: t("landing.statistics.stat3.describe"),
         image: `/images/chart-image3.webp${ver.value}`,
-        animate: { enterClass: 'animate-enter fade-in-10 zoom-in-50 animate-duration-1000' },
+        animate: {
+            enterClass:
+                "animate-enter fade-in-10 zoom-in-50 animate-duration-1000",
+        },
     },
     {
-        title: t('landing.statistics.stat4.title'),
-        desc: t('landing.statistics.stat4.describe'),
+        title: t("landing.statistics.stat4.title"),
+        desc: t("landing.statistics.stat4.describe"),
         image: `/images/chart-image4.webp${ver.value}`,
-        animate: { enterClass: 'animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000', leaveClass: 'animate-leave fade-out-0' },
+        animate: {
+            enterClass:
+                "animate-enter fade-in-10 slide-in-from-l-8 animate-duration-1000",
+            leaveClass: "animate-leave fade-out-0",
+        },
     },
     {
-        title: t('landing.statistics.stat5.title'),
-        desc: t('landing.statistics.stat5.describe'),
+        title: t("landing.statistics.stat5.title"),
+        desc: t("landing.statistics.stat5.describe"),
         image: `/images/chart-image5.webp${ver.value}`,
-        animate: { enterClass: 'animate-enter fade-in-10 spin-in-[-45deg] slide-in-from-b-16 animate-duration-1000' },
+        animate: {
+            enterClass:
+                "animate-enter fade-in-10 spin-in-[-45deg] slide-in-from-b-16 animate-duration-1000",
+        },
     },
     {
-        title: t('landing.statistics.stat6.title'),
-        desc: t('landing.statistics.stat6.describe'),
+        title: t("landing.statistics.stat6.title"),
+        desc: t("landing.statistics.stat6.describe"),
         image: `/images/chart-image6.webp${ver.value}`,
-        animate: { enterClass: 'animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000', leaveClass: 'animate-leave fade-out-0' },
+        animate: {
+            enterClass:
+                "animate-enter fade-in-10 slide-in-from-r-8 animate-duration-1000",
+            leaveClass: "animate-leave fade-out-0",
+        },
     },
     {
-        title: t('landing.statistics.stat7.title'),
-        desc: t('landing.statistics.stat7.describe'),
+        title: t("landing.statistics.stat7.title"),
+        desc: t("landing.statistics.stat7.describe"),
         image: `/images/chart-image7.webp${ver.value}`,
-        animate: { enterClass: 'animate-enter fade-in-10 zoom-in-50 slide-in-from-t-20 animate-duration-1000' },
+        animate: {
+            enterClass:
+                "animate-enter fade-in-10 zoom-in-50 slide-in-from-t-20 animate-duration-1000",
+        },
     },
-]))
+])
 
 onMounted(async () => {
-    loaderId.value = loaderStore.show('', sectionRef.value ?? undefined)
+    loaderId.value = loaderStore.show("", sectionRef.value ?? undefined)
     await nextTick()
     loaderStore.hide(loaderId.value)
     isLoading.value = false
@@ -70,22 +93,21 @@ onMounted(async () => {
 // PassThrough
 const cardPT = {
     root: {
-        class: 'w-full! md:w-[calc(calc(100%_/_2)_-_2rem)]! lg:w-[calc(calc(100%_/_3)_-_4rem)]! h-auto p-0! self-stretch gap-4 rounded-xl shadow-lg overflow-hidden!',
+        class: "w-full! md:w-[calc(calc(100%_/_2)_-_2rem)]! lg:w-[calc(calc(100%_/_3)_-_4rem)]! h-auto p-0! self-stretch gap-4 rounded-xl shadow-lg overflow-hidden!",
     },
-    header: 'w-full! p-0 border-b border-surface-400 dark:border-gray-700 bg-white',
-    body: 'items-center! gap-0!',
-    title: 'mx-auto! text-lg font-bold text-center',
-    content: 'min-h-[10rem] p-4 text-base text-primary-900 dark:text-white',
+    header: "w-full! p-0 border-b border-surface-400 dark:border-gray-700 bg-white",
+    body: "items-center! gap-0!",
+    title: "mx-auto! text-lg font-bold text-center",
+    content: "min-h-[10rem] p-4 text-base text-primary-900 dark:text-white",
 }
 const imagePT = {
-    root: 'w-auto h-full',
-    image: 'h-40 w-auto mx-auto',
-    previewIcon: 'text-primary-500 hover:text-primary-400',
-    zoomInButton: 'hidden',
-    zoomOutButton: 'hidden',
-    originalContainer: 'rounded-lg shadow-lg overflow-hidden',
+    root: "w-auto h-full",
+    image: "h-40 w-auto mx-auto",
+    previewIcon: "text-primary-500 hover:text-primary-400",
+    zoomInButton: "hidden",
+    zoomOutButton: "hidden",
+    originalContainer: "rounded-lg shadow-lg overflow-hidden",
 }
-
 </script>
 
 <template>

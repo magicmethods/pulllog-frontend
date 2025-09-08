@@ -30,7 +30,7 @@ declare global {
         order?: number
     }
     /** ComboBox, Chip表示用 */
-    type SymbolOptionView = SymbolOption & {   
+    type SymbolOptionView = SymbolOption & {
         /** UI表示用のラベル（symbol+labelなど） */
         displayLabel: string
     }
@@ -39,6 +39,5 @@ declare global {
         /** 表示用に整形したラベル */
         displayLabel: string
     }
-
 }
 export {}

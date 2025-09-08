@@ -1,14 +1,15 @@
-import { useAppStore } from './useAppStore'
-import { useCsrfStore } from './useCsrfStore'
-import { useLogStore } from './useLogStore'
-import { useStatsStore } from './useStatsStore'
-import { useGlobalStore } from './globalStore'
+import { endpoints } from "~/api/endpoints"
 //import { useI18n } from 'vue-i18n'
-import { useAPI } from '~/composables/useAPI'
-import { endpoints } from '~/api/endpoints'
-import { toUser } from '~/utils/user'
+import { useAPI } from "~/composables/useAPI"
+import { deleteCookieAsync } from "~/utils/cookie"
+import { toUser } from "~/utils/user"
+import { useGlobalStore } from "./globalStore"
+import { useAppStore } from "./useAppStore"
+import { useCsrfStore } from "./useCsrfStore"
+import { useLogStore } from "./useLogStore"
+import { useStatsStore } from "./useStatsStore"
 
-export const useUserStore = defineStore('user', () => {
+export const useUserStore = defineStore("user", () => {
     // Composables
     const { callApi } = useAPI()
 
@@ -87,7 +88,7 @@ export const useUserStore = defineStore('user', () => {
      * @throws {Error} - ユーザー情報の更新に失敗した場合
      */
     async function updateUser(data: Partial<User> | FormData): Promise<void> {
-        if (!user.value) throw new Error(t('app.error.unknownUser'))
+        if (!user.value) throw new Error(t("app.error.unknownUser"))
 
         try {
             let contentType: string | undefined
@@ -95,27 +96,33 @@ export const useUserStore = defineStore('user', () => {
             if (data instanceof FormData) {
                 contentType = undefined
             } else {
-                contentType = 'application/json'
+                contentType = "application/json"
             }
 
             // APIリクエスト
             const res: UserUpdateResponse = await callApi({
                 endpoint: endpoints.user.update(),
-                method: 'PUT',
+                method: "PUT",
                 data,
                 // FormDataの時はcontent-typeをセットしない（fetchが自動で境界を付与）
-                extraHeaders: contentType ? { 'content-type': contentType } : {},
+                extraHeaders: contentType
+                    ? { "content-type": contentType }
+                    : {},
             })
 
-            if (!res || res.state !== 'success' || !res.user) {
-                throw new Error(res?.message || t('app.error.userUpdateFailed'))
+            if (!res || res.state !== "success" || !res.user) {
+                throw new Error(res?.message || t("app.error.userUpdateFailed"))
             }
 
             // レスポンスをUser型に変換してストアに反映
             user.value = { ...user.value, ...toUser(res.user) }
         } catch (err: unknown) {
-            console.error('Failed to update user:', err)
-            throw new Error(err instanceof Error ? err.message : t('app.error.userUpdateFailed'))
+            console.error("Failed to update user:", err)
+            throw new Error(
+                err instanceof Error
+                    ? err.message
+                    : t("app.error.userUpdateFailed"),
+            )
         }
     }
     /**
@@ -136,14 +143,14 @@ export const useUserStore = defineStore('user', () => {
             try {
                 const res = await callApi<VerifyResponse>({
                     endpoint: endpoints.auth.logout(),
-                    method: 'POST',
+                    method: "POST",
                 })
                 if (!res || !res.success) {
-                    throw new Error(res?.message || t('app.error.logoutFailed'))
+                    throw new Error(res?.message || t("app.error.logoutFailed"))
                 }
             } catch (error: unknown) {
                 // ここでエラーを投げると、ログアウト後の処理が行われないため、ログは出すが続行
-                console.warn('Failed to remove server session:', error)
+                console.warn("Failed to remove server session:", error)
             } finally {
                 // サーバーセッション削除の成否にかかわらずフロント側はログアウトさせる
                 // フロント側状態のクリア
@@ -155,7 +162,7 @@ export const useUserStore = defineStore('user', () => {
                 useLogStore().clearLogs()
                 useStatsStore().clearStatsCacheAll()
                 // 既にあるRememberトークンのCookieを削除して自動ログインを無効化
-                document.cookie = 'remember_token=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/; secure; samesite=lax'
+                await deleteCookieAsync("remember_token", "/")
             }
         } finally {
             global.setLoading(false)
@@ -169,7 +176,7 @@ export const useUserStore = defineStore('user', () => {
      * @throws {Error} - ユーザー削除に失敗した場合
      */
     async function deleteUser() {
-        if (!user.value) throw new Error(t('app.error.unknownUser'))
+        if (!user.value) throw new Error(t("app.error.unknownUser"))
 
         const global = useGlobalStore()
         global.setLoading(true)
@@ -177,11 +184,11 @@ export const useUserStore = defineStore('user', () => {
             // APIリクエスト
             const res: UserDeleteResponse = await callApi({
                 endpoint: endpoints.user.delete(),
-                method: 'DELETE',
+                method: "DELETE",
             })
 
-            if (!res || res.state !== 'success') {
-                throw new Error(res?.message || t('app.error.userDeleteFailed'))
+            if (!res || res.state !== "success") {
+                throw new Error(res?.message || t("app.error.userDeleteFailed"))
             }
 
             // ユーザーデータおよび関連データをクリア
@@ -193,10 +200,14 @@ export const useUserStore = defineStore('user', () => {
             useLogStore().clearLogs()
             useStatsStore().clearStatsCacheAll()
             // トップページにリダイレクト
-            useRouter().push('/')
+            useRouter().push("/")
         } catch (err: unknown) {
-            console.error('Failed to delete user:', err)
-            throw new Error(err instanceof Error ? err.message : t('app.error.userDeleteFailed'))
+            console.error("Failed to delete user:", err)
+            throw new Error(
+                err instanceof Error
+                    ? err.message
+                    : t("app.error.userDeleteFailed"),
+            )
         } finally {
             global.setLoading(false)
         }

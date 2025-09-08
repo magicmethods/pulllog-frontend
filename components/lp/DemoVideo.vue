@@ -1,16 +1,19 @@
 <script setup lang="ts">
-const props = withDefaults(defineProps<{
-    fileName?: string
-    width?: number
-    poster?: string
-}>(), {
-    fileName: 'demo-v1.mp4',
-    width: 800,
-    poster: ''
-})
+const props = withDefaults(
+    defineProps<{
+        fileName?: string
+        width?: number
+        poster?: string
+    }>(),
+    {
+        fileName: "demo-v1.mp4",
+        width: 800,
+        poster: "",
+    },
+)
 
 const srcMp4 = `${useConfig().assetBaseURL}/video/${props.fileName}`
-const srcWebm = srcMp4.replace(/\.mp4$/i, '.webm')
+const srcWebm = srcMp4.replace(/\.mp4$/i, ".webm")
 </script>
 
 <template>

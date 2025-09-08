@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useChartPalette } from '~/composables/useChart'
-import { strBytesTruncate } from '~/utils/string'
+import { useI18n } from "vue-i18n"
+import { useChartPalette } from "~/composables/useChart"
+import { strBytesTruncate } from "~/utils/string"
 
 // Props
 const props = defineProps<{
@@ -17,15 +17,15 @@ const { theme, palette, presetColors } = useChartPalette()
 const { t } = useI18n()
 
 // Refs & Local State
-const labelList = computed<string[]>(() => ([
-    t('app.word.pickup'),
-    t('app.word.lose'),
-    t('app.word.target'),
-    t('app.word.guaranteed'),
-    t('app.word.other'),
-]))
+const labelList = computed<string[]>(() => [
+    t("app.word.pickup"),
+    t("app.word.lose"),
+    t("app.word.target"),
+    t("app.word.guaranteed"),
+    t("app.word.other"),
+])
 const breakdownData = computed(() => {
-    const app = props.data.find(item => item.appId === props.appId)
+    const app = props.data.find((item) => item.appId === props.appId)
     if (!app) {
         console.warn(`App with ID ${props.appId} not found in data.`)
         return null
@@ -44,29 +44,29 @@ const breakdownData = computed(() => {
             pickup: {
                 label: labelList.value[0],
                 value: pickup,
-                rate: Math.round(pickup / total * 100),
+                rate: Math.round((pickup / total) * 100),
             },
             lose: {
                 label: labelList.value[1],
                 value: lose,
-                rate: Math.round(lose / total * 100),
+                rate: Math.round((lose / total) * 100),
             },
             target: {
                 label: labelList.value[2],
                 value: target,
-                rate: Math.round(target / total * 100),
+                rate: Math.round((target / total) * 100),
             },
             guaranteed: {
                 label: labelList.value[3],
                 value: guaranteed,
-                rate: Math.round(guaranteed / total * 100),
+                rate: Math.round((guaranteed / total) * 100),
             },
             other: {
                 label: labelList.value[4],
                 value: other,
-                rate: Math.round(other / total * 100),
-            }
-        }
+                rate: Math.round((other / total) * 100),
+            },
+        },
     }
 })
 // 色マップ
@@ -86,29 +86,37 @@ const chartData = computed(() => {
     const data = breakdownData.value.data
     return {
         labels: labelList.value,
-        datasets: [{
-            label: [
-                `${data.pickup.label} ${data.pickup.value.toLocaleString()}`,
-                `${data.lose.label} ${data.lose.value.toLocaleString()}`,
-                `${data.target.label} ${data.target.value.toLocaleString()}`,
-                `${data.guaranteed.label} ${data.guaranteed.value.toLocaleString()}`,
-                `${data.other.label} ${data.other.value.toLocaleString()}`
-            ],
-            data: [
-                Math.round(data.pickup.rate),
-                Math.round(data.lose.rate),
-                Math.round(data.target.rate),
-                Math.round(data.guaranteed.rate),
-                Math.round(data.other.rate)
-            ],
-            backgroundColor: labelList.value.map(label => colorMap.value[label].bg),
-            hoverBackgroundColor: labelList.value.map(label => colorMap.value[label].hover),
-            borderColor: labelList.value.map(label => colorMap.value[label].border),
-            borderWidth: 2,
-            borderAlign: 'center',
-            offset: 1,
-            hoverOffset: 2
-        }]
+        datasets: [
+            {
+                label: [
+                    `${data.pickup.label} ${data.pickup.value.toLocaleString()}`,
+                    `${data.lose.label} ${data.lose.value.toLocaleString()}`,
+                    `${data.target.label} ${data.target.value.toLocaleString()}`,
+                    `${data.guaranteed.label} ${data.guaranteed.value.toLocaleString()}`,
+                    `${data.other.label} ${data.other.value.toLocaleString()}`,
+                ],
+                data: [
+                    Math.round(data.pickup.rate),
+                    Math.round(data.lose.rate),
+                    Math.round(data.target.rate),
+                    Math.round(data.guaranteed.rate),
+                    Math.round(data.other.rate),
+                ],
+                backgroundColor: labelList.value.map(
+                    (label) => colorMap.value[label].bg,
+                ),
+                hoverBackgroundColor: labelList.value.map(
+                    (label) => colorMap.value[label].hover,
+                ),
+                borderColor: labelList.value.map(
+                    (label) => colorMap.value[label].border,
+                ),
+                borderWidth: 2,
+                borderAlign: "center",
+                offset: 1,
+                hoverOffset: 2,
+            },
+        ],
     }
 })
 
@@ -116,7 +124,7 @@ const chartOptions = computed(() => ({
     plugins: {
         legend: {
             display: false,
-            position: 'bottom',
+            position: "bottom",
         },
         tooltip: {
             enabled: true,
@@ -127,37 +135,40 @@ const chartOptions = computed(() => ({
             borderWidth: 1,
             callbacks: {
                 title: (ctx: ContextModel) => {
-                    const label = ctx[0].label || ''
-                    return label !== '' ? `${label}` : ''
+                    const label = ctx[0].label || ""
+                    return label !== "" ? `${label}` : ""
                 },
                 label: (ctx: ContextModel) => {
-                    const drops = Number(ctx.dataset.label[ctx.dataIndex].replace(ctx.label, '').trim())
+                    const drops = Number(
+                        ctx.dataset.label[ctx.dataIndex]
+                            .replace(ctx.label, "")
+                            .trim(),
+                    )
                     return `${ctx.parsed}% (${drops})`
-                }
-            }
-        }
+                },
+            },
+        },
     },
     responsive: true,
     maintainAspectRatio: false,
     animation: {
         animateScale: true,
-        animateRotate: true
-    }
+        animateRotate: true,
+    },
 }))
 
 // ツールチップを表示する
 function showTooltip() {
     return {
-        value: t('stats.chart.rareDropBreakdown.noticeLong'),
+        value: t("stats.chart.rareDropBreakdown.noticeLong"),
         escape: false,
         pt: {
-            root: 'pt-1',
-            text: 'w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs',
-            arrow: 'w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800',
-        }
+            root: "pt-1",
+            text: "w-max max-w-[30rem] p-3 bg-surface-600 text-white dark:bg-gray-800 dark:shadow-lg font-medium text-xs",
+            arrow: "w-2 h-2 rotate-[45deg] border-b border-4 border-surface-600 dark:border-gray-800",
+        },
     }
 }
-
 </script>
 
 <template>

@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { useUserStore } from '~/stores/useUserStore'
-import { useAppStore } from '~/stores/useAppStore'
-import { useChartPalette } from '~/composables/useChart'
-import { strBytesTruncate } from '~/utils/string'
+import { useI18n } from "vue-i18n"
+import { useChartPalette } from "~/composables/useChart"
+import { useAppStore } from "~/stores/useAppStore"
+import { useUserStore } from "~/stores/useUserStore"
+import { strBytesTruncate } from "~/utils/string"
 
 // Types
 type LineChartData = {
@@ -45,15 +45,18 @@ const { theme, palette, presetColors } = useChartPalette()
 
 // X軸（日付）: 最初の系列の全日付
 const xLabels = computed<string[]>(() => {
-    return props.data.length > 0 ? props.data[0].rate.map(row => row.date) : []
+    return props.data.length > 0
+        ? props.data[0].rate.map((row) => row.date)
+        : []
 })
 
 // アプリID一覧
-const appIds = computed<string[]>(() => props.data.map(item => item.appId))
+const appIds = computed<string[]>(() => props.data.map((item) => item.appId))
 // アプリ名ラベル
 const appLabels = computed<string[]>(() => {
-    return appIds.value.map(appId => {
-        const appName = appStore.appList.find(app => app.appId === appId)?.name || appId
+    return appIds.value.map((appId) => {
+        const appName =
+            appStore.appList.find((app) => app.appId === appId)?.name || appId
         return strBytesTruncate(appName, 7, 80)
     })
 })
@@ -74,7 +77,7 @@ const datasets = computed(() => {
         const appId = item.appId
         return {
             label: appLabels.value[i],
-            data: item.rate.map(row => row.rate),
+            data: item.rate.map((row) => row.rate),
             backgroundColor: colorMap.value[appId].bg,
             borderColor: colorMap.value[appId].border,
             pointBackgroundColor: colorMap.value[appId].bg,
@@ -90,17 +93,17 @@ const datasets = computed(() => {
 
 // 平均レア排出率計算（アプリごと）
 const averageRates = computed<number[]>(() => {
-    return props.data.map(app =>
+    return props.data.map((app) =>
         app.rate.length > 0
             ? app.rate.reduce((sum, row) => sum + row.rate, 0) / app.rate.length
-            : 0
+            : 0,
     )
 })
 
 // グラフデータ
 const chartData = computed(() => ({
     labels: xLabels.value,
-    datasets: datasets.value
+    datasets: datasets.value,
 }))
 
 // グラフオプション
@@ -108,7 +111,7 @@ const chartOptions = computed(() => ({
     plugins: {
         legend: {
             display: false,
-            position: 'bottom',
+            position: "bottom",
         },
         tooltip: {
             enabled: true,
@@ -127,31 +130,37 @@ const chartOptions = computed(() => ({
                     const label = ctx.dataset.label
                     const value = ctx.parsed.y
                     return `${label}: ${value?.toFixed(2)}%`
-                }
-            }
+                },
+            },
         },
         annotation: {
             annotations: props.data.reduce((acc, app, idx) => {
                 acc[`avgLine${idx}`] = {
-                    type: 'line',
+                    type: "line",
                     yMin: averageRates.value[idx],
                     yMax: averageRates.value[idx],
-                    borderColor: averageRates.value[idx] > 0
-                        ? colorMap.value[app.appId]?.annotation ?? palette.value.annotationBorder
-                        : 'transparent',
+                    borderColor:
+                        averageRates.value[idx] > 0
+                            ? (colorMap.value[app.appId]?.annotation ??
+                              palette.value.annotationBorder)
+                            : "transparent",
                     borderWidth: 2,
                     borderDash: [4, 4],
                     label: {
                         display: averageRates.value[idx] > 0,
-                        content: t('stats.chart.cumulativeRareRate.average', { value: averageRates.value[idx].toFixed(2) }),
-                        position: 'start',
-                        color: colorMap.value[app.appId]?.annotation ?? palette.value.annotationText,
+                        content: t("stats.chart.cumulativeRareRate.average", {
+                            value: averageRates.value[idx].toFixed(2),
+                        }),
+                        position: "start",
+                        color:
+                            colorMap.value[app.appId]?.annotation ??
+                            palette.value.annotationText,
                         backgroundColor: palette.value.annotationBg,
-                        font: { weight: 'bold', size: 10 }
-                    }
+                        font: { weight: "bold", size: 10 },
+                    },
                 }
                 return acc
-            }, {} as CallbackArgumentObject)
+            }, {} as CallbackArgumentObject),
         },
     },
     responsive: true,
@@ -160,22 +169,20 @@ const chartOptions = computed(() => ({
         x: {
             grid: { display: false },
             ticks: { color: palette.value.text },
-            border: { color: palette.value.axis }
+            border: { color: palette.value.axis },
         },
         y: {
             grid: { color: palette.value.grid },
             ticks: {
                 color: palette.value.text,
-                callback: (val: number) => `${val}%`
+                callback: (val: number) => `${val}%`,
             },
             border: { color: palette.value.axis },
             min: 0,
             max: props.maxRate ?? 100,
-        }
-    }
+        },
+    },
 }))
-
-
 </script>
 
 <template>

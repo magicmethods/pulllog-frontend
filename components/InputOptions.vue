@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ulid } from 'ulid'
-import { useI18n } from 'vue-i18n'
+import { ulid } from "ulid"
+import { useI18n } from "vue-i18n"
 
 // Props
 const props = defineProps<{
@@ -20,36 +20,40 @@ const { t } = useI18n()
 
 // Emits
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: SymbolOption[]): void
-    (e: 'update:activeEmojiPickerId', id: string | null): void
+    (e: "update:modelValue", value: SymbolOption[]): void
+    (e: "update:activeEmojiPickerId", id: string | null): void
 }>()
 
 // State & Refs
-const internalSymbol = ref<string>('')
-const internalLabel = ref<string>('')
+const internalSymbol = ref<string>("")
+const internalLabel = ref<string>("")
 const symbolButtonRef = ref<HTMLElement | null>(null)
 
 // Computed
 const currentOptions = computed<SymbolOption[]>({
-  get: () => props.modelValue,
-  set: (val) => emit('update:modelValue', val)
+    get: () => props.modelValue,
+    set: (val) => emit("update:modelValue", val),
 })
 const showEmojiPicker = computed({
     get: () => props.activeEmojiPickerId === props.inputId,
-    set: (val: boolean) => emit('update:activeEmojiPickerId', val ? props.inputId : null)
+    set: (val: boolean) =>
+        emit("update:activeEmojiPickerId", val ? props.inputId : null),
 })
 const helpText = computed(() => {
-    let txt = t('component.inputOptions.helpText')
-    if (props.maxItems) txt += ` ${t('component.inputOptions.maxItems', { count: props.maxItems })}`
-    if (props.maxLength) txt += ` ${t('component.inputOptions.maxLength', { count: props.maxLength })}`
-    return typeof props.helpText === 'string' ? props.helpText : txt
+    let txt = t("component.inputOptions.helpText")
+    if (props.maxItems)
+        txt += ` ${t("component.inputOptions.maxItems", { count: props.maxItems })}`
+    if (props.maxLength)
+        txt += ` ${t("component.inputOptions.maxLength", { count: props.maxLength })}`
+    return typeof props.helpText === "string" ? props.helpText : txt
 })
 const isInsertable = computed(() => {
     const trimmed = internalLabel.value.trim()
     if (!trimmed || trimmed.length === 0) return false
-    if (props.maxItems && currentOptions.value.length >= props.maxItems) return false
+    if (props.maxItems && currentOptions.value.length >= props.maxItems)
+        return false
     if (props.maxLength && trimmed.length > props.maxLength) return false
-    return !currentOptions.value.some(o => o && o.value === trimmed)
+    return !currentOptions.value.some((o) => o && o.value === trimmed)
 })
 
 // Methods
@@ -67,10 +71,12 @@ function addNewOption() {
     const newItem: SymbolOption = {
         symbol: internalSymbol.value,
         label: trimmed,
-        value: ulid()
+        value: ulid(),
     }
 
-    const existingIndex = currentOptions.value.findIndex(o => o.label === trimmed)
+    const existingIndex = currentOptions.value.findIndex(
+        (o) => o.label === trimmed,
+    )
     const newOptions = [...currentOptions.value]
     if (existingIndex === -1) {
         // Add new item
@@ -80,14 +86,12 @@ function addNewOption() {
         newOptions[existingIndex] = newItem
     }
     currentOptions.value = newOptions
-    internalSymbol.value = ''
-    internalLabel.value = ''
-    console.log('addNewOption', trimmed, currentOptions.value)
+    internalSymbol.value = ""
+    internalLabel.value = ""
 }
 function toggleEmojiPicker() {
     showEmojiPicker.value = !showEmojiPicker.value
 }
-
 </script>
 
 <template>

@@ -1,5 +1,5 @@
-import { type H3Event, getQuery, readRawBody } from 'h3'
-import path from 'node:path'
+import path from "node:path"
+import { getQuery, type H3Event, readRawBody } from "h3"
 
 /**
  * クエリパラメータを組み立ててURLに付与
@@ -26,10 +26,19 @@ export function buildProxyHeaders(
     event: H3Event,
     apiKey: string,
     extendedHeaders: string[] = [],
-    mustCsrfToken = true
+    mustCsrfToken = true,
 ): Record<string, string> | null {
     const clientHeaders = event.node.req.headers
-    let allowedHeaders = ['origin', 'x-csrf-token', 'authorization', 'content-type', 'content-length', 'accept', 'cookie', 'user-agent']
+    let allowedHeaders = [
+        "origin",
+        "x-csrf-token",
+        "authorization",
+        "content-type",
+        "content-length",
+        "accept",
+        "cookie",
+        "user-agent",
+    ]
     // 追加のヘッダが指定されていればマージ
     if (extendedHeaders.length > 0) {
         allowedHeaders = [...allowedHeaders, ...extendedHeaders]
@@ -38,18 +47,20 @@ export function buildProxyHeaders(
 
     for (const header of allowedHeaders) {
         const value = clientHeaders[header]
-        if (typeof value === 'string') proxyHeaders[header] = value
+        if (typeof value === "string") proxyHeaders[header] = value
     }
-    proxyHeaders['x-api-key'] = apiKey // APIキーは必ず上書き
+    proxyHeaders["x-api-key"] = apiKey // APIキーは必ず上書き
 
     // CSRFトークンが必須の場合はチェック
     if (mustCsrfToken) {
-        if (!proxyHeaders['x-csrf-token'] || proxyHeaders['x-csrf-token'] === '') {
+        if (
+            !proxyHeaders["x-csrf-token"] ||
+            proxyHeaders["x-csrf-token"] === ""
+        ) {
             return null
         }
         // proxyHeaders.credentials = 'include' // CSRFトークンをCookieで送信するために必要
     }
-
 
     return proxyHeaders
 }
@@ -68,30 +79,26 @@ export async function proxyFetchAndReturn(
     event: H3Event,
     url: string,
     headers: Record<string, string>,
-    method = 'GET',
-    body?: unknown
+    method = "GET",
+    body?: unknown,
 ) {
     // biome-ignore lint:/suspicious/noExplicitAny
     let fetchBody: any = undefined
     if (body !== undefined) {
         // FormData, Blob, ArrayBuffer, ReadableStream等はそのまま渡す
         if (
-            typeof FormData !== 'undefined' && body instanceof FormData ||
-            typeof Blob !== 'undefined' && body instanceof Blob ||
-            typeof ArrayBuffer !== 'undefined' && body instanceof ArrayBuffer
+            (typeof FormData !== "undefined" && body instanceof FormData) ||
+            (typeof Blob !== "undefined" && body instanceof Blob) ||
+            (typeof ArrayBuffer !== "undefined" && body instanceof ArrayBuffer)
         ) {
-            console.log('APIProxy::fetchBody is FormData/Blob/ArrayBuffer:')
             fetchBody = body
-        } else if (
-            typeof body === 'string' ||
-            body instanceof Uint8Array
-        ) {
+        } else if (typeof body === "string" || body instanceof Uint8Array) {
             fetchBody = body
         } else {
             // 通常のobject（JSON送信）
             fetchBody = JSON.stringify(body)
         }
-    } else if (['POST', 'PUT', 'PATCH'].includes(method)) {
+    } else if (["POST", "PUT", "PATCH"].includes(method)) {
         // body未指定の場合、リクエストボディを生で吸い出してfetchに流す
         // @description ファイル等のバイナリが含まれると挙動が怪しいので原則利用不可
         fetchBody = await readRawBody(event) // Buffer
@@ -103,12 +110,10 @@ export async function proxyFetchAndReturn(
         body: fetchBody,
     })
 
-    console.log('APIProxy::fetching:', method, url, headers, fetchBody?.length)
-
     event.node.res.statusCode = response.status
     if (response.status === 204) return null
-    const contentType = response.headers.get('content-type')
-    if (contentType?.includes('application/json')) {
+    const contentType = response.headers.get("content-type")
+    if (contentType?.includes("application/json")) {
         return await response.json()
     }
     return await response.text()
@@ -122,4 +127,3 @@ export async function proxyFetchAndReturn(
 export function getFileExtension(filename: string): string {
     return path.extname(filename).slice(1)
 }
-

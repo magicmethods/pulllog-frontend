@@ -4,17 +4,17 @@
  */
 export async function copySelectedText(): Promise<boolean> {
     const selection = window.getSelection()
-    if (!selection || selection.toString() === '') return false
+    if (!selection || selection.toString() === "") return false
     const text = selection.toString()
     try {
         await navigator.clipboard.writeText(text)
         return true
-    } catch (e) {
+    } catch (_e) {
         // クリップボードAPI未対応時は従来のexecCommandで対応
         try {
-            document.execCommand('copy')
+            document.execCommand("copy")
             return true
-        } catch (err) {
+        } catch (_err) {
             return false
         }
     }

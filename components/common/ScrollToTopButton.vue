@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { debounce } from '~/utils/timing'
-import { useI18n } from 'vue-i18n'
+import { useI18n } from "vue-i18n"
+import { debounce } from "~/utils/timing"
 
 // Props
 const props = defineProps<{
@@ -23,7 +23,7 @@ const handleScroll = debounce(() => {
     isVisible.value = scrollTop > threshold
 }, 100)
 function scrollToTop() {
-    const moving: ScrollToOptions = { top: 0, behavior: 'smooth' }
+    const moving: ScrollToOptions = { top: 0, behavior: "smooth" }
     if (scrollEl.value) {
         scrollEl.value.scrollTo(moving)
     } else {
@@ -32,16 +32,18 @@ function scrollToTop() {
 }
 function bindScrollEvent() {
     if (scrollEl.value) {
-        scrollEl.value.addEventListener('scroll', handleScroll, { passive: true })
+        scrollEl.value.addEventListener("scroll", handleScroll, {
+            passive: true,
+        })
     } else {
-        window.addEventListener('scroll', handleScroll, { passive: true })
+        window.addEventListener("scroll", handleScroll, { passive: true })
     }
 }
 function unbindScrollEvent() {
     if (scrollEl.value) {
-        scrollEl.value.removeEventListener('scroll', handleScroll)
+        scrollEl.value.removeEventListener("scroll", handleScroll)
     } else {
-        window.removeEventListener('scroll', handleScroll)
+        window.removeEventListener("scroll", handleScroll)
     }
 }
 
@@ -58,11 +60,12 @@ onUnmounted(() => {
 // Watchers
 // targetが切り替わったとき
 watch(scrollEl, (newEl, oldEl) => {
-    if (oldEl && oldEl instanceof HTMLElement) oldEl.removeEventListener('scroll', handleScroll)
-    if (newEl && newEl instanceof HTMLElement) newEl.addEventListener('scroll', handleScroll, { passive: true })
+    if (oldEl && oldEl instanceof HTMLElement)
+        oldEl.removeEventListener("scroll", handleScroll)
+    if (newEl && newEl instanceof HTMLElement)
+        newEl.addEventListener("scroll", handleScroll, { passive: true })
     handleScroll() // 新しい要素の初期状態チェック
 })
-
 </script>
 
 <template>

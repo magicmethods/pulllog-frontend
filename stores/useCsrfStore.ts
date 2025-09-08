@@ -1,5 +1,5 @@
-import { useAPI } from '~/composables/useAPI'
-import { endpoints } from '~/api/endpoints'
+import { endpoints } from "~/api/endpoints"
+import { useAPI } from "~/composables/useAPI"
 
 // Types
 type CsrfTokenResponse = {
@@ -7,22 +7,22 @@ type CsrfTokenResponse = {
     expiresAt: string
 }
 
-export const useCsrfStore = defineStore('csrf', () => {
+export const useCsrfStore = defineStore("csrf", () => {
     // State
-    const token = ref<string>('')
+    const token = ref<string>("")
 
     // Actions
     function setToken(newToken: string): void {
         token.value = newToken
     }
     function clearToken(): void {
-        token.value = ''
+        token.value = ""
     }
 
     // Methods
     async function refresh(): Promise<boolean> {
         const { callApi } = useAPI()
-        const rememberCookie = useCookie<string | null>('remember_token')
+        const rememberCookie = useCookie<string | null>("remember_token")
         // console.log('Calling CSRF refresh:', token.value, rememberCookie.value)
         if (!rememberCookie.value) return false
 
@@ -37,7 +37,7 @@ export const useCsrfStore = defineStore('csrf', () => {
             }
             const res = await callApi<CsrfTokenResponse>({
                 endpoint: endpoints.auth.csrfRefresh(),
-                method: 'POST',
+                method: "POST",
                 //onAuthError: 'throw',
                 data,
             })

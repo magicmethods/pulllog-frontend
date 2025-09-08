@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { z } from 'zod'
-import { useUserStore } from '~/stores/useUserStore'
-import { useI18n } from 'vue-i18n'
-import { useAuth }  from '~/composables/useAuth'
-import { useGoogleAuth } from '~/composables/useGoogleAuth'
+import { useI18n } from "vue-i18n"
+import { z } from "zod"
+import { useAuth } from "~/composables/useAuth"
+import { useGoogleAuth } from "~/composables/useGoogleAuth"
+import { useUserStore } from "~/stores/useUserStore"
 
 definePageMeta({
-    layout: 'auth'
+    layout: "auth",
 })
 
 // Stores etc.
@@ -17,36 +17,68 @@ const { start: startGoogle } = useGoogleAuth()
 
 // Refs & Local variables
 const form = reactive({
-  email: '',
-  password: '',
-  remember: false,
+    email: "",
+    password: "",
+    remember: false,
 })
-const errors = reactive<{ email?: string, password?: string }>({})
+const errors = reactive<{ email?: string; password?: string }>({})
 const globalError = ref<string | null>(null) // グローバルエラーメッセージ
-const touched = reactive<{ email: boolean, password: boolean }>({
-  email: false,
-  password: false,
+const touched = reactive<{ email: boolean; password: boolean }>({
+    email: false,
+    password: false,
 })
 const isSubmitting = ref<boolean>(false)
 const externalLogin = [
-  { service: 'google', label: t('auth.login.google'), icon: 'pi pi-google', enabled: true },
-  { service: 'apple', label: t('auth.login.apple'), icon: 'pi pi-apple', enabled: false },
-  { service: 'microsoft', label: t('auth.login.microsoft'), icon: 'pi pi-windows', enabled: false },
-  { service: 'twitter', label: t('auth.login.twitter'), icon: 'pi pi-twitter', enabled: false }, // Xは非推奨
-  { service: 'facebook', label: t('auth.login.facebook'), icon: 'pi pi-facebook', enabled: false }, // Facebookは非推奨
-  { service: 'github', label: t('auth.login.github'), icon: 'pi pi-github', enabled: false },
+    {
+        service: "google",
+        label: t("auth.login.google"),
+        icon: "pi pi-google",
+        enabled: true,
+    },
+    {
+        service: "apple",
+        label: t("auth.login.apple"),
+        icon: "pi pi-apple",
+        enabled: false,
+    },
+    {
+        service: "microsoft",
+        label: t("auth.login.microsoft"),
+        icon: "pi pi-windows",
+        enabled: false,
+    },
+    {
+        service: "twitter",
+        label: t("auth.login.twitter"),
+        icon: "pi pi-twitter",
+        enabled: false,
+    }, // Xは非推奨
+    {
+        service: "facebook",
+        label: t("auth.login.facebook"),
+        icon: "pi pi-facebook",
+        enabled: false,
+    }, // Facebookは非推奨
+    {
+        service: "github",
+        label: t("auth.login.github"),
+        icon: "pi pi-github",
+        enabled: false,
+    },
 ]
-const enabledExternalLogin = externalLogin.filter(service => service.enabled)
+const enabledExternalLogin = externalLogin.filter((service) => service.enabled)
 // Schema for form validation
-const loginSchema = computed(() => z.object({
-  email: z.string().email({ message: t('validation.invalidEmail') }),
-  password: z.string().min(8, { message: t('validation.shortPassword') }),
-}))
+const loginSchema = computed(() =>
+    z.object({
+        email: z.string().email({ message: t("validation.invalidEmail") }),
+        password: z.string().min(8, { message: t("validation.shortPassword") }),
+    }),
+)
 const isFormValid = computed(() => loginSchema.value.safeParse(form).success)
 
 // Methods
 // 指定フィールドのみバリデーション
-function validateFields(fields: ('email' | 'password')[]) {
+function validateFields(fields: ("email" | "password")[]) {
     for (const f of fields) {
         if (!form[f]) {
             errors[f] = undefined
@@ -56,7 +88,7 @@ function validateFields(fields: ('email' | 'password')[]) {
         const result = loginSchema.value.shape[f].safeParse(form[f])
         errors[f] = result.success ? undefined : result.error.issues[0]?.message
     }
-    return fields.every(f => !errors[f])
+    return fields.every((f) => !errors[f])
 }
 // 全体バリデーション
 function validateAll(): boolean {
@@ -77,69 +109,67 @@ function validateAll(): boolean {
     return true
 }
 
-function handleBlur(field: 'email' | 'password') {
-  touched[field] = true
-  validateFields([field])
+function handleBlur(field: "email" | "password") {
+    touched[field] = true
+    validateFields([field])
 }
 
 async function handleLogin() {
-  globalError.value = null
-  if (!validateAll()) return
-  isSubmitting.value = true
-  try {
-    await login(form.email, form.password, form.remember)
-    if (userStore.isLoggedIn) {
-      // Redirect to the home page after successful login
-      navigateTo({ path: userStore.user?.homePage ?? '/apps' })
-      return
+    globalError.value = null
+    if (!validateAll()) return
+    isSubmitting.value = true
+    try {
+        await login(form.email, form.password, form.remember)
+        if (userStore.isLoggedIn) {
+            // Redirect to the home page after successful login
+            navigateTo({ path: userStore.user?.homePage ?? "/apps" })
+            return
+        }
+        // Handle case where login was not successful
+        throw new Error()
+    } catch (e: unknown) {
+        // Handle login error
+        console.error("Login failed:", e)
+        globalError.value =
+            e instanceof Error ? e.message : t("auth.login.failed")
+        isSubmitting.value = false
+    } finally {
+        // 次ページへの遷移完了までローディング状態を維持するため isSubmitting.value は false にしない
+        // isSubmitting.value = false
     }
-    // Handle case where login was not successful
-    throw new Error()
-  } catch (e: unknown) {
-    // Handle login error
-    console.error('Login failed:', e)
-    globalError.value = e instanceof Error ? e.message : t('auth.login.failed')
-    isSubmitting.value = false
-  } finally {
-    // 次ページへの遷移完了までローディング状態を維持するため isSubmitting.value は false にしない
-    // isSubmitting.value = false
-  }
 }
 
 async function handleOauthLogin(service: string) {
-  if (service === 'google') {
-    // Google OAuthの開始
-    await startGoogle({
-      redirectUri: `${window.location.origin}/auth/callback`,
-      remember: form.remember,
-    })
-    return
-  }
-  // 他サービスは今後追加
-  console.log(`OAuth login with ${service} is not enabled yet.`)
+    if (service === "google") {
+        // Google OAuthの開始
+        await startGoogle({
+            redirectUri: `${window.location.origin}/auth/callback`,
+            remember: form.remember,
+        })
+        return
+    }
 }
 
 function handleBack() {
-  navigateTo({ path: '/' })
+    navigateTo({ path: "/" })
 }
 
 // Lifecycle hooks
 onBeforeMount(async () => {
-  if (import.meta.client) {
-    const rememberCookie = useCookie('remember_token')
-    if (!rememberCookie.value) return
-    try {
-      // 自動ログイン・Cookieの自動送信
-      await autoLogin()
-      // 成功したらリダイレクト
-      navigateTo({ path: userStore.user?.homePage ?? '/apps' })
-    } catch (e: unknown) {
-      // 失敗時は何もしない（ログイン画面を通常通り表示）
-      // console.warn('Auto login failed:', e instanceof Error ? e.message : e)
+    if (import.meta.client) {
+        const rememberCookie = useCookie("remember_token")
+        if (!rememberCookie.value) return
+        try {
+            // 自動ログイン・Cookieの自動送信
+            await autoLogin()
+            // 成功したらリダイレクト
+            navigateTo({ path: userStore.user?.homePage ?? "/apps" })
+        } catch (e: unknown) {
+            // 失敗時は何もしない（ログイン画面を通常通り表示）
+            // console.warn('Auto login failed:', e instanceof Error ? e.message : e)
+        }
     }
-  }
 })
-
 </script>
 
 <template>

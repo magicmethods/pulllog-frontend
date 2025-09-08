@@ -1,10 +1,10 @@
 export const ERROR_URL = {
-    BadRequest: '/error/400',
-    Unauthorized: '/error/401',
-    Forbidden: '/error/403',
-    NotFound: '/error/404',
-    SessionExpired: '/error/419',
-    InternalServerError: '/error/500',
+    BadRequest: "/error/400",
+    Unauthorized: "/error/401",
+    Forbidden: "/error/403",
+    NotFound: "/error/404",
+    SessionExpired: "/error/419",
+    InternalServerError: "/error/500",
 }
 
 export class ApiError extends Error {
@@ -12,7 +12,7 @@ export class ApiError extends Error {
     data?: unknown
     constructor(message: string, status: number, data?: unknown) {
         super(message)
-        this.name = 'ApiError'
+        this.name = "ApiError"
         this.status = status
         this.data = data
     }

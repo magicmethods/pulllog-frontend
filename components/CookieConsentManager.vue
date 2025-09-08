@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { DateTime } from 'luxon'
-import { useI18n } from 'vue-i18n'
-import { useConsent } from '~/composables/useConsent'
+import { DateTime } from "luxon"
+import { useI18n } from "vue-i18n"
+import { useConsent } from "~/composables/useConsent"
 
 // Persistence key
-const STORAGE_KEY = 'pulllog-consent'
+const STORAGE_KEY = "pulllog-consent"
 
 // Types
 type ConsentPrefs = {
@@ -17,7 +17,7 @@ type ConsentPrefs = {
 const defaultPrefs: ConsentPrefs = {
     analytics: false,
     ads: false,
-    updatedAt: ''
+    updatedAt: "",
 }
 
 // Stores etc.
@@ -29,19 +29,23 @@ const visibleDialog = ref(false)
 const prefs = ref<ConsentPrefs>({ ...defaultPrefs })
 const visiblePolicy = ref<boolean>(false) // プライバシーポリシーモーダル表示状態
 const policySrc = ref<string>(`/docs/privacy_policy_${locale.value}.md`)
-const hasDecision = computed(() => prefs.value.updatedAt !== '')
+const hasDecision = computed(() => prefs.value.updatedAt !== "")
 
 // Consent API（gtag update call）
 const { grant, deny } = useConsent()
 
 // Storage I/O
 const loadPrefs = (): ConsentPrefs | null => {
-    if (typeof window === 'undefined') return null
+    if (typeof window === "undefined") return null
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY)
         if (!raw) return null
         const parsed = JSON.parse(raw) as ConsentPrefs
-        if (typeof parsed.analytics !== 'boolean' || typeof parsed.ads !== 'boolean') return null
+        if (
+            typeof parsed.analytics !== "boolean" ||
+            typeof parsed.ads !== "boolean"
+        )
+            return null
         return parsed
     } catch {
         return null
@@ -57,7 +61,7 @@ function showPolicy() {
 }
 
 const savePrefs = (next: ConsentPrefs) => {
-    if (typeof window === 'undefined') return
+    if (typeof window === "undefined") return
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
 }
 
@@ -87,7 +91,7 @@ const onDenyAll = () => {
     const next: ConsentPrefs = {
         analytics: false,
         ads: false,
-        updatedAt: DateTime.now().toISO()
+        updatedAt: DateTime.now().toISO(),
     }
     prefs.value = next
     savePrefs(next)
@@ -100,7 +104,7 @@ const onAcceptAll = () => {
     const next: ConsentPrefs = {
         analytics: true,
         ads: true,
-        updatedAt: DateTime.now().toISO()
+        updatedAt: DateTime.now().toISO(),
     }
     prefs.value = next
     savePrefs(next)
@@ -113,7 +117,7 @@ const onSaveSelection = () => {
     const next: ConsentPrefs = {
         analytics: prefs.value.analytics,
         ads: prefs.value.ads,
-        updatedAt: DateTime.now().toISO()
+        updatedAt: DateTime.now().toISO(),
     }
     prefs.value = next
     savePrefs(next)
@@ -121,9 +125,9 @@ const onSaveSelection = () => {
     // 細分化した同意を gtag に反映
     if (prefs.value.analytics || prefs.value.ads) {
         // どれか1つでも true なら granted 側で上書き
-        window.gtag?.('consent', 'update', {
-            analytics_storage: prefs.value.analytics ? 'granted' : 'denied',
-            ad_storage: prefs.value.ads ? 'granted' : 'denied'
+        window.gtag?.("consent", "update", {
+            analytics_storage: prefs.value.analytics ? "granted" : "denied",
+            ad_storage: prefs.value.ads ? "granted" : "denied",
         })
     } else {
         deny()

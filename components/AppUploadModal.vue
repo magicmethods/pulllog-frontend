@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import type { FileUploadSelectEvent, FileUploadRemoveEvent } from 'primevue/fileupload'
-import { useI18n } from 'vue-i18n'
+import type {
+    FileUploadRemoveEvent,
+    FileUploadSelectEvent,
+} from "primevue/fileupload"
+import { useI18n } from "vue-i18n"
 
 // Props/Emits
 const props = defineProps<{
@@ -8,8 +11,8 @@ const props = defineProps<{
     app?: AppData
 }>()
 const emit = defineEmits<{
-    (e: 'update:visible', value: boolean): void
-    (e: 'upload', value: UploadData): void
+    (e: "update:visible", value: boolean): void
+    (e: "upload", value: UploadData): void
 }>()
 
 // i18n
@@ -18,8 +21,8 @@ const { t } = useI18n()
 // State
 const internalFile = ref<File | undefined>(undefined)
 const fileUploadRef = ref(null)
-const mode = ref<'overwrite' | 'merge'>('overwrite')
-const format = ref<'json' | 'csv' | undefined>(undefined)
+const mode = ref<"overwrite" | "merge">("overwrite")
+const format = ref<"json" | "csv" | undefined>(undefined)
 const MAX_UPLOAD_SIZE = 1024 * 1024 // 1MB
 
 // ファイルアップロード処理
@@ -38,16 +41,20 @@ function handleFileSelect(event: FileUploadSelectEvent) {
     }
     if (file) {
         // ファイル形式を判定
-        if (file.type === 'application/json') {
-            format.value = 'json'
-        } else if (file.type === 'text/csv') {
-            format.value = 'csv'
+        if (file.type === "application/json") {
+            format.value = "json"
+        } else if (file.type === "text/csv") {
+            format.value = "csv"
         } else {
             return
         }
         internalFile.value = file
         // 1ファイルのみ受け付けるためアップローダ側も1ファイルに制限
-        if (fileUploadRef.value && Array.isArray(event.files) && event.files.length > 1) {
+        if (
+            fileUploadRef.value &&
+            Array.isArray(event.files) &&
+            event.files.length > 1
+        ) {
             // 先頭以外削除
             //fileUploadRef.value.files = [file]
         }
@@ -70,12 +77,12 @@ function handleRemoveFile(event: FileUploadRemoveEvent) {
 function handleUpload() {
     if (!props.app) return
 
-    emit('upload', {
+    emit("upload", {
         format: format.value,
         mode: mode.value,
-        file: internalFile.value
+        file: internalFile.value,
     } as UploadData)
-    emit('update:visible', false)
+    emit("update:visible", false)
 }
 
 // Watchers
@@ -84,24 +91,23 @@ watch(
     (v) => {
         if (v) {
             // 初期化
-            mode.value = 'overwrite'
+            mode.value = "overwrite"
             format.value = undefined
         }
-    }
+    },
 )
 
 // PassThrough
 const fileUploadPT = {
-    root: 'w-full',
-    content: 'max-w-fit overflow-x-hidden',
-    pcProgressBar: { root: 'hidden' },
-    file: 'flex flex-wrap justify-between gap-1 max-w-[200px] mr-auto overflow-x-auto',
-    fileThumbnail: 'hidden',
-    fileInfo: 'w-full mb-0',
-    fileName: 'truncate',
-    fileSize: 'truncate',
+    root: "w-full",
+    content: "max-w-fit overflow-x-hidden",
+    pcProgressBar: { root: "hidden" },
+    file: "flex flex-wrap justify-between gap-1 max-w-[200px] mr-auto overflow-x-auto",
+    fileThumbnail: "hidden",
+    fileInfo: "w-full mb-0",
+    fileName: "truncate",
+    fileSize: "truncate",
 }
-
 </script>
 
 <template>

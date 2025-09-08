@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { DateTime } from 'luxon'
-import { ulid } from 'ulid'
-import { useGlobalStore } from '~/stores/globalStore'
-import { useLoaderStore } from '~/stores/useLoaderStore'
+import { DateTime } from "luxon"
+import { ulid } from "ulid"
+import { useI18n } from "vue-i18n"
+import { useGlobalStore } from "~/stores/globalStore"
+import { useLoaderStore } from "~/stores/useLoaderStore"
 
 definePageMeta({
-    layout: 'landing'
+    layout: "landing",
 })
 
 // Stores & etc.
@@ -19,80 +19,90 @@ const appConfig = useConfig()
 // Ref & Local variables
 const isLoading = ref<boolean>(false)
 const loaderId = ref<string | null>(null)
-const seedTimestamp = DateTime.fromISO('2025-08-21T08:25:00').toUnixInteger()
+const seedTimestamp = DateTime.fromISO("2025-08-21T08:25:00").toUnixInteger()
 const imageCacheParam = ref<string>(ulid(seedTimestamp))
 
 // Methods
 async function onClickGetStarted() {
-  isLoading.value = true
-  try {
-    await navigateTo('/auth/login')
-  } finally {
-    //isLoading.value = false
-  }
+    isLoading.value = true
+    try {
+        await navigateTo("/auth/login")
+    } finally {
+        //isLoading.value = false
+    }
 }
 async function onClickDemo() {
-  isLoading.value = true
-  globalStore.setLoading(isLoading.value, t('app.loggingIn'))
-  try {
-    await demoLogin()
-  } catch (e) {
-    console.error('Demo login failed:', e)
-  } finally {
-    if (loaderId.value) {
-      loaderStore.hide(loaderId.value)
+    isLoading.value = true
+    globalStore.setLoading(isLoading.value, t("app.loggingIn"))
+    try {
+        await demoLogin()
+    } catch (e) {
+        console.error("Demo login failed:", e)
+    } finally {
+        if (loaderId.value) {
+            loaderStore.hide(loaderId.value)
+        }
+        //globalStore.setLoading(false)
+        //isLoading.value = false
     }
-    //globalStore.setLoading(false)
-    //isLoading.value = false
-  }
 }
 
 onBeforeUnmount(() => {
-  globalStore.setLoading(false)
-  isLoading.value = false
+    globalStore.setLoading(false)
+    isLoading.value = false
 })
 
 // Ad Setting
 const adConfig: Record<string, AdProps> = {
     default: {
-        adType: 'none',
+        adType: "none",
         adClient: appConfig.adsenseAccount,
         //adSlotName: '5664134061',
     },
     bottom: {
-        adType: 'none',
+        adType: "none",
         adClient: appConfig.adsenseAccount,
         //adSlotName: '5664134061',
-    }
+    },
 }
 
 // Styles
 const btnClass = computed(() => {
-  // btn-outlined
-  return [ 'btn btn-outlined', 'mb-0 text-lg', `
+    // btn-outlined
+    return [
+        "btn btn-outlined",
+        "mb-0 text-lg",
+        `
     bg-transparent text-primary-50 dark:text-gray-100 hover:text-white dark:hover:text-gray-50
     border border-white dark:border-gray-50
     focus:ring-surface-400/50 dark:focus:ring-surface-400/30
     hover:bg-primary-600 dark:hover:bg-primary-700 hover:border-primary-200 dark:hover:border-primary-100
-  `].join(' ')
+  `,
+    ].join(" ")
 })
 const btnClassAlt = computed(() => {
-  // btn-alt-outlined
-  return [ 'btn btn-alt-outlined', 'mb-0 text-lg', `
+    // btn-alt-outlined
+    return [
+        "btn btn-alt-outlined",
+        "mb-0 text-lg",
+        `
     bg-transparent text-primary-700 dark:text-gray-100 hover:text-white dark:hover:text-gray-50
     border border-primary-700 dark:border-gray-50
     focus:ring-surface-400/50 dark:focus:ring-surface-400/30
     hover:bg-primary-500 dark:hover:bg-primary-600 hover:border-primary-400 dark:hover:border-primary-100
-  `].join(' ')
+  `,
+    ].join(" ")
 })
 const alertClass = computed(() => {
-  return [ 'py-1.5 px-6 font-bold text-xl', `
+    return [
+        "py-1.5 px-6 font-bold text-xl",
+        `
     bg-rose-300/20 dark:bg-rose-300/10 text-rose-500 dark:text-rose-400
     border-2 rounded-full border-rose-500/60 dark:border-rose-400/60
     outline-none shadow-none select-none
-  `].join(' ')
+  `,
+    ].join(" ")
 })
-
 </script>
 
 <template>
