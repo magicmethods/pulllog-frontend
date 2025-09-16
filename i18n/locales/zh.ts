@@ -50,6 +50,15 @@ export default defineI18nLocale(async () => ({
             advertisement: "广告",
         },
     },
+    // SEO
+    seo: {
+        index: {
+            title: "PullLog",
+            description:
+                "PullLog是一个用于记录和管理您的抽卡历史的Web应用程序。轻松注册“何时”、“多少”和“抽到什么”，并汇总和分析您的消费和稀有掉落率。",
+            ogImage: "/images/og_default_zh.jpg",
+        },
+    },
     // Common Options
     options: {
         exampleApp1: "原神",

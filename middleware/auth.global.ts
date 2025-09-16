@@ -2,8 +2,10 @@ export default defineNuxtRouteMiddleware((to, _from) => {
     const userStore = useUserStore()
 
     // 認証不要ページ
+    const isLangSwitch = /^\/(ja|en|zh)\/?$/.test(to.path)
     const isPublicRoute =
         to.path === "/" ||
+        isLangSwitch ||
         to.path.startsWith("/auth/") ||
         to.path.startsWith("/error/") ||
         to.path.startsWith("/test")

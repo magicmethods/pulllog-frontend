@@ -2,7 +2,7 @@
 
 This Privacy Policy (“Policy”) explains how PullLog (“Service”) collects, uses, manages, and protects personal information of users (“Users”). By using the Service, you are deemed to have agreed to this Policy.
 
-- Personal Information Protection Manager: Katsuhiko Maeno
+- Personal Information Protection Manager: ka2
 - Contact email: support@pulllog.net
 
 ---
