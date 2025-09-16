@@ -53,6 +53,15 @@ export default defineI18nLocale(async () => ({
             advertisement: "Advertisement",
         },
     },
+    // SEO
+    seo: {
+        index: {
+            title: "PullLog",
+            description:
+                'PullLog is a web application that allows you to record and manage your gacha history. Easily register "when", "how much", and "what you pulled", and aggregate and analyze your spending and rare drop rates.',
+            ogImage: "/images/og_default_en.jpg",
+        },
+    },
     // Common Options
     options: {
         exampleApp1: "Genshin Impact",

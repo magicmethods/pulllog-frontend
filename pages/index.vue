@@ -16,6 +16,12 @@ const globalStore = useGlobalStore()
 const loaderStore = useLoaderStore()
 const appConfig = useConfig()
 
+// SEO: ランディングの OGP/Twitter/alternate/canonical を設定
+useSeoOg({
+    title: t("seo.index.title"),
+    description: t("seo.index.description"),
+})
+
 // Ref & Local variables
 const isLoading = ref<boolean>(false)
 const loaderId = ref<string | null>(null)

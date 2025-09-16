@@ -53,6 +53,15 @@ export default defineI18nLocale(async () => ({
             advertisement: "広告",
         },
     },
+    // SEO
+    seo: {
+        index: {
+            title: "PullLog",
+            description:
+                "PullLogはゲームのガチャ履歴を記録・管理できるWebアプリです。「いつ」「どのくらい」「何を引いたか」を簡単に登録し、課金額やレア排出率を集計・分析できます。",
+            ogImage: "/images/og_default_ja.jpg",
+        },
+    },
     // Common Options
     options: {
         exampleApp1: "原神",
