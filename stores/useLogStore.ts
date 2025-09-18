@@ -3,6 +3,7 @@ import { useAPI } from "~/composables/useAPI"
 import { useLoaderStore } from "~/stores/useLoaderStore"
 import { useStatsStore } from "~/stores/useStatsStore"
 import { useUserStore } from "~/stores/useUserStore"
+import { prepareCsvForUpload } from "~/utils/file"
 
 // Types
 // type LastFetchedAtMap = Map<string, string | null> // appId -> ISO8601
@@ -376,7 +377,18 @@ export const useLogStore = defineStore("log", () => {
         //const loaderId = loaderStore.show('履歴をインポート中...')
         try {
             const formData = new FormData()
-            formData.append("file", uploadData.file)
+            // CSVの場合はアップロード前にfreeTextの正規化とヘッダ検証を行う
+            let fileToUpload = uploadData.file
+            if (uploadData.format === "csv") {
+                try {
+                    fileToUpload = await prepareCsvForUpload(uploadData.file)
+                } catch (e) {
+                    console.error("CSV sanitize failed:", e)
+                    error.value = t("app.error.importFailed")
+                    return false
+                }
+            }
+            formData.append("file", fileToUpload)
 
             const response = await callApi<{
                 state: "success" | "error"
