@@ -17,6 +17,8 @@ interface AppConfig {
     googleClientId: string // Google OAuth クライアントID
     isDebug: boolean
     mockMode: boolean
+    useFeatureFlag: boolean
+    newFeatures: string
 }
 /** パースされたクエリ情報 */
 type QueryObject =

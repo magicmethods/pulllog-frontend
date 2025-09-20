@@ -386,6 +386,40 @@ export default defineI18nLocale(async () => ({
         startAggregation: "开始统计",
         advancedSettings: "高级设置",
         noAggregationResults: "暂无统计结果",
+        layout: {
+            controls: {
+                size: "大小",
+                visibility: "可见性",
+                restoreHint: "恢复到默认设置",
+                dragEnable: "启用拖动",
+                dragDisable: "禁用拖动",
+            },
+            size: {
+                "span-2": "最小",
+                "span-3": "小",
+                "span-4": "中",
+                "span-5": "大",
+                "span-6": "最大",
+            },
+            tiles: {
+                expenseRatio: "消费占比",
+                monthlyExpense: "应用月消费",
+                cumulativeRareRate: "累计稀有掉落率（运势趋势）",
+                appPullStats: "抽卡次数 & 稀有率",
+                rareBreakdown: "稀有掉落细分占比",
+                rareRanking: "稀有掉落排行",
+            },
+            modal: {
+                title: "布局设置",
+                description: "在此处设置统计面板的布局。",
+                apply: "应用",
+                cancel: "取消",
+            },
+            toast: {
+                loadFailed: "加载布局设置失败。",
+                saveFailed: "保存布局设置失败。",
+            },
+        },
         chart: {
             expenseRatio: {
                 noData: "暂无数据",
