@@ -24,6 +24,7 @@ export default defineNuxtConfig({
     compatibilityDate: "2025-05-15",
     nitro: {
         preset: "cloudflare_module", // SSR用 .output/server/wrangler.json が生成される 'cloudflare' はPages用
+        minify: false,
         cloudflare: {
             deployConfig: true,
             nodeCompat: true,
