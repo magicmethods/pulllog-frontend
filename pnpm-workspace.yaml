@@ -1,0 +1,19 @@
+packages:
+  - ./
+
+# v10.5+ で有効。依存のビルドを許可するパッケージを列挙
+onlyBuiltDependencies:
+  - esbuild
+  - '@tailwindcss/oxide'
+  - '@parcel/watcher'
+  - '@biomejs/biome'
+
+# 余計なプラットフォーム用の optional を入れない（任意）
+supportedArchitectures:
+  os:
+    - win32
+  cpu:
+    - x64
+# あるいは、明確に要らないものを無視（任意・例）
+# ignoredOptionalDependencies:
+#   - '@tailwindcss/oxide-android-arm64'
