@@ -1,14 +1,19 @@
-﻿import { useToast } from "primevue/usetoast"
+﻿import { storeToRefs } from "pinia"
+import { useToast } from "primevue/usetoast"
 import { nextTick, ref, watch } from "vue"
 import { useI18n } from "vue-i18n"
 import { endpoints } from "~/api/endpoints"
 import { useAPI } from "~/composables/useAPI"
 import { useConfig } from "~/composables/useConfig"
 import { useFeatureFlag } from "~/composables/useFeatureFlag"
+import { useCsrfStore } from "~/stores/useCsrfStore"
+import { ApiError } from "~/utils/error"
 
-/** 永続化に利用する localStorage のキー */
-const STORAGE_KEY = "pulllog.statsLayout.v1"
+/** 永続化に利用する localStorage のベースキー */
+const STORAGE_BASE_KEY = "pulllog.statsLayout.v1"
 const SYNC_FLAG: FeatureFlagName = "StatsLayoutSync"
+const STATS_CONTEXT: StatsLayoutContext = "stats"
+const SYNC_DEBOUNCE_MS = 500
 
 const VALID_SIZES: StatsTileSize[] = [
     "span-2",
@@ -23,26 +28,43 @@ const LEGACY_SIZE_MAP: Record<string, StatsTileSize> = {
     large: "span-6",
 }
 
+const RAW_DEFAULT_TILES: StatsTileConfig[] = [
+    { id: "expense-ratio", size: "span-2", visible: true },
+    { id: "monthly-expense", size: "span-4", visible: true },
+    { id: "cumulative-rare-rate", size: "span-6", visible: true },
+    { id: "app-pull-stats", size: "span-2", visible: true },
+    { id: "rare-breakdown", size: "span-2", visible: true },
+    { id: "rare-ranking", size: "span-2", visible: true },
+]
+
 const DEFAULT_STATS_LAYOUT: StatsLayoutState = {
     version: "v1",
-    tiles: [
-        { id: "expense-ratio", size: "span-2", visible: true },
-        { id: "monthly-expense", size: "span-4", visible: true },
-        { id: "cumulative-rare-rate", size: "span-6", visible: true },
-        { id: "app-pull-stats", size: "span-2", visible: true },
-        { id: "rare-breakdown", size: "span-2", visible: true },
-        { id: "rare-ranking", size: "span-2", visible: true },
-    ],
+    tiles: assignSequentialOrder(RAW_DEFAULT_TILES),
+    filters: {},
+}
+
+const DEFAULT_REMOTE_META: StatsLayoutRemoteMeta = {
+    context: STATS_CONTEXT,
+    created: false,
+    updatedAt: null,
 }
 
 const KNOWN_TILE_IDS = new Set<StatsTileId>(
     DEFAULT_STATS_LAYOUT.tiles.map((tile) => tile.id),
 )
+const TOAST_GROUP = "notices"
 
 export const useStatsLayoutStore = defineStore("statsLayout", () => {
     const tiles = ref<StatsTileConfig[]>(cloneTiles(DEFAULT_STATS_LAYOUT.tiles))
+    const filters = ref<StatsLayoutFilters>(
+        cloneFilters(DEFAULT_STATS_LAYOUT.filters),
+    )
     const isInitialized = ref<boolean>(false)
     const isSyncing = ref<boolean>(false)
+    const activeUserId = ref<number | null>(null)
+    const remoteMeta = ref<StatsLayoutRemoteMeta>(
+        cloneRemoteMeta(DEFAULT_REMOTE_META),
+    )
     const lastSyncedState = ref<StatsLayoutState>(
         cloneState(DEFAULT_STATS_LAYOUT),
     )
@@ -53,18 +75,58 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
     const { callApi } = useAPI()
     const featureFlag = useFeatureFlag()
     const config = useConfig()
+    const csrfStore = useCsrfStore()
+    const { token: csrfToken } = storeToRefs(csrfStore)
 
     let syncTimer: number | null = null
     let isApplyingSnapshot = false
 
+    function resetStateForUser(userId: number | null): void {
+        if (syncTimer) {
+            clearTimeout(syncTimer)
+            syncTimer = null
+        }
+        activeUserId.value = userId
+        isInitialized.value = false
+        isSyncing.value = false
+        pendingSyncState.value = null
+        lastSyncedState.value = cloneState(DEFAULT_STATS_LAYOUT)
+        remoteMeta.value = cloneRemoteMeta(DEFAULT_REMOTE_META)
+        tiles.value = cloneTiles(DEFAULT_STATS_LAYOUT.tiles)
+        filters.value = cloneFilters(DEFAULT_STATS_LAYOUT.filters)
+        if (import.meta.client && userId !== null) {
+            window.localStorage.removeItem(STORAGE_BASE_KEY)
+        }
+    }
+
     /**
-     * 現在のタイル配列から状態スナップショットを生成する。
+     * 利用可能な CSRF トークンが存在するかを判定する。
+     */
+    function hasCsrfToken(): boolean {
+        return Boolean(csrfToken.value && csrfToken.value.length > 0)
+    }
+
+    /**
+     * リモート同期が可能な状態か判定する。
+     */
+    function canSyncRemote(): boolean {
+        return (
+            import.meta.client &&
+            featureFlag.isActive(SYNC_FLAG) &&
+            activeUserId.value !== null &&
+            hasCsrfToken()
+        )
+    }
+
+    /**
+     * 現在のストア状態から同期用スナップショットを生成する。
      */
     function snapshot(): StatsLayoutState {
-        return {
+        return cloneState({
             version: "v1",
-            tiles: cloneTiles(tiles.value),
-        }
+            tiles: tiles.value,
+            filters: filters.value,
+        })
     }
 
     /**
@@ -72,7 +134,9 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
      */
     async function applyState(state: StatsLayoutState): Promise<void> {
         isApplyingSnapshot = true
-        tiles.value = cloneTiles(state.tiles)
+        const nextState = cloneState(state)
+        tiles.value = nextState.tiles
+        filters.value = nextState.filters
         await nextTick()
         isApplyingSnapshot = false
     }
@@ -82,14 +146,23 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
      */
     function loadFromStorage(): StatsLayoutState | null {
         if (!import.meta.client) return null
-        const raw = window.localStorage.getItem(STORAGE_KEY)
-        if (!raw) return null
-        try {
-            const parsed = JSON.parse(raw) as unknown
-            return normalizeState(parsed)
-        } catch {
-            return null
+        const keys = storageKeysForLoad(activeUserId.value)
+        for (const key of keys) {
+            const raw = window.localStorage.getItem(key)
+            if (!raw) continue
+            try {
+                const parsed = JSON.parse(raw) as unknown
+                const normalized = normalizeState(parsed)
+                if (key !== resolveStorageKey(activeUserId.value)) {
+                    window.localStorage.removeItem(key)
+                    saveToStorage(normalized)
+                }
+                return normalized
+            } catch {
+                window.localStorage.removeItem(key)
+            }
         }
+        return null
     }
 
     /**
@@ -97,29 +170,30 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
      */
     function saveToStorage(state: StatsLayoutState): void {
         if (!import.meta.client) return
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+        const storageKey = resolveStorageKey(activeUserId.value)
+        window.localStorage.setItem(storageKey, JSON.stringify(state))
+        if (activeUserId.value !== null) {
+            window.localStorage.removeItem(STORAGE_BASE_KEY)
+        }
     }
 
     /**
      * API からレイアウトを取得する。
      */
-    async function fetchRemoteState(): Promise<StatsLayoutState | null> {
+    async function fetchRemoteState(): Promise<StatsLayoutServerState | null> {
+        if (!canSyncRemote()) return null
         try {
-            const response = await callApi<{
-                layout: StatsTileConfig[]
-                version?: StatsLayoutVersion
-            } | null>({
-                endpoint: endpoints.userFilters.get("stats"),
+            const response = await callApi<unknown>({
+                endpoint: endpoints.userFilters.get(STATS_CONTEXT),
                 method: "GET",
             })
-            if (!response || !response.layout) return null
-            return normalizeState({
-                version: response.version ?? "v1",
-                tiles: response.layout,
-            })
-        } catch (_error) {
-            showLoadError()
-            return null
+            if (!response) return null
+            return parseServerState(response)
+        } catch (error) {
+            if (error instanceof ApiError && error.status === 401) {
+                throw error
+            }
+            throw error
         }
     }
 
@@ -127,28 +201,49 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
      * API へレイアウトを同期する。
      */
     async function pushRemoteState(state: StatsLayoutState): Promise<void> {
-        if (!featureFlag.isActive(SYNC_FLAG)) return
-        if (!import.meta.client) return
+        if (!canSyncRemote()) return
         if (isSyncing.value) return
 
         isSyncing.value = true
         pendingSyncState.value = cloneState(state)
         try {
-            await callApi({
-                endpoint: endpoints.userFilters.update("stats"),
+            const response = await callApi<unknown>({
+                endpoint: endpoints.userFilters.update(STATS_CONTEXT),
                 method: "PUT",
                 data: {
                     version: state.version,
                     layout: state.tiles,
+                    filters: state.filters,
                 },
             })
-            lastSyncedState.value = cloneState(state)
+            const parsed = response ? parseServerState(response) : null
+            if (!parsed) {
+                throw new Error("Invalid server response")
+            }
+            const normalized = cloneState(parsed)
+            lastSyncedState.value = normalized
+            remoteMeta.value = toRemoteMeta(parsed)
             pendingSyncState.value = null
-        } catch (_error) {
+            saveToStorage(normalized)
+        } catch (error) {
             pendingSyncState.value = null
-            await applyState(lastSyncedState.value)
-            saveToStorage(lastSyncedState.value)
-            showSaveError()
+            if (error instanceof ApiError) {
+                if (error.status === 409) {
+                    await resolveConflict(error.data)
+                } else if (error.status === 403) {
+                    await applyState(lastSyncedState.value)
+                    saveToStorage(lastSyncedState.value)
+                    showForbiddenError()
+                } else {
+                    await applyState(lastSyncedState.value)
+                    saveToStorage(lastSyncedState.value)
+                    showSaveError()
+                }
+            } else {
+                await applyState(lastSyncedState.value)
+                saveToStorage(lastSyncedState.value)
+                showSaveError()
+            }
         } finally {
             isSyncing.value = false
         }
@@ -158,20 +253,45 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
      * 同期処理をデバウンスする。
      */
     function scheduleSync(state: StatsLayoutState): void {
-        if (!featureFlag.isActive(SYNC_FLAG)) return
-        if (!import.meta.client) return
+        if (!canSyncRemote()) return
         if (syncTimer) {
             window.clearTimeout(syncTimer)
         }
         syncTimer = window.setTimeout(() => {
             void pushRemoteState(state)
-        }, 500)
+        }, SYNC_DEBOUNCE_MS)
+    }
+
+    /**
+     * バージョン競合レスポンスを処理する。
+     */
+    async function resolveConflict(raw: unknown): Promise<void> {
+        const { latestVersion, serverState } = parseConflictResponse(raw)
+        if (serverState) {
+            await applyState(serverState)
+            const normalized = cloneState(serverState)
+            lastSyncedState.value = normalized
+            remoteMeta.value = toRemoteMeta(serverState)
+            saveToStorage(normalized)
+            showConflictWarning(latestVersion)
+            return
+        }
+        await applyState(lastSyncedState.value)
+        if (latestVersion) {
+            showConflictWarning(latestVersion)
+        } else {
+            showSaveError()
+        }
     }
 
     /**
      * 初期化処理。localStorage → API → デフォルトの順に適用する。
      */
-    async function initialize(): Promise<void> {
+    async function initialize(userId?: number | null): Promise<void> {
+        const normalizedUserId = normalizeUserId(userId)
+        if (activeUserId.value !== normalizedUserId) {
+            resetStateForUser(normalizedUserId)
+        }
         if (isInitialized.value) return
         const localState = loadFromStorage()
         if (localState) {
@@ -183,13 +303,10 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
             saveToStorage(DEFAULT_STATS_LAYOUT)
         }
 
-        if (featureFlag.isActive(SYNC_FLAG)) {
-            const remoteState = await fetchRemoteState()
-            if (remoteState) {
-                await applyState(remoteState)
-                lastSyncedState.value = cloneState(remoteState)
-                saveToStorage(remoteState)
-            }
+        if (canSyncRemote()) {
+            await syncFromServer()
+        } else {
+            remoteMeta.value = cloneRemoteMeta(DEFAULT_REMOTE_META)
         }
 
         isInitialized.value = true
@@ -231,7 +348,7 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
         for (const [, tile] of currentMap) {
             reordered.push(tile)
         }
-        tiles.value = reordered
+        tiles.value = assignSequentialOrder(reordered)
     }
 
     /**
@@ -241,24 +358,35 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
         await applyState(DEFAULT_STATS_LAYOUT)
         lastSyncedState.value = cloneState(DEFAULT_STATS_LAYOUT)
         saveToStorage(DEFAULT_STATS_LAYOUT)
-        if (featureFlag.isActive(SYNC_FLAG)) {
+        if (canSyncRemote()) {
             scheduleSync(snapshot())
         }
     }
 
-    function showLoadError(): void {
+    /**
+     * フィルター設定を全体置換する。
+     */
+    function replaceFilters(next: StatsLayoutFilters): void {
+        filters.value = cloneFilters(next)
+    }
+
+    function showLoadError(detail?: string): void {
         toast.add({
+            group: TOAST_GROUP,
             severity: "error",
             summary: t("stats.layout.toast.loadFailed"),
-            detail: config.isDebug
-                ? "Failed to load layout configuration"
-                : undefined,
+            detail:
+                detail ??
+                (config.isDebug
+                    ? "Failed to load layout configuration"
+                    : undefined),
             life: 4000,
         })
     }
 
     function showSaveError(): void {
         toast.add({
+            group: TOAST_GROUP,
             severity: "error",
             summary: t("stats.layout.toast.saveFailed"),
             detail: config.isDebug
@@ -268,31 +396,112 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
         })
     }
 
-    watch(
-        tiles,
-        (next) => {
-            if (!isInitialized.value || isApplyingSnapshot) return
-            const state: StatsLayoutState = {
-                version: "v1" as StatsLayoutVersion,
-                tiles: cloneTiles(next),
+    function showConflictWarning(latestVersion?: StatsLayoutVersion): void {
+        toast.add({
+            group: TOAST_GROUP,
+            severity: "warn",
+            summary: t("stats.layout.toast.conflict"),
+            detail: latestVersion
+                ? t("stats.layout.toast.conflictDetail", {
+                      version: latestVersion,
+                  })
+                : undefined,
+            life: 5000,
+        })
+    }
+
+    function showForbiddenError(): void {
+        toast.add({
+            group: TOAST_GROUP,
+            severity: "warn",
+            summary: t("stats.layout.toast.forbidden"),
+            life: 5000,
+        })
+    }
+
+    /**
+     * サーバーから最新のレイアウトを取得し、ストアへ反映する。
+     */
+    async function syncFromServer(): Promise<void> {
+        if (!canSyncRemote()) {
+            return
+        }
+        try {
+            const remoteState = await fetchRemoteState()
+            if (remoteState) {
+                await applyState(remoteState)
+                lastSyncedState.value = cloneState(remoteState)
+                remoteMeta.value = toRemoteMeta(remoteState)
+                saveToStorage(remoteState)
+            } else {
+                remoteMeta.value = cloneRemoteMeta(DEFAULT_REMOTE_META)
             }
+        } catch (error) {
+            remoteMeta.value = cloneRemoteMeta(DEFAULT_REMOTE_META)
+            if (error instanceof ApiError) {
+                if (error.status === 403) {
+                    showForbiddenError()
+                } else if (error.status !== 401) {
+                    showLoadError()
+                }
+            } else {
+                showLoadError()
+            }
+        }
+    }
+
+    watch(
+        [tiles, filters],
+        () => {
+            if (!isInitialized.value || isApplyingSnapshot) return
+            const state = snapshot()
             saveToStorage(state)
-            scheduleSync(state)
+            if (canSyncRemote()) {
+                scheduleSync(state)
+            }
         },
         { deep: true },
     )
 
+    watch(csrfToken, (next, previous) => {
+        if (next && next !== previous && isInitialized.value) {
+            void syncFromServer()
+        }
+    })
+
     return {
         tiles,
+        filters,
+        remoteMeta,
         isInitialized,
         isSyncing,
+        pendingSyncState,
         initialize,
         setSize,
         setVisible,
         setOrder,
         reset,
+        replaceFilters,
     }
 })
+
+function resolveStorageKey(userId: number | null): string {
+    if (userId === null) return STORAGE_BASE_KEY
+    return `${STORAGE_BASE_KEY}.user.${userId}`
+}
+
+function storageKeysForLoad(userId: number | null): string[] {
+    if (userId === null) return [STORAGE_BASE_KEY]
+    return [resolveStorageKey(userId), STORAGE_BASE_KEY]
+}
+
+function normalizeUserId(value?: number | null): number | null {
+    if (value === null || value === undefined) return null
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return value
+    }
+    return null
+}
 
 /**
  * 任意の入力を StatsLayoutState に正規化する。
@@ -303,14 +512,78 @@ function normalizeState(input: unknown): StatsLayoutState {
     const candidate = input as {
         version?: unknown
         tiles?: unknown
+        filters?: unknown
     }
     const version: StatsLayoutVersion = "v1"
     const tiles = Array.isArray(candidate.tiles)
         ? sanitizeTiles(candidate.tiles)
         : cloneTiles(DEFAULT_STATS_LAYOUT.tiles)
+    const filters = sanitizeFilters(candidate.filters)
     return {
         version,
         tiles,
+        filters,
+    }
+}
+
+function parseServerState(input: unknown): StatsLayoutServerState | null {
+    if (!input || typeof input !== "object") return null
+    const record = input as {
+        context?: unknown
+        version?: unknown
+        layout?: unknown
+        filters?: unknown
+        created?: unknown
+        updatedAt?: unknown
+    }
+    const state = normalizeState({
+        version: record.version,
+        tiles: record.layout,
+        filters: record.filters,
+    })
+    const context = isStatsLayoutContext(record.context)
+        ? record.context
+        : STATS_CONTEXT
+    const created = typeof record.created === "boolean" ? record.created : false
+    const updatedAt =
+        typeof record.updatedAt === "string" ? record.updatedAt : null
+    return {
+        context,
+        version: state.version,
+        tiles: state.tiles,
+        filters: state.filters,
+        created,
+        updatedAt,
+    }
+}
+
+function parseConflictResponse(input: unknown): {
+    latestVersion?: StatsLayoutVersion
+    serverState: StatsLayoutServerState | null
+} {
+    let source = input
+    if (typeof source === "string") {
+        try {
+            source = JSON.parse(source) as unknown
+        } catch {
+            return { latestVersion: undefined, serverState: null }
+        }
+    }
+    if (!source || typeof source !== "object") {
+        return { latestVersion: undefined, serverState: null }
+    }
+    const record = source as {
+        latestVersion?: unknown
+        latest_version?: unknown
+        payload?: unknown
+    }
+    const latestVersionRaw =
+        record.latestVersion ?? record.latest_version ?? undefined
+    const latestVersion = latestVersionRaw === "v1" ? "v1" : undefined
+    const serverState = parseServerState(record.payload)
+    return {
+        latestVersion,
+        serverState,
     }
 }
 
@@ -324,11 +597,16 @@ function sanitizeTiles(list: unknown[]): StatsTileConfig[] {
         result.push(tile)
         seen.add(tile.id)
     }
+    result.sort(
+        (a, b) =>
+            (a.order ?? Number.MAX_SAFE_INTEGER) -
+            (b.order ?? Number.MAX_SAFE_INTEGER),
+    )
     for (const tile of DEFAULT_STATS_LAYOUT.tiles) {
         if (seen.has(tile.id)) continue
         result.push({ ...tile })
     }
-    return result
+    return assignSequentialOrder(result)
 }
 
 function sanitizeTile(candidate: unknown): StatsTileConfig | null {
@@ -338,6 +616,7 @@ function sanitizeTile(candidate: unknown): StatsTileConfig | null {
         size?: unknown
         visible?: unknown
         locked?: unknown
+        order?: unknown
     }
     if (typeof record.id !== "string") return null
     const id = record.id as StatsTileId
@@ -353,12 +632,26 @@ function sanitizeTile(candidate: unknown): StatsTileConfig | null {
             : defaultTile.visible
     const locked =
         typeof record.locked === "boolean" ? record.locked : defaultTile.locked
+    const order =
+        typeof record.order === "number" && Number.isFinite(record.order)
+            ? Math.max(0, Math.floor(record.order))
+            : undefined
     return {
         id,
         size,
         visible,
         locked,
+        order,
     }
+}
+
+function sanitizeFilters(input: unknown): StatsLayoutFilters {
+    if (!input || typeof input !== "object" || Array.isArray(input)) return {}
+    const result: StatsLayoutFilters = {}
+    for (const [key, value] of Object.entries(input)) {
+        result[key] = value
+    }
+    return result
 }
 
 function normalizeSize(value: unknown, fallback: StatsTileSize): StatsTileSize {
@@ -384,9 +677,43 @@ function cloneTiles(source: StatsTileConfig[]): StatsTileConfig[] {
     return source.map((tile) => ({ ...tile }))
 }
 
+function cloneFilters(source: StatsLayoutFilters): StatsLayoutFilters {
+    return sanitizeFilters(source)
+}
+
 function cloneState(state: StatsLayoutState): StatsLayoutState {
     return {
         version: state.version,
-        tiles: cloneTiles(state.tiles),
+        tiles: assignSequentialOrder(cloneTiles(state.tiles)),
+        filters: cloneFilters(state.filters),
     }
+}
+
+function cloneRemoteMeta(meta: StatsLayoutRemoteMeta): StatsLayoutRemoteMeta {
+    return {
+        context: meta.context,
+        created: meta.created,
+        updatedAt: meta.updatedAt,
+    }
+}
+
+function toRemoteMeta(source: StatsLayoutServerState): StatsLayoutRemoteMeta {
+    return {
+        context: source.context,
+        created: source.created,
+        updatedAt: source.updatedAt,
+    }
+}
+
+function assignSequentialOrder(source: StatsTileConfig[]): StatsTileConfig[] {
+    return source.map((tile, index) => ({ ...tile, order: index }))
+}
+
+function isStatsLayoutContext(value: unknown): value is StatsLayoutContext {
+    return (
+        value === "stats" ||
+        value === "apps" ||
+        value === "history" ||
+        value === "gallery"
+    )
 }

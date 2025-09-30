@@ -273,7 +273,7 @@ function handleAdvancedSettingsApply(nextTiles: StatsTileConfig[]): void {
 }
 
 onMounted(async () => {
-    await layoutStore.initialize()
+    await layoutStore.initialize(userStore.user?.id ?? null)
     await initialize()
     window.addEventListener("resize", onWindowResize, { passive: true })
 })
@@ -329,11 +329,44 @@ watch(
             size: tile.size,
             visible: tile.visible,
         })),
-    () => {
-        bumpLayoutKey()
+    (nextSnapshots, prevSnapshots) => {
+        let shouldRemount =
+            !prevSnapshots || nextSnapshots.length !== prevSnapshots.length
+
+        if (!shouldRemount && prevSnapshots) {
+            const prevById = new Map(
+                prevSnapshots.map((snapshot) => [snapshot.id, snapshot]),
+            )
+            for (const snapshot of nextSnapshots) {
+                const prevSnapshot = prevById.get(snapshot.id)
+                if (!prevSnapshot) {
+                    shouldRemount = true
+                    break
+                }
+                if (
+                    prevSnapshot.size !== snapshot.size ||
+                    prevSnapshot.visible !== snapshot.visible
+                ) {
+                    shouldRemount = true
+                    break
+                }
+            }
+        }
+
+        if (shouldRemount) {
+            bumpLayoutKey()
+        }
+
         if (isDragMode.value) {
             nextTick(() => initGridSortable())
         }
+    },
+)
+
+watch(
+    () => userStore.user?.id ?? null,
+    (nextUserId) => {
+        void layoutStore.initialize(nextUserId)
     },
 )
 
@@ -591,3 +624,4 @@ const adConfig: Record<string, AdProps> = {
         </div>
     </div>
 </template>
+

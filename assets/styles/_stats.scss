@@ -15,10 +15,20 @@
 
     @media (min-width: 1024px) {
         grid-template-columns: repeat(6, minmax(0, 1fr)); /* PC用6カラム */
-        grid-auto-flow: row dense; /* 行の密度を高める */
+        grid-auto-flow: row; /* DOM 順を維持して Z 配置を行う */
+        grid-auto-rows: 1fr;
+        grid-auto-columns: minmax(0, 1fr);
+
+        > [data-tile-id] {
+            min-height: 0;
+        }
+
+        > [data-tile-id].is-drag-placeholder {
+            visibility: hidden;
+            pointer-events: none;
+        }
     }
 }
-
 .chart-tile {
     width: 100%;
     min-width: 0;
@@ -86,4 +96,4 @@
         --surface-100: #1f2937;
         --surface-border: #374151;
     }
-}   
+}
