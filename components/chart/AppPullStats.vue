@@ -203,11 +203,14 @@ defineExpose({ toImage })
 </script>
 
 <template>
-    <Card class="chart-card">
+    <Card class="chart-card" :pt="{ caption: 'w-full' }">
         <template #title>
-            <h3 class="text-base">
-                <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.appPullStats.title') }}</span>
-            </h3>
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="text-base">
+                    <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.appPullStats.title') }}</span>
+                </h3>
+                <slot name="titleControls"></slot>
+            </div>
         </template>
         <template #content>
             <div class="relative h-[20rem] w-full">

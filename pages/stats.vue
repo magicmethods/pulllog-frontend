@@ -1,17 +1,22 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
+import type { Component } from "vue"
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
 import { useI18n } from "vue-i18n"
+// Components
 import ChartAppPullStats from "~/components/chart/AppPullStats.vue"
 import ChartCumulativeRareRate from "~/components/chart/CumulativeRareRate.vue"
-// Components
 import ChartExpenseRatio from "~/components/chart/ExpenseRatio.vue"
 import ChartMonthlyExpenseStack from "~/components/chart/MonthlyExpenseStack.vue"
 import ChartRareDropBreakdownRatio from "~/components/chart/RareDropBreakdownRatio.vue"
 import ChartRareDropRanking from "~/components/chart/RareDropRanking.vue"
+import { useBreakpoint } from "~/composables/useBreakpoint"
+import { useStats } from "~/composables/useStats"
+import { useStatsLayoutSizing } from "~/composables/useStatsLayoutSizing"
 import { useAppStore } from "~/stores/useAppStore"
 import { useLoaderStore } from "~/stores/useLoaderStore"
 import { useLogStore } from "~/stores/useLogStore"
 import { useOptionStore } from "~/stores/useOptionStore"
-import { type TileId, useStatsLayoutStore } from "~/stores/useStatsLayoutStore"
+import { useStatsLayoutStore } from "~/stores/useStatsLayoutStore"
 import { useUserStore } from "~/stores/useUserStore"
 import { formatDate } from "~/utils/date"
 
@@ -39,6 +44,7 @@ const { t } = useI18n()
 
 // Composables
 const statsData = useStats()
+const { isMd, isLg } = useBreakpoint()
 
 // Refs & Local state
 const stats = ref<StatsPageData>(null)
@@ -72,8 +78,7 @@ const isReadyCondition = computed(() => {
 const layoutKey = ref<number>(0) // リサイズ対応：再マウント用キー
 let resizeTimer: number | undefined
 // 動的解決マップ（文字列ではなくコンポーネント参照を使う）
-// biome-ignore lint:/suspicious/noExplicitAny
-const tileComponentMap: Record<TileId, any> = {
+const tileComponentMap: Record<StatsTileId, Component> = {
     "expense-ratio": ChartExpenseRatio,
     "monthly-expense": ChartMonthlyExpenseStack,
     "cumulative-rare-rate": ChartCumulativeRareRate,
@@ -82,10 +87,10 @@ const tileComponentMap: Record<TileId, any> = {
     "rare-ranking": ChartRareDropRanking,
 }
 
-// Methods
 function bumpLayoutKey() {
     layoutKey.value = layoutKey.value + 1
 }
+
 function onWindowResize() {
     if (resizeTimer !== undefined) {
         window.clearTimeout(resizeTimer)
@@ -94,22 +99,80 @@ function onWindowResize() {
         bumpLayoutKey()
     }, 200)
 }
+
 async function initialize() {
-    // 初期化処理
     if (appStore.appList.length === 0) {
         await appStore.loadApps()
     }
     if (appStore.app) {
-        selectedApps.value = [appStore.app] // デフォルトで最初のアプリを選択
+        selectedApps.value = [appStore.app]
     }
 }
+
 function clearSelectedApps() {
-    selectedApps.value = [] // 選択アプリリストをクリア
+    selectedApps.value = []
 }
+
+function selectTileSize(id: StatsTileId, size: StatsTileSize): void {
+    layoutStore.setSize(id, size)
+}
+
+function toggleTileVisibility(id: StatsTileId): void {
+    const target = layoutStore.tiles.find((tile) => tile.id === id)
+    if (!target) return
+    layoutStore.setVisible(id, !target.visible)
+}
+
+function openSettingsModal(): void {
+    isSettingsModalVisible.value = true
+}
+
+function collectTileIds(container: HTMLElement): StatsTileId[] {
+    return Array.from(container.querySelectorAll<HTMLElement>("[data-tile-id]"))
+        .map((element) => element.dataset.tileId)
+        .filter((id): id is string => typeof id === "string")
+        .map((id) => id as StatsTileId)
+}
+
+function initGridSortable(): void {
+    if (!gridRef.value || !isMd.value) return
+    destroyGridSortable()
+    gridSortable = nuxtApp.$sortable.create(gridRef.value, {
+        dataIdAttr: "data-tile-id",
+        onEnd: () => {
+            if (!gridRef.value) return
+            const ids = collectTileIds(gridRef.value)
+            layoutStore.setOrder(ids)
+        },
+    })
+}
+
+function destroyGridSortable(): void {
+    gridSortable?.destroy()
+    gridSortable = null
+}
+
+function toggleDragMode(): void {
+    if (!isMd.value) return
+    isDragMode.value = !isDragMode.value
+    if (isDragMode.value) {
+        nextTick(() => initGridSortable())
+    } else {
+        destroyGridSortable()
+    }
+}
+
+function getTileSpanClass(tile: StatsTileConfig): string {
+    if (!isMd.value) return "span-6"
+    if (!isLg.value) {
+        return clampSizeForViewport(tile.size, viewportFlags.value)
+    }
+    return tile.size
+}
+
 async function handleAggregation() {
     if (!isReadyCondition.value) return
 
-    // 集計条件を定義
     const targetApps = selectedApps.value.map((app) => app.appId)
     const useRange = period.value === "range"
     const start =
@@ -121,7 +184,6 @@ async function handleAggregation() {
     const loaderId = loaderStore.show(t("stats.aggregating"), statsElement)
 
     try {
-        // 対象アプリの履歴全件取得（並列処理）
         const logStore = useLogStore()
         await Promise.all(
             targetApps.map((appId) =>
@@ -129,7 +191,6 @@ async function handleAggregation() {
             ),
         )
 
-        // 期間抽出
         const filteredLogs: Record<string, DateLog[]> = {}
         let logCount = 0
         for (const appId of targetApps) {
@@ -144,22 +205,18 @@ async function handleAggregation() {
             logCount += filteredLogs[appId].length
         }
         if (logCount === 0) {
-            stats.value = null // ログがない場合は集計結果をクリアして終了
+            stats.value = null
             return
         }
 
-        // 集計ロジック（統計・グラフ用データ生成）
-        // 複数アプリ合計課金額に占める各アプリの割合（Pieチャート用）
         const expenseRatio = statsData.getExpenseRatioPie(
             filteredLogs,
             selectedApps.value,
         )
-        // 全指定アプリの月次合計課金額（積み上げ棒グラフ用）
         const monthlyExpenseStack = statsData.getMonthlyExpenseStack(
             filteredLogs,
             selectedApps.value,
         )
-        // 日次/月次累計レアドロップ率推移（折れ線グラフ用）
         const cumulativeRareRate = statsData.getMultiCumulativeRareRate(
             targetApps.map((appId) => ({
                 appId,
@@ -172,59 +229,159 @@ async function handleAggregation() {
             cumulativeRareRate,
             2,
         )
-        // アプリごとの引き当て数・レアドロップ数・レア率を集計しランキング（横型棒グラフ）
         const appPullStats = statsData.getAppPullStats(
             filteredLogs,
             selectedApps.value,
         )
-        // アプリごとのレアドロップ内訳を集計（Pieチャート用）
         const appRareDropBreakdown = statsData.getAppRareDropRates(
             filteredLogs,
             selectedApps.value,
         )
-        // アプリごとのレアドロップランキング
         const appRareDrops = statsData.getAppRareDrops(
             filteredLogs,
             selectedApps.value,
         )
 
-        // stats.valueに集計結果をセットし、表示更新
         stats.value = null
         await nextTick()
         stats.value = {
             filteredLogs: { ...filteredLogs },
             expenseRatio: [...expenseRatio],
             monthlyExpenseStack: [...monthlyExpenseStack],
-            cumulativeRareRate: JSON.parse(JSON.stringify(cumulativeRareRate)), // JSON.stringify/parseで参照をクリア
+            cumulativeRareRate: JSON.parse(JSON.stringify(cumulativeRareRate)),
             cumulativeRareRateMaxValue,
             appPullStats: [...appPullStats],
-            appRareDropBreakdown: [...appRareDropBreakdown], //JSON.parse(JSON.stringify(appRareDropBreakdown)), // JSON.stringify/parseで参照をクリア
+            appRareDropBreakdown: [...appRareDropBreakdown],
             appRareDrops: [...appRareDrops],
         }
-        bumpLayoutKey() // レイアウト更新
-        //console.log('Aggregation Results:', stats.value, layoutKey.value)
-    } catch (e: unknown) {
-        // エラーハンドリング
-        console.error("Aggregation Error:", e)
-        stats.value = null // エラー時は集計結果をクリア
+        bumpLayoutKey()
+    } catch (error) {
+        stats.value = null
+        console.error("Aggregation Error:", error)
     } finally {
-        loaderStore.hide(loaderId) // ローダーを非表示
+        loaderStore.hide(loaderId)
     }
 }
 
-// Lifecycle Hooks
-onMounted(() => {
-    initialize()
+function handleAdvancedSettingsApply(nextTiles: StatsTileConfig[]): void {
+    const order = nextTiles.map((tile) => tile.id)
+    layoutStore.setOrder(order)
+    for (const tile of nextTiles) {
+        layoutStore.setSize(tile.id, tile.size)
+        layoutStore.setVisible(tile.id, tile.visible)
+    }
+}
+
+onMounted(async () => {
+    await layoutStore.initialize(userStore.user?.id ?? null)
+    await initialize()
     window.addEventListener("resize", onWindowResize, { passive: true })
 })
+
 onBeforeUnmount(() => {
     window.removeEventListener("resize", onWindowResize)
+    destroyGridSortable()
     if (resizeTimer !== undefined) {
         window.clearTimeout(resizeTimer)
     }
 })
 
+// Layout controls state
+const nuxtApp = useNuxtApp()
+const { getSizeOptions, clampSizeForViewport } = useStatsLayoutSizing()
+
+const viewportFlags = computed(() => ({
+    isMd: isMd.value,
+    isLg: isLg.value,
+}))
+
+const availableSizes = computed<StatsTileSize[]>(() => [
+    ...getSizeOptions(viewportFlags.value),
+])
+const isSizeControlDisabled = computed(() => !isMd.value)
+
+const tileLabels = computed<Record<StatsTileId, string>>(() => ({
+    "expense-ratio": t("stats.layout.tiles.expenseRatio"),
+    "monthly-expense": t("stats.layout.tiles.monthlyExpense"),
+    "cumulative-rare-rate": t("stats.layout.tiles.cumulativeRareRate"),
+    "app-pull-stats": t("stats.layout.tiles.appPullStats"),
+    "rare-breakdown": t("stats.layout.tiles.rareBreakdown"),
+    "rare-ranking": t("stats.layout.tiles.rareRanking"),
+}))
+
+function displaySizeForTile(tile: StatsTileConfig): StatsTileSize {
+    return clampSizeForViewport(tile.size, viewportFlags.value)
+}
+
+const gridRef = ref<HTMLElement | null>(null)
+const isDragMode = ref<boolean>(false)
+const isSettingsModalVisible = ref<boolean>(false)
+
+let gridSortable: ReturnType<typeof nuxtApp.$sortable.create> | null = null
+
 // Watchers
+
+//  Layout changes
+watch(
+    () =>
+        layoutStore.tiles.map((tile) => ({
+            id: tile.id,
+            size: tile.size,
+            visible: tile.visible,
+        })),
+    (nextSnapshots, prevSnapshots) => {
+        let shouldRemount =
+            !prevSnapshots || nextSnapshots.length !== prevSnapshots.length
+
+        if (!shouldRemount && prevSnapshots) {
+            const prevById = new Map(
+                prevSnapshots.map((snapshot) => [snapshot.id, snapshot]),
+            )
+            for (const snapshot of nextSnapshots) {
+                const prevSnapshot = prevById.get(snapshot.id)
+                if (!prevSnapshot) {
+                    shouldRemount = true
+                    break
+                }
+                if (
+                    prevSnapshot.size !== snapshot.size ||
+                    prevSnapshot.visible !== snapshot.visible
+                ) {
+                    shouldRemount = true
+                    break
+                }
+            }
+        }
+
+        if (shouldRemount) {
+            bumpLayoutKey()
+        }
+
+        if (isDragMode.value) {
+            nextTick(() => initGridSortable())
+        }
+    },
+)
+
+watch(
+    () => userStore.user?.id ?? null,
+    (nextUserId) => {
+        void layoutStore.initialize(nextUserId)
+    },
+)
+
+watch(
+    () => isMd.value,
+    (matchesMd) => {
+        if (!matchesMd) {
+            if (isDragMode.value) {
+                isDragMode.value = false
+            }
+            destroyGridSortable()
+        }
+    },
+)
+
 watch(
     () => appStore.appList,
     () => {
@@ -352,10 +509,10 @@ const adConfig: Record<string, AdProps> = {
                 <div class="flex-grow"></div>
                 <Button
                     :label="t('stats.advancedSettings')"
-                    icon="pi pi-lock"
+                    icon="pi pi-sliders-h"
                     class="btn btn-alt flex-1 w-full md:w-max max-w-1/2 md:max-w-1/2 px-4 py-2 text-base! m-0!"
-                    @click=""
-                    :disabled="true"
+                    @click="openSettingsModal"
+                    :disabled="layoutStore.tiles.length === 0"
                 />
             </div>
         </div>
@@ -364,17 +521,16 @@ const adConfig: Record<string, AdProps> = {
         <div v-if="!stats" class="w-full mt-4 flex flex-grow min-h-full justify-center items-center">
             <span class="text-center text-muted">{{ t('stats.noAggregationResults') }}</span>
         </div>
-        <div v-else id="stats-content" class="w-full mt-4 charts-grid">
+        <div v-else id="stats-content" ref="gridRef" class="w-full mt-4 charts-grid">
             <!-- 通常タイル -->
-            <template v-for="tile in (layoutStore.tiles.filter(t => {
-                    return !['rare-breakdown', 'rare-ranking'].includes(t.id)
-                }) as TileConfig[])"
+            <template
+                v-for="tile in layoutStore.tiles.filter((t) => !['rare-breakdown', 'rare-ranking'].includes(t.id)) as StatsTileConfig[]"
                 :key="`${tile.id}-${layoutKey}`"
             >
                 <section
                     v-if="tile.visible"
                     :data-tile-id="tile.id"
-                    :class="['chart-tile', `span-${tile.span}`]"
+                    :class="['chart-tile', getTileSpanClass(tile), { 'chart-tile--drag': isDragMode }]"
                 >
                     <component
                         :is="tileComponentMap[tile.id]"
@@ -394,20 +550,33 @@ const adConfig: Record<string, AdProps> = {
                             }
                             return {}
                         })()"
-                    />
+                    >
+                        <template #titleControls>
+                            <DisplayControllerUI
+                                :size-options="availableSizes"
+                                :selected-size="displaySizeForTile(tile)"
+                                :disable-size="isSizeControlDisabled"
+                                :is-visible="tile.visible"
+                                :is-drag-mode="isDragMode"
+                                :disable-drag="!isMd"
+                                :show-drag-control="isMd"
+                                @select-size="(size) => selectTileSize(tile.id, size)"
+                                @toggle-visibility="toggleTileVisibility(tile.id)"
+                                @toggle-drag="toggleDragMode"
+                            />
+                        </template>
+                    </component>
                 </section>
             </template>
-
             <!-- 1アプリ選択時用タイル -->
-            <template v-for="tile in (layoutStore.tiles.filter(t => {
-                    return ['rare-breakdown', 'rare-ranking'].includes(t.id)
-                }) as TileConfig[])"
+            <template
+                v-for="tile in layoutStore.tiles.filter((t) => ['rare-breakdown', 'rare-ranking'].includes(t.id)) as StatsTileConfig[]"
                 :key="`${tile.id}-${layoutKey}`"
             >
                 <section
                     v-if="tile.visible && selectedApps.length === 1"
                     :data-tile-id="tile.id"
-                    :class="['chart-tile', `span-${tile.span}`]"
+                    :class="['chart-tile', getTileSpanClass(tile), { 'chart-tile--drag': isDragMode }]"
                 >
                     <component
                         :is="tileComponentMap[tile.id]"
@@ -422,13 +591,37 @@ const adConfig: Record<string, AdProps> = {
                             }
                             return {}
                         })()"
-                    />
+                    >
+                        <template #titleControls>
+                            <DisplayControllerUI
+                                :size-options="availableSizes"
+                                :selected-size="displaySizeForTile(tile)"
+                                :disable-size="isSizeControlDisabled"
+                                :is-visible="tile.visible"
+                                :is-drag-mode="isDragMode"
+                                :disable-drag="!isMd"
+                                :show-drag-control="isMd"
+                                @select-size="(size) => selectTileSize(tile.id, size)"
+                                @toggle-visibility="toggleTileVisibility(tile.id)"
+                                @toggle-drag="toggleDragMode"
+                            />
+                        </template>
+                    </component>
                 </section>
             </template>
         </div>
 
+        <AdvancedSettingsModal
+            v-model:visible="isSettingsModalVisible"
+            :tiles="layoutStore.tiles"
+            :tile-labels="tileLabels"
+            :size-options="availableSizes"
+            :disable-size="isSizeControlDisabled"
+            @apply="handleAdvancedSettingsApply"
+        />
         <div class="mt-auto pb-2 w-full min-h-max h-[90px]">
             <CommonEmbedAd v-bind="adConfig.bottom" />
         </div>
     </div>
 </template>
+

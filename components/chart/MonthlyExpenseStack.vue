@@ -221,13 +221,16 @@ const chartOptions = computed(() => ({
 </script>
 
 <template>
-    <Card class="chart-card">
+    <Card class="chart-card" :pt="{ caption: 'w-full' }">
         <template #title>
-            <h3 class="text-base">
-                {{ t('stats.chart.monthlyExpenseStack.titlePrefix') }}
-                <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.monthlyExpenseStack.titleLabel') }}</span>
-                {{ t('stats.chart.monthlyExpenseStack.titleSuffix') }}
-            </h3>
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="text-base">
+                    {{ t('stats.chart.monthlyExpenseStack.titlePrefix') }}
+                    <span class="text-primary-800 dark:text-primary-400 mx-0.5">{{ t('stats.chart.monthlyExpenseStack.titleLabel') }}</span>
+                    {{ t('stats.chart.monthlyExpenseStack.titleSuffix') }}
+                </h3>
+                <slot name="titleControls"></slot>
+            </div>
         </template>
         <template #content>
             <div id="monthlyExpenseStackChart" class="relative h-[16rem] w-full">

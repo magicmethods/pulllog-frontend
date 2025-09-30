@@ -76,6 +76,12 @@ export const endpoints = {
             return query.toString() ? `${base}?${query.toString()}` : base
         }, // GET
     },
+    userFilters: {
+        get: (context: string) =>
+            `${useConfig().apiProxy}/user-filters/${context}`, // GET
+        update: (context: string) =>
+            `${useConfig().apiProxy}/user-filters/${context}`, // PUT
+    },
     currency: {
         list: () => `${useConfig().apiProxy}/currencies`, // GET
     },

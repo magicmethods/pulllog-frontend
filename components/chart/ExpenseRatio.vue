@@ -169,14 +169,17 @@ function showTooltip() {
 </script>
 
 <template>
-    <Card class="chart-card">
+    <Card class="chart-card" :pt="{ caption: 'w-full' }">
         <template #title>
-            <h3 class="text-base">
-                <span class="text-primary-800 dark:text-primary-400 mr-0.5">
-                    {{ t('stats.chart.expenseRatio.expenseLabel') }}
-                </span>
-                {{ t('stats.chart.expenseRatio.ratioLabel') }}
-            </h3>
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="text-base">
+                    <span class="text-primary-800 dark:text-primary-400 mr-0.5">
+                        {{ t('stats.chart.expenseRatio.expenseLabel') }}
+                    </span>
+                    {{ t('stats.chart.expenseRatio.ratioLabel') }}
+                </h3>
+                <slot name="titleControls"></slot>
+            </div>
         </template>
         <template #content>
             <div class="flex justify-around items-center gap-4">

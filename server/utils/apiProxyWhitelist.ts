@@ -5,6 +5,7 @@ export const API_PROXY_ALLOW_LIST = [
     /^stats(?:\/|$)/,
     /^user(?:\/|$)/,
     /^auth(?:\/|$)/,
+    /^user-filters(?:\/|$)/,
     // 必要に応じて追加
 ]
 export function isAllowedApiPath(path: string): boolean {

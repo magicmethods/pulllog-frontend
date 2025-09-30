@@ -82,9 +82,9 @@ export async function proxyFetchAndReturn(
     method = "GET",
     body?: unknown,
 ) {
-    // biome-ignore lint:/suspicious/noExplicitAny
-    let fetchBody: any = undefined
-    if (body !== undefined) {
+    const normalizedMethod = method.toUpperCase()
+    let fetchBody: BodyInit | undefined
+    if (body !== undefined && body !== null) {
         // FormData, Blob, ArrayBuffer, ReadableStream等はそのまま渡す
         if (
             (typeof FormData !== "undefined" && body instanceof FormData) ||
@@ -98,17 +98,24 @@ export async function proxyFetchAndReturn(
             // 通常のobject（JSON送信）
             fetchBody = JSON.stringify(body)
         }
-    } else if (["POST", "PUT", "PATCH"].includes(method)) {
+    } else if (["POST", "PUT", "PATCH", "DELETE"].includes(normalizedMethod)) {
         // body未指定の場合、リクエストボディを生で吸い出してfetchに流す
         // @description ファイル等のバイナリが含まれると挙動が怪しいので原則利用不可
-        fetchBody = await readRawBody(event) // Buffer
+        fetchBody = (await readRawBody(event)) ?? undefined // Buffer
     }
 
-    const response = await fetch(url, {
-        method,
+    const requestInit: RequestInit = {
+        method: normalizedMethod,
         headers,
-        body: fetchBody,
-    })
+    }
+    if (
+        fetchBody !== undefined &&
+        !["GET", "HEAD"].includes(normalizedMethod)
+    ) {
+        requestInit.body = fetchBody
+    }
+
+    const response = await fetch(url, requestInit)
 
     event.node.res.statusCode = response.status
     if (response.status === 204) return null

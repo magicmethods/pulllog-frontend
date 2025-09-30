@@ -1,4 +1,4 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import type { ChartDataset } from "chart.js"
 // biome-ignore lint/correctness/noUnusedImports: used in template via :plugins
 import ChartDataLabels from "chartjs-plugin-datalabels"
@@ -346,13 +346,16 @@ function showTooltip() {
 </script>
 
 <template>
-    <Card class="chart-card">
+    <Card class="chart-card" :pt="{ caption: 'w-full' }">
         <template #title>
-            <h3 class="text-base">
-                <span class="text-primary-800 dark:text-primary-400 mx-0.5">
-                    {{ t('stats.chart.rareDropRanking.title', { appName: strBytesTruncate(ranking?.appName ?? '', 7, 80) }) }}
-                </span>
-            </h3>
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="text-base">
+                    <span class="text-primary-800 dark:text-primary-400 mx-0.5">
+                        {{ t('stats.chart.rareDropRanking.title', { appName: strBytesTruncate(ranking?.appName ?? '', 7, 80) }) }}
+                    </span>
+                </h3>
+                <slot name="titleControls"></slot>
+            </div>
         </template>
         <template #content>
             <div class="h-[12rem] overflow-y-auto">
@@ -393,3 +396,4 @@ function showTooltip() {
         </template>
     </Card>
 </template>
+

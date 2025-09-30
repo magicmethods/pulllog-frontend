@@ -1,14 +1,34 @@
 .charts-grid {
     display: grid;
-    grid-template-columns: 1fr; /* モバイル：1列固定 */
+    grid-template-columns: 1fr;
     gap: 1rem;
 
+    @media (min-width: 768px) and (max-width: 1023px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    /* スパンユーティリティ */
+    @media (min-width: 768px) and (max-width: 1023px) {
+        .span-3 { grid-column: span 3 / span 3; }
+        .span-6 { grid-column: 1 / -1; }
+    }
+
     @media (min-width: 1024px) {
-        grid-template-columns: repeat(6, minmax(0, 1fr)); /* PC：最大6列 */
-        grid-auto-flow: row dense; /* スパン有りの再配置で隙間を詰める */
+        grid-template-columns: repeat(6, minmax(0, 1fr)); /* PC用6カラム */
+        grid-auto-flow: row; /* DOM 順を維持して Z 配置を行う */
+        grid-auto-rows: 1fr;
+        grid-auto-columns: minmax(0, 1fr);
+
+        > [data-tile-id] {
+            min-height: 0;
+        }
+
+        > [data-tile-id].is-drag-placeholder {
+            visibility: hidden;
+            pointer-events: none;
+        }
     }
 }
-
 .chart-tile {
     width: 100%;
     min-width: 0;
@@ -28,4 +48,52 @@
     .span-4 { grid-column: span 4 / span 4; }
     .span-5 { grid-column: span 5 / span 5; }
     .span-6 { grid-column: 1 / -1; } /* 横フル(6) は 1行ぶち抜きが分かりやすい */
+}
+.chart-tile--drag {
+    border: 1px dashed var(--surface-border, #e5e7eb);
+}
+
+.stats-drag-ghost {
+    opacity: 0.6;
+    border: 2px dashed var(--surface-border, #e5e7eb);
+}
+
+.stats-drag-chosen {
+    box-shadow: 0 0 0 2px var(--surface-border, #cbd5f5);
+}
+
+.stats-drag-active {
+    cursor: grabbing !important;
+}
+
+/* サイズオプション */
+.size-option {
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.size-option.is-active-size {
+    border-radius: 0.25rem;
+    background-color: var(rgba(79, 70, 229, 0.04));
+    color: var(--primary-color, #4f46e5);
+}
+
+.app-dark {
+    .size-option.is-active-size {
+        background-color: var(rgba(44, 25, 99, 0.5));
+        color: var(--primary-color, #a78bfa);
+    }
+}
+
+.tile-size-preview {
+    --primary-color: #6366f1;
+    --surface-100: #f3f4f6;
+    --surface-border: #d1d5db;
+}
+
+.app-dark {
+    .tile-size-preview {
+        --primary-color: #a78bfa;
+        --surface-100: #1f2937;
+        --surface-border: #374151;
+    }
 }
