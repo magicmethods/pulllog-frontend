@@ -421,6 +421,11 @@ export default defineI18nLocale(async () => ({
             toast: {
                 loadFailed: "設定データの読み込みに失敗しました",
                 saveFailed: "設定データの保存に失敗しました",
+                conflict: "サーバー側の最新設定を適用しました",
+                conflictDetail:
+                    "最新バージョン({version})の表示設定を反映しました",
+                forbidden:
+                    "表示設定へアクセスできませんでした。再度サインインしてください",
             },
         },
         chart: {

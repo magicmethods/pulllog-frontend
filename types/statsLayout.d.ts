@@ -1,8 +1,12 @@
-﻿/**
+/**
  * Statistics layout shared types
  */
 declare global {
     type StatsLayoutVersion = "v1"
+
+    type StatsLayoutContext = "stats" | "apps" | "history" | "gallery"
+
+    type StatsLayoutFilters = Record<string, unknown>
 
     type StatsTileId =
         | "expense-ratio"
@@ -19,11 +23,31 @@ declare global {
         size: StatsTileSize
         visible: boolean
         locked?: boolean
+        order?: number
     }
 
     interface StatsLayoutState {
         version: StatsLayoutVersion
         tiles: StatsTileConfig[]
+        filters: StatsLayoutFilters
+    }
+
+    interface StatsLayoutRemoteMeta {
+        context: StatsLayoutContext
+        created: boolean
+        updatedAt: string | null
+    }
+
+    interface StatsLayoutServerState extends StatsLayoutState {
+        context: StatsLayoutContext
+        created: boolean
+        updatedAt: string | null
+    }
+
+    interface StatsLayoutConflictPayload {
+        message?: string
+        latestVersion?: StatsLayoutVersion
+        payload?: Partial<StatsLayoutServerState>
     }
 }
 export {}

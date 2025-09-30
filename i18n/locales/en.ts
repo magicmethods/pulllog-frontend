@@ -427,6 +427,11 @@ export default defineI18nLocale(async () => ({
                 loadFailed: "Failed to load display settings.",
                 saveFailed:
                     "Failed to save settings. Your changes could not be applied.",
+                conflict: "Server layout settings were restored.",
+                conflictDetail:
+                    "Applied the latest layout version ({version}) from the server.",
+                forbidden:
+                    "Unable to access saved settings. Please reload and sign in again.",
             },
         },
         chart: {

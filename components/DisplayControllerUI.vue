@@ -37,6 +37,9 @@ const shouldShowVisibilityControl = computed(() => props.showVisibilityControl)
 const dragHandleActive = computed(
     () => shouldShowDragControl.value && props.isDragMode,
 )
+const dragIcon = computed(() =>
+    props.isDragMode ? "pi pi-arrows-alt" : "pi pi-lock",
+)
 const visibilityIcon = computed(() =>
     props.isVisible ? "pi pi-eye-slash" : "pi pi-eye",
 )
@@ -127,7 +130,7 @@ function translateSize(size: StatsTileSize): string {
         />
         <Button
             v-if="shouldShowDragControl"
-            icon="pi pi-arrows-alt"
+            :icon="dragIcon"
             rounded
             :severity="isDragMode ? 'primary' : 'secondary'"
             class="w-8 h-8 text-surface-400 hover:text-primary-600 dark:text-gray-500 dark:hover:text-primary-400 bg-transparent hover:bg-surface-100 dark:hover:bg-gray-900/40"

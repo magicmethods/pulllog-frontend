@@ -6,6 +6,8 @@ const DEFAULT_OPTIONS: SortableOptions = {
     ghostClass: "stats-drag-ghost",
     chosenClass: "stats-drag-chosen",
     dragClass: "stats-drag-active",
+    fallbackOnBody: true,
+    removeCloneOnHide: true,
 }
 
 export default defineNuxtPlugin(() => {

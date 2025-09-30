@@ -418,6 +418,9 @@ export default defineI18nLocale(async () => ({
             toast: {
                 loadFailed: "加载布局设置失败。",
                 saveFailed: "保存布局设置失败。",
+                conflict: "已应用服务器上的最新布局设置。",
+                conflictDetail: "已同步服务器的最新布局版本 ({version})。",
+                forbidden: "无法读取已保存的布局，请刷新后重新登录。",
             },
         },
         chart: {
