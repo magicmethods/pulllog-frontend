@@ -387,6 +387,47 @@ export default defineI18nLocale(async () => ({
         startAggregation: "集計開始",
         advancedSettings: "詳細設定",
         noAggregationResults: "集計結果がありません",
+        layout: {
+            controls: {
+                size: "サイズ",
+                visibility: "表示切替",
+                restoreHint:
+                    "非表示後、再表示するには「詳細設定」ダイアログから行ってください",
+                dragEnable: "ドラッグ有効",
+                dragDisable: "ドラッグ無効",
+            },
+            size: {
+                "span-2": "最小",
+                "span-3": "小",
+                "span-4": "中",
+                "span-5": "大",
+                "span-6": "最大",
+            },
+            tiles: {
+                expenseRatio: "課金額の割合",
+                monthlyExpense: "アプリの課金推移（月次）",
+                cumulativeRareRate: "レア排出率推移（運気の推移）",
+                appPullStats: "引き当て数・レア率",
+                rareBreakdown: "排出レア内訳比率",
+                rareRanking: "レア排出ランキング",
+            },
+            modal: {
+                title: "詳細設定",
+                description:
+                    "統計結果の表示順・表示可否を変更することができます",
+                apply: "適用する",
+                cancel: "キャンセル",
+            },
+            toast: {
+                loadFailed: "設定データの読み込みに失敗しました",
+                saveFailed: "設定データの保存に失敗しました",
+                conflict: "サーバー側の最新設定を適用しました",
+                conflictDetail:
+                    "最新バージョン({version})の表示設定を反映しました",
+                forbidden:
+                    "表示設定へアクセスできませんでした。再度サインインしてください",
+            },
+        },
         chart: {
             expenseRatio: {
                 noData: "データなし",

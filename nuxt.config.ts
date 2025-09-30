@@ -69,6 +69,8 @@ export default defineNuxtConfig({
             googleClientId: process.env.GOOGLE_CLIENT_ID,
             isDebug: process.env.IS_DEBUG === "true",
             mockMode: process.env.MOCK_MODE === "true",
+            useFeatureFlag: process.env.USE_FEATURE_FLAG === "true",
+            newFeatures: process.env.NEW_FEATURES ?? "",
         },
     },
     app: {

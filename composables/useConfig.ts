@@ -13,5 +13,7 @@ export function useConfig(): AppConfig {
         googleClientId: config.public.googleClientId as string,
         isDebug: config.public.isDebug as boolean,
         mockMode: config.public.mockMode as boolean,
+        useFeatureFlag: config.public.useFeatureFlag as boolean,
+        newFeatures: config.public.newFeatures as string,
     }
 }

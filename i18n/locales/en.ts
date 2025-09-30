@@ -392,6 +392,48 @@ export default defineI18nLocale(async () => ({
         startAggregation: "Aggregate",
         advancedSettings: "Advanced Settings",
         noAggregationResults: "No aggregation results available",
+        layout: {
+            controls: {
+                size: "Change size",
+                visibility: "Toggle visibility",
+                restoreHint:
+                    'Use "Advanced Settings" to show hidden charts again.',
+                dragEnable: "Enable drag mode",
+                dragDisable: "Disable drag mode",
+            },
+            size: {
+                "span-2": "Extra Small",
+                "span-3": "Small",
+                "span-4": "Medium",
+                "span-5": "Large",
+                "span-6": "Extra Large",
+            },
+            tiles: {
+                expenseRatio: "Expense ratio",
+                monthlyExpense: "Applications Monthly Spending",
+                cumulativeRareRate: "Cumulative rare rate (Luck Trend)",
+                appPullStats: "Pull Counts & Rare Rates",
+                rareBreakdown: "Rare Drops Breakdown Ratio",
+                rareRanking: "Rare Drop Ranking",
+            },
+            modal: {
+                title: "Display Settings",
+                description:
+                    "Drag to reorder the list and use the checkboxes to toggle visibility.",
+                apply: "Apply",
+                cancel: "Cancel",
+            },
+            toast: {
+                loadFailed: "Failed to load display settings.",
+                saveFailed:
+                    "Failed to save settings. Your changes could not be applied.",
+                conflict: "Server layout settings were restored.",
+                conflictDetail:
+                    "Applied the latest layout version ({version}) from the server.",
+                forbidden:
+                    "Unable to access saved settings. Please reload and sign in again.",
+            },
+        },
         chart: {
             expenseRatio: {
                 noData: "No Data Available",

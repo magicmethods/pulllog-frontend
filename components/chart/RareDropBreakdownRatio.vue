@@ -172,13 +172,16 @@ function showTooltip() {
 </script>
 
 <template>
-    <Card v-if="breakdownData && Object.keys(breakdownData).length > 0" class="chart-card">
+    <Card v-if="breakdownData && Object.keys(breakdownData).length > 0" class="chart-card" :pt="{ caption: 'w-full' }">
         <template #title>
-            <h3 class="text-base">
-                {{ t('stats.chart.rareDropBreakdown.titlePrefix', { name: breakdownData.dispName }) }}
-                <span class="text-primary-800 dark:text-primary-400 mr-0.5">{{ t('stats.chart.rareDropBreakdown.titleLabel') }}</span>
-                {{ t('stats.chart.rareDropBreakdown.titleSuffix') }}
-            </h3>
+            <div class="flex items-center justify-between gap-3">
+                <h3 class="text-base">
+                    {{ t('stats.chart.rareDropBreakdown.titlePrefix', { name: breakdownData.dispName }) }}
+                    <span class="text-primary-800 dark:text-primary-400 mr-0.5">{{ t('stats.chart.rareDropBreakdown.titleLabel') }}</span>
+                    {{ t('stats.chart.rareDropBreakdown.titleSuffix') }}
+                </h3>
+                <slot name="titleControls"></slot>
+            </div>
         </template>
         <template #content>
             <div class="flex justify-around items-center gap-4">

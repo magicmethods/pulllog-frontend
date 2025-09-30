@@ -257,8 +257,9 @@ async function handleConfirmSave() {
     if (!pendingLogData.value) return
     try {
         // API送信処理
-        delete pendingLogData.value.expense_decimal
-        const saved = await logStore.saveLog(pendingLogData.value as DateLog)
+        const payload = { ...(pendingLogData.value as DateLog) }
+        delete payload.expense_decimal
+        const saved = await logStore.saveLog(payload)
         if (!saved) {
             throw new Error(t("history.notice.saveFailed"))
         }
