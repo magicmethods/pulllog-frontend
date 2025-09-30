@@ -7,13 +7,18 @@ onlyBuiltDependencies:
   - '@tailwindcss/oxide'
   - '@parcel/watcher'
   - '@biomejs/biome'
+  - oxc-parser
+  - '@oxc-parser/binding-linux-x64-gnu'
 
-# 余計なプラットフォーム用の optional を入れない（任意）
-supportedArchitectures:
-  os:
-    - win32
-  cpu:
-    - x64
-# あるいは、明確に要らないものを無視（任意・例）
+# 余計なプラットフォーム用の optional を入れない
+# supportedArchitectures:
+#   os:
+#     - win32
+#     - linux
+#   cpu:
+#     - x64
+#   libc:
+#     - glibc
+# あるいは、明確に要らないものを無視（例）
 # ignoredOptionalDependencies:
 #   - '@tailwindcss/oxide-android-arm64'
