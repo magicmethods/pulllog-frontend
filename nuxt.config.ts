@@ -1,4 +1,4 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+﻿// https://nuxt.com/docs/api/configuration/nuxt-config
 import fs from "node:fs"
 import path from "node:path"
 import { PrimeVueResolver } from "@primevue/auto-import-resolver"
@@ -23,8 +23,8 @@ const httpsOptions = {
 export default defineNuxtConfig({
     compatibilityDate: "2025-05-15",
     nitro: {
-        preset: "cloudflare_module", // SSR用 .output/server/wrangler.json が生成される 'cloudflare' はPages用
-        minify: false,
+        preset: "cloudflare_module", // SSR逕ｨ .output/server/wrangler.json 縺檎函謌舌＆繧後ｋ 'cloudflare' 縺ｯPages逕ｨ
+        minify: true,
         cloudflare: {
             deployConfig: true,
             nodeCompat: true,
@@ -50,13 +50,13 @@ export default defineNuxtConfig({
     },
     ssr: true,
     runtimeConfig: {
-        // サーバーサイド専用の環境変数
+        // 繧ｵ繝ｼ繝舌・繧ｵ繧､繝牙ｰら畑縺ｮ迺ｰ蠅・､画焚
         apiBaseURL: process.env.API_BASE_URL,
         apiProxy: process.env.API_PROXY || "/api",
         secretApiKey: process.env.SECRET_API_KEY,
         demoEmail: process.env.DEMO_EMAIL,
         demoPassword: process.env.DEMO_PASSWORD,
-        // クライアントサイドでも使用する環境変数
+        // 繧ｯ繝ｩ繧､繧｢繝ｳ繝医し繧､繝峨〒繧ゆｽｿ逕ｨ縺吶ｋ迺ｰ蠅・､画焚
         public: {
             appName: process.env.APP_NAME,
             appVersion: process.env.APP_VERSION,
@@ -92,7 +92,7 @@ export default defineNuxtConfig({
         },
     },
     css: [
-        "primeicons/primeicons.css",
+        "@/assets/styles/primeicons.css",
         "@loadingio/loading.css/loading.css",
         "@/assets/styles/tailwind_v4.scss",
         "@/assets/styles/index.scss",
@@ -109,6 +109,39 @@ export default defineNuxtConfig({
     vite: {
         build: {
             sourcemap: process.env.NUXT_SOURCEMAP === "true",
+            rollupOptions: {
+                output: {
+                    manualChunks(id) {
+                        if (id.includes("node_modules")) {
+                            if (
+                                id.includes("chart.js") ||
+                                id.includes("chartjs-plugin") ||
+                                id.includes("vue-chartjs")
+                            ) {
+                                return "chart"
+                            }
+                            if (
+                                id.includes("/primevue/") ||
+                                id.includes("@primevue") ||
+                                id.includes("primeicons")
+                            ) {
+                                return "primevue"
+                            }
+                            if (id.includes("luxon")) {
+                                return "luxon"
+                            }
+                            if (
+                                id.includes("vue-i18n") ||
+                                id.includes("@intlify")
+                            ) {
+                                return "i18n"
+                            }
+                        }
+                        return undefined
+                    },
+                },
+            },
+            chunkSizeWarningLimit: 1200,
         },
         plugins: [
             Components({
@@ -136,6 +169,17 @@ export default defineNuxtConfig({
     primevue: {
         usePrimeVue: true,
         autoImport: true,
+        components: {
+            exclude: [
+                "Dialog",
+                "Drawer",
+                "DataTable",
+                "Column",
+                "ColumnGroup",
+                "FileUpload",
+                "Editor",
+            ],
+        },
         options: {
             theme: {
                 preset: PullLogPreset,
