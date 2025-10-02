@@ -1,6 +1,6 @@
 {
     "name": "pulllog",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "description": "Manage Your Gacha History and Analyze Statistics.",
     "author": "MAGIC METHODS",
     "license": "UNLICENSED",
@@ -9,7 +9,7 @@
     "type": "module",
     "scripts": {
         "clean": "rm -rf .nuxt node_modules/.vite",
-        "build": "NUXT_SOURCEMAP=false NUXT_TYPESCRIPT_CHECK=false nuxt build --dotenv .env.production",
+        "build": "cross-env NUXT_SOURCEMAP=false NUXT_TYPESCRIPT_CHECK=false nuxt build --dotenv .env.production",
         "dev": "nuxt dev --dotenv .env.local",
         "generate": "nuxt generate --dotenv .env.production",
         "preview": "nuxt preview --dotenv .env.production",
@@ -60,6 +60,7 @@
         "@types/luxon": "^3.6.2",
         "@types/sortablejs": "^1.15.8",
         "autoprefixer": "^10.4.21",
+        "cross-env": "^7.0.3",
         "husky": "^9.1.7",
         "lint-staged": "^16.1.6",
         "postcss": "^8.5.6",

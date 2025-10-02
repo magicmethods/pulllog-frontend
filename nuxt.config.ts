@@ -20,10 +20,71 @@ const httpsOptions = {
     ),
 }
 
+function sanitizeChunkName(name: string): string {
+    return name
+        .replace(/[^a-z0-9]+/gi, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase()
+}
+
+function resolvePrimevueChunk(id: string): string | null {
+    const formsMatch = id.match(/[/]@primevue[/]forms[/](?:dist[/]esm[/])?(.+)/)
+    if (formsMatch?.[1]) {
+        const segments = formsMatch[1].split(/[/]/).filter(Boolean)
+        if (segments.length > 0) {
+            const formsKey =
+                segments[0] === "components" && segments[1]
+                    ? `component-${sanitizeChunkName(segments[1])}`
+                    : segments[0]
+            return `primevue-forms-${sanitizeChunkName(formsKey)}`
+        }
+        return "primevue-forms"
+    }
+
+    const themeMatch = id.match(
+        /[/]@primeuix[/]themes[/](?:dist[/]esm[/])?(.+)/,
+    )
+    if (themeMatch?.[1]) {
+        const segments = themeMatch[1].split(/[/]/).filter(Boolean)
+        return `primevue-theme-${sanitizeChunkName(segments[0] ?? "core")}`
+    }
+
+    const coreMatch = id.match(/[/]@primevue[/]core[/](?:dist[/]esm[/])?(.+)/)
+    if (coreMatch?.[1]) {
+        const segments = coreMatch[1].split(/[/]/).filter(Boolean)
+        if (segments.length > 0) {
+            const [first, second] = segments
+            if (first === "components" && second) {
+                return `primevue-core-${sanitizeChunkName(second)}`
+            }
+            return `primevue-core-${sanitizeChunkName(first)}`
+        }
+        return "primevue-core"
+    }
+
+    const componentMatch = id.match(/[/]primevue[/](?:dist[/]esm[/])?(.+)/)
+    if (componentMatch?.[1]) {
+        const segments = componentMatch[1].split(/[/]/).filter(Boolean)
+        if (segments.length > 0) {
+            const [first, second] = segments
+            if (first === "components" && second) {
+                return `primevue-${sanitizeChunkName(second)}`
+            }
+            return `primevue-${sanitizeChunkName(first)}`
+        }
+        return "primevue-core"
+    }
+
+    if (/[\\/](?:primevue|@primevue|@primeuix)[\\/]/.test(id)) {
+        return "primevue-core"
+    }
+
+    return null
+}
 export default defineNuxtConfig({
     compatibilityDate: "2025-05-15",
     nitro: {
-        preset: "cloudflare_module", // SSR逕ｨ .output/server/wrangler.json 縺檎函謌舌＆繧後ｋ 'cloudflare' 縺ｯPages逕ｨ
+        preset: "cloudflare_module", // SSR用 .output/server/wrangler.json が生成される 'cloudflare' はPages用
         minify: true,
         cloudflare: {
             deployConfig: true,
@@ -43,20 +104,20 @@ export default defineNuxtConfig({
     },
     devtools: { enabled: false },
     typescript: {
-        typeCheck: true,
+        typeCheck: process.env.NUXT_TYPESCRIPT_CHECK !== "false",
         tsConfig: {
             include: ["types/**/*.d.ts"],
         },
     },
     ssr: true,
     runtimeConfig: {
-        // 繧ｵ繝ｼ繝舌・繧ｵ繧､繝牙ｰら畑縺ｮ迺ｰ蠅・､画焚
+        // サーバーサイド専用の環境変数
         apiBaseURL: process.env.API_BASE_URL,
         apiProxy: process.env.API_PROXY || "/api",
         secretApiKey: process.env.SECRET_API_KEY,
         demoEmail: process.env.DEMO_EMAIL,
         demoPassword: process.env.DEMO_PASSWORD,
-        // 繧ｯ繝ｩ繧､繧｢繝ｳ繝医し繧､繝峨〒繧ゆｽｿ逕ｨ縺吶ｋ迺ｰ蠅・､画焚
+        // クライアントサイドでも使用する環境変数
         public: {
             appName: process.env.APP_NAME,
             appVersion: process.env.APP_VERSION,
@@ -98,6 +159,26 @@ export default defineNuxtConfig({
         "@/assets/styles/index.scss",
     ],
     modules: ["@pinia/nuxt", "@primevue/nuxt-module", "@nuxtjs/i18n"],
+    hooks: {
+        "components:extend"(components) {
+            for (let i = components.length - 1; i >= 0; i--) {
+                if (
+                    components[i].filePath?.includes(
+                        "vite/modulepreload-polyfill.js",
+                    )
+                ) {
+                    components.splice(i, 1)
+                }
+            }
+        },
+        "imports:extend"(imports) {
+            for (let i = imports.length - 1; i >= 0; i--) {
+                if (imports[i].from === "vite/modulepreload-polyfill.js") {
+                    imports.splice(i, 1)
+                }
+            }
+        },
+    },
     devServer: {
         host: "pull.log",
         port: 4649,
@@ -112,31 +193,38 @@ export default defineNuxtConfig({
             rollupOptions: {
                 output: {
                     manualChunks(id) {
-                        if (id.includes("node_modules")) {
-                            if (
-                                id.includes("chart.js") ||
-                                id.includes("chartjs-plugin") ||
-                                id.includes("vue-chartjs")
-                            ) {
-                                return "chart"
-                            }
-                            if (
-                                id.includes("/primevue/") ||
-                                id.includes("@primevue") ||
-                                id.includes("primeicons")
-                            ) {
-                                return "primevue"
-                            }
-                            if (id.includes("luxon")) {
-                                return "luxon"
-                            }
-                            if (
-                                id.includes("vue-i18n") ||
-                                id.includes("@intlify")
-                            ) {
-                                return "i18n"
-                            }
+                        if (!id.includes("node_modules")) {
+                            return undefined
                         }
+
+                        if (
+                            id.includes("chart.js") ||
+                            id.includes("chartjs-plugin") ||
+                            id.includes("vue-chartjs")
+                        ) {
+                            return "chart"
+                        }
+
+                        if (/(?:^|[\\/])primeicons[\\/]/.test(id)) {
+                            return "primeicons"
+                        }
+
+                        const primevueChunk = resolvePrimevueChunk(id)
+                        if (primevueChunk) {
+                            return primevueChunk
+                        }
+
+                        if (id.includes("luxon")) {
+                            return "luxon"
+                        }
+
+                        if (
+                            id.includes("vue-i18n") ||
+                            id.includes("@intlify")
+                        ) {
+                            return "i18n"
+                        }
+
                         return undefined
                     },
                 },
