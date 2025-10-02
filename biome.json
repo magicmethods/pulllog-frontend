@@ -53,6 +53,16 @@
                     }
                 }
             }
+        },
+        {
+            "includes": ["assets/styles/**/*.css"],
+            "linter": {
+                "rules": {
+                    "suspicious": {
+                        "noUselessEscapeInString": "off"
+                    }
+                }
+            }
         }
     ]
 }
