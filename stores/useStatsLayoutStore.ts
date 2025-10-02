@@ -1,12 +1,13 @@
 ﻿import { storeToRefs } from "pinia"
 import { useToast } from "primevue/usetoast"
-import { nextTick, ref, watch } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import { useI18n } from "vue-i18n"
 import { endpoints } from "~/api/endpoints"
 import { useAPI } from "~/composables/useAPI"
 import { useConfig } from "~/composables/useConfig"
 import { useFeatureFlag } from "~/composables/useFeatureFlag"
 import { useCsrfStore } from "~/stores/useCsrfStore"
+import { useUserStore } from "~/stores/useUserStore"
 import { ApiError } from "~/utils/error"
 
 /** 永続化に利用する localStorage のベースキー */
@@ -75,8 +76,11 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
     const { callApi } = useAPI()
     const featureFlag = useFeatureFlag()
     const config = useConfig()
+    const userStore = useUserStore()
     const csrfStore = useCsrfStore()
     const { token: csrfToken } = storeToRefs(csrfStore)
+
+    const isDemoUser = computed(() => userStore.hasUserRole("demo"))
 
     let syncTimer: number | null = null
     let isApplyingSnapshot = false
@@ -114,7 +118,8 @@ export const useStatsLayoutStore = defineStore("statsLayout", () => {
             import.meta.client &&
             featureFlag.isActive(SYNC_FLAG) &&
             activeUserId.value !== null &&
-            hasCsrfToken()
+            hasCsrfToken() &&
+            !isDemoUser.value
         )
     }
 

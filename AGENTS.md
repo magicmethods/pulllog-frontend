@@ -48,5 +48,7 @@
 
 ## セキュリティ & 設定の注意点
 - 環境ファイル: `.env.local`（開発用）、`.env.production`（ビルド用）。秘密情報はコミット禁止。
+- `pnpm build` を行う場合、直前に `.output` ディレクトリを削除すること。もし他のプロセスが掴んでロックされている場合は `taskkill /IM node.exe /F` 後に `Remove-Item -Force .output` で削除する。
+- `pnpm build` もしくは `pnpm preview` を実行しCLIがタイムアウトした場合は処理を中断して状況を報告すること。
 - `runtimeConfig` のキー（例: `API_BASE_URL`, `GOOGLE_CLIENT_ID`）は正しく設定すること。
 - ローカル HTTPS は `public/` 内の証明書を使用。警告が出たら信頼設定を行うこと。
