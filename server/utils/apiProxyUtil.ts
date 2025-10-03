@@ -93,7 +93,8 @@ export async function proxyFetchAndReturn(
         ) {
             fetchBody = body
         } else if (typeof body === "string" || body instanceof Uint8Array) {
-            fetchBody = body
+            // biome-ignore lint:/suspicious/noExplicitAny
+            fetchBody = body as string | Uint8Array<ArrayBufferLike> as any
         } else {
             // 通常のobject（JSON送信）
             fetchBody = JSON.stringify(body)
