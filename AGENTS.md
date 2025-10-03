@@ -52,3 +52,6 @@
 - `pnpm build` もしくは `pnpm preview` を実行しCLIがタイムアウトした場合は処理を中断して状況を報告すること。
 - `runtimeConfig` のキー（例: `API_BASE_URL`, `GOOGLE_CLIENT_ID`）は正しく設定すること。
 - ローカル HTTPS は `public/` 内の証明書を使用。警告が出たら信頼設定を行うこと。
+
+## その他
+- `.codex/` を codex CLI で作業する際のテンポラリディレクトリとして利用する。作業用の一時ファイルやバグレポート、Issueのひな形、補足ドキュメント等を自由に出力して構いません。
