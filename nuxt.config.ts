@@ -252,6 +252,25 @@ export default defineNuxtConfig({
         },
         server: {
             https: httpsOptions,
+            watch: {
+                ignored: [
+                    "**/.git/**",
+                    "**/.github/**",
+                    "**/.husky/**",
+                    "**/.wrangler/**",
+                    "**/.codex/**",
+                    "**/AGENTS.md",
+                    "**/logs/**",
+                    "**/tmp/**",
+                    "**/*.log",
+                    "**/.DS_Store",
+                    "**/dist/**",
+                    "**/.nuxt/**",
+                    "**/.output/**",
+                    "**/.vscode/**",
+                    "**/coverage/**",
+                ],
+            },
         },
     },
     primevue: {
