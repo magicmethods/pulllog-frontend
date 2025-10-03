@@ -51,7 +51,7 @@
         "zod": "^3.24.3"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.2.3",
+        "@biomejs/biome": "^2.2.5",
         "@nuxt/types": "^2.18.1",
         "@nuxt/typescript-build": "^3.0.2",
         "@primevue/auto-import-resolver": "^4.3.3",

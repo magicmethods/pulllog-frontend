@@ -4,5 +4,7 @@
             "path": ".."
         }
     ],
-    "settings": {}
+    "settings": {
+        "biome.lsp.bin": "${workspaceFolder}/node_modules/.bin/biome.cmd"
+    }
 }
