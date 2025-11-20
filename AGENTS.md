@@ -26,10 +26,11 @@
 - セミコロンは基本的に省略。構文上必要な場合のみ付与。
 - コンポーネント: `PascalCase.vue`。ルート: `pages/` 内は kebab-case。composables: `useXxx.ts`。ストア: `useXxxStore`。
 - スタイルは TailwindCSS ユーティリティを優先。独自 CSS は極力避ける。
+- バイナリ以外のリソースファイルは原則文字コード `UTF-8` で `BOM` 無し、改行コードは `LF` とする。原則から外れる場合は通知すること。
 - 整形・Lint: Biome を使用。例: `npx @biomejs/biome check --write .`
 
 ## 禁止事項
-- `any` 型の使用は禁止。どうしても必要な場合は `unknown` + 型ガードで扱う。  
+- `any` 型の使用は原則禁止。どうしても必要な場合は `unknown` + 型ガードで扱う。  
 - `console.log` を残さない。デバッグは Logger または開発専用ユーティリティを使用する。  
 - 非null アサーション（`!`）は禁止。代わりに型ガードやオプショナルチェーンを利用する。  
 - メソッドには原則 TypeDoc 準拠の JSDoc コメントを付与すること。  
@@ -52,3 +53,6 @@
 - `pnpm build` もしくは `pnpm preview` を実行しCLIがタイムアウトした場合は処理を中断して状況を報告すること。
 - `runtimeConfig` のキー（例: `API_BASE_URL`, `GOOGLE_CLIENT_ID`）は正しく設定すること。
 - ローカル HTTPS は `public/` 内の証明書を使用。警告が出たら信頼設定を行うこと。
+
+## その他
+- `.codex/` を codex CLI で作業する際のテンポラリディレクトリとして利用する。作業用の一時ファイルやバグレポート、Issueのひな形、補足ドキュメント等を自由に出力して構いません。

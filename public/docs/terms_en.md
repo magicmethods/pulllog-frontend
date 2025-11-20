@@ -1,8 +1,8 @@
 <div style="text-align: right;">Last Updated: August 7, 2025</div>
 
-These Terms of Use (“Terms”) set forth the rights and obligations between users (“Users”) and the operator “MAGIC METHODS” (“Operator”) with respect to the provision and use of PullLog (“Service”). Please read these Terms carefully before using the Service. By using the Service, you agree to these Terms.
+These Terms of Use (“Terms”) set forth the rights and obligations between users (“Users”) and the operator “Ka2” (“Operator”) with respect to the provision and use of PullLog (“Service”). Please read these Terms carefully before using the Service. By using the Service, you agree to these Terms.
 
-- Operator: MAGIC METHODS (sole proprietorship)
+- Operator: Ka2
 - Location: Tokyo, Japan
 - Contact email: support@pulllog.net
 

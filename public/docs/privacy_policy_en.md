@@ -78,7 +78,7 @@ Currently, personal information is not provided to third parties by outsourcing.
 
 For questions or requests regarding this Policy or the handling of personal information, please contact:
 
-> PullLog Operator (Personal Information Protection Manager: Katsuhiko Maeno)  
+> PullLog Operator (Personal Information Protection Manager: Ka2)  
 > Email: support@pulllog.net
 
 ---

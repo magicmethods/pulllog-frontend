@@ -5,6 +5,7 @@
 .nitro
 .cache
 .wrangler
+.codex
 dist
 
 # Node dependencies
@@ -29,3 +30,5 @@ desktop.ini
 # Development temporary files
 public/sample/
 public/.well-known/
+docs/
+api-schema.yaml
