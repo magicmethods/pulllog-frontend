@@ -1,10 +1,22 @@
 {
     "folders": [
         {
+            "name": "frontend",
             "path": ".."
+        },
+        {
+            "name": "contract",
+            "path": "../../contract"
         }
     ],
     "settings": {
-        "biome.lsp.bin": "${workspaceFolder}/node_modules/.bin/biome.cmd"
+        "biome.lsp.bin": "${workspaceFolder:frontend}/node_modules/.bin/biome.cmd",
+        "terminal.integrated.defaultProfile.windows": "Git Bash",
+        "terminal.integrated.profiles.windows": {
+            "Git Bash": {
+                "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+                "icon": "terminal-bash"
+            }
+        }
     }
 }

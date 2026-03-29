@@ -1,0 +1,42 @@
+name: Backend Integration Request
+description: バックエンドAPIや契約変更の依頼を起票する
+title: "integration(api): "
+labels:
+  - frontend
+  - backend
+  - integration
+body:
+  - type: textarea
+    id: request
+    attributes:
+      label: 依頼内容
+      description: 何を変更してほしいか
+    validations:
+      required: true
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 背景と目的
+      description: なぜ必要か、どのUI/機能に影響するか
+    validations:
+      required: true
+  - type: input
+    id: contract
+    attributes:
+      label: API契約参照
+      placeholder: contract/api-schema.yaml
+  - type: input
+    id: related_doc
+    attributes:
+      label: 関連ドキュメント
+      placeholder: docs/integrations/backend/gallery-upload-ticket-api-spec.md
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ条件
+      placeholder: |
+        - 新規エンドポイントが追加される
+        - レスポンス例が確定する
+        - contract/api-schema.yaml が更新される
+    validations:
+      required: true

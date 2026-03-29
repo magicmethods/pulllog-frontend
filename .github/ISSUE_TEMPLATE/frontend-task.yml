@@ -1,0 +1,50 @@
+name: Frontend Task
+description: フロントエンド実装タスクを起票する
+title: "task(frontend): "
+labels:
+  - frontend
+  - task
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: 概要
+      description: 何を実装するかを簡潔に記載
+      placeholder: ギャラリー一覧のフィルタUIを実装する
+    validations:
+      required: true
+  - type: textarea
+    id: background
+    attributes:
+      label: 背景
+      description: なぜ必要か、関連する文脈
+    validations:
+      required: true
+  - type: input
+    id: related_doc
+    attributes:
+      label: 関連ドキュメント
+      description: docs 配下の参照先
+      placeholder: docs/features/gallery/list-ui-plan.md
+  - type: textarea
+    id: scope
+    attributes:
+      label: 対応範囲
+      description: 実装対象と対象外を分けて記載
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ条件
+      description: 完了条件を箇条書きで記載
+      placeholder: |
+        - 一覧表示ができる
+        - 7日/30日/90日/全期間のフィルタが動作する
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 実装メモ
+      description: API、デザイン、依存Issue、懸念点など
