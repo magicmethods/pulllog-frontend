@@ -54,5 +54,16 @@
 - `runtimeConfig` のキー（例: `API_BASE_URL`, `GOOGLE_CLIENT_ID`）は正しく設定すること。
 - ローカル HTTPS は `public/` 内の証明書を使用。警告が出たら信頼設定を行うこと。
 
+## API Contract
+- API スキーマの正本は `contract/api-schema.yaml`（contract ワークスペース管理）。`frontend/api-schema.yaml` は参照用ローカルコピーであり、正本ではない。
+- エンドポイントを追加・変更する際は必ず `contract/api-schema.yaml` を参照すること。
+- マルチルートワークスペース（`frontend.code-workspace` または `pulllog.code-workspace`）では `${workspaceFolder:contract}/api-schema.yaml` としてアクセス可能。
+
+## Docs / Issue 運用
+- `docs/` は長期参照する開発・運用ドキュメントを置く。機能計画は `docs/features/`、連携仕様は `docs/integrations/` を使う。
+- GitHub Issue の正本は GitHub 側に置き、起票時は `.github/ISSUE_TEMPLATE/` のテンプレートを利用する。
+- 一時的な作業メモ、壁打ち、未整理の調査ログは `.codex/` に置く。
+- `docs/` 配下のファイル名は `*-plan.md`、`*-spec.md`、`*-notes.md` のように用途が分かる名前を使う。
+
 ## その他
 - `.codex/` を codex CLI で作業する際のテンポラリディレクトリとして利用する。作業用の一時ファイルやバグレポート、Issueのひな形、補足ドキュメント等を自由に出力して構いません。

@@ -1,0 +1,30 @@
+{
+    "folders": [
+        {
+            "name": "frontend",
+            "path": ".."
+        },
+        {
+            "name": "backend",
+            "path": "../../backend"
+        },
+        {
+            "name": "contract",
+            "path": "../../contract"
+        },
+        {
+            "name": "pulllog-docs",
+            "path": "../../pulllog-docs"
+        }
+    ],
+    "settings": {
+        "biome.lsp.bin": "${workspaceFolder:frontend}/node_modules/.bin/biome.cmd",
+        "terminal.integrated.defaultProfile.windows": "Git Bash",
+        "terminal.integrated.profiles.windows": {
+            "Git Bash": {
+                "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+                "icon": "terminal-bash"
+            }
+        }
+    }
+}

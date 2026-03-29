@@ -1,0 +1,40 @@
+name: Frontend Bug
+description: フロントエンド不具合を起票する
+title: "fix(frontend): "
+labels:
+  - frontend
+  - bug
+body:
+  - type: textarea
+    id: symptom
+    attributes:
+      label: 症状
+      description: 何が起きているか
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 再現手順
+      placeholder: |
+        1. ギャラリーページを開く
+        2. フィルタを変更する
+        3. エラーが発生する
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 期待結果
+    validations:
+      required: true
+  - type: input
+    id: related_doc
+    attributes:
+      label: 関連ドキュメント
+      placeholder: docs/features/gallery/upload-flow-plan.md
+  - type: textarea
+    id: logs
+    attributes:
+      label: ログ・スクリーンショット
+      description: エラー内容、画面キャプチャ、再現動画など
