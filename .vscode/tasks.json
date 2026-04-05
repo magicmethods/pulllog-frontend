@@ -21,6 +21,24 @@
             "isBackground": false,
             "problemMatcher": [],
             "group": "test"
+        },
+        {
+            "label": "E2E: export Markdown reports to PDF",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:pdf"],
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "E2E: export Markdown reports to PDF (custom path)",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:pdf", "--", "${input:markdownPdfTarget}"],
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
         }
     ],
     "inputs": [
@@ -29,6 +47,12 @@
             "type": "promptString",
             "description": "Run specific Playwright projects (blank=all, e.g. chromium,iphone or firefox,android)",
             "default": ""
+        },
+        {
+            "id": "markdownPdfTarget",
+            "type": "promptString",
+            "description": "Markdown path to export (default: tests/test-results)",
+            "default": "tests/test-results"
         }
     ]
 }

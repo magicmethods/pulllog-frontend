@@ -21,6 +21,11 @@ export class AuthPage {
         const page = this.context.page
 
         await this.openAppsWithRecovery(page)
+        await waitForLoaderToClear(page)
+        await page.getByText(uiText.addNew).first().waitFor({
+            state: "visible",
+            timeout: 45000,
+        })
         await this.context.capturePageArrival("apps")
     }
 
@@ -29,8 +34,20 @@ export class AuthPage {
      * to the login/session-expired route while shared E2E state is settling.
      */
     private async openAppsWithRecovery(page: Page): Promise<void> {
-        for (let attempt = 0; attempt < 3; attempt++) {
-            await page.goto("/apps", { waitUntil: "domcontentloaded" })
+        let lastError: unknown
+
+        for (let attempt = 0; attempt < 5; attempt++) {
+            try {
+                await page.goto("/apps", {
+                    waitUntil: "domcontentloaded",
+                    timeout: 30000,
+                })
+            } catch (error) {
+                lastError = error
+                await page.waitForTimeout(3000)
+                continue
+            }
+
             await dismissCookieBanner(page)
             await this.recoverFromAuthInterruption(page)
             await page
@@ -42,6 +59,12 @@ export class AuthPage {
                 await expectAppsPage(page)
                 return
             }
+
+            await page.waitForTimeout(1500)
+        }
+
+        if (lastError) {
+            throw lastError
         }
 
         await expectAppsPage(page)

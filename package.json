@@ -21,6 +21,7 @@
         "test:e2e:headed": "playwright test -c tests/playwright/playwright.config.ts --headed",
         "test:e2e:ui": "playwright test -c tests/playwright/playwright.config.ts --ui",
         "test:e2e:install": "playwright install chromium firefox webkit",
+        "test:e2e:pdf": "node ./scripts/export-markdown-pdf.mjs",
         "postinstall": "nuxt prepare",
         "wrangler_preview": "pnpm dlx wrangler dev --compatibility-date 2024-11-01 --host pull.log --port 4649 --local-protocol https",
         "wrangler_login": "pnpm dlx wrangler login",

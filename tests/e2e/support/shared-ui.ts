@@ -41,6 +41,7 @@ export async function dismissCookieBanner(page: Page): Promise<void> {
  */
 export async function waitForLoaderToClear(page: Page): Promise<void> {
     const overlay = page.locator(".loader-overlay").first()
+    const nuxtSplash = page.getByText("Nuxt", { exact: true }).first()
 
     await overlay
         .waitFor({ state: "hidden", timeout: 30000 })
@@ -55,6 +56,10 @@ export async function waitForLoaderToClear(page: Page): Promise<void> {
                 .waitFor({ state: "detached", timeout: 30000 })
                 .catch(() => {})
         })
+
+    await nuxtSplash
+        .waitFor({ state: "hidden", timeout: 45000 })
+        .catch(() => {})
 }
 
 /**

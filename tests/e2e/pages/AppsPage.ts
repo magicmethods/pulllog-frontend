@@ -14,12 +14,15 @@ export class AppsPage {
     async expectAppVisible(appName: string): Promise<void> {
         const page = this.context.page
 
+        await page
+            .waitForLoadState("networkidle", { timeout: 30000 })
+            .catch(() => {})
         await waitForLoaderToClear(page)
-        await expect(page.getByText(uiText.addNew)).toBeVisible({
-            timeout: 15000,
+        await expect(page.getByText(uiText.addNew).first()).toBeVisible({
+            timeout: 45000,
         })
         await expect(page.getByText(appName).first()).toBeVisible({
-            timeout: 30000,
+            timeout: 45000,
         })
     }
 

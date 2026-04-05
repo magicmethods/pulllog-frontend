@@ -124,19 +124,7 @@ class PulllogE2EReporter implements Reporter {
 
     private async generateMarkdownReport(overallStatus: string): Promise<void> {
         const manifestsDir = path.join(this.outputDir, "manifests")
-        const manifestFiles = (await readdir(manifestsDir).catch(() => []))
-            .filter((file) => file.endsWith(".json"))
-            .sort((left, right) => left.localeCompare(right))
-
-        const manifests = await Promise.all(
-            manifestFiles.map(async (file) => {
-                const content = await readFile(
-                    path.join(manifestsDir, file),
-                    "utf8",
-                )
-                return JSON.parse(content) as ScenarioManifest
-            }),
-        )
+        const manifests = await this.loadManifests(manifestsDir)
 
         const lines: string[] = [
             "# PullLog E2E Report",
@@ -220,6 +208,34 @@ class PulllogE2EReporter implements Reporter {
             lines.join("\n"),
             "utf8",
         )
+    }
+
+    private async loadManifests(
+        manifestsDir: string,
+    ): Promise<ScenarioManifest[]> {
+        for (let attempt = 0; attempt < 10; attempt += 1) {
+            const manifestFiles = (await readdir(manifestsDir).catch(() => []))
+                .filter((file) => file.endsWith(".json"))
+                .sort((left, right) => left.localeCompare(right))
+
+            if (manifestFiles.length > 0 || attempt === 9) {
+                return Promise.all(
+                    manifestFiles.map(async (file) => {
+                        const content = await readFile(
+                            path.join(manifestsDir, file),
+                            "utf8",
+                        )
+                        return JSON.parse(content) as ScenarioManifest
+                    }),
+                )
+            }
+
+            await new Promise((resolve) => {
+                setTimeout(resolve, 250)
+            })
+        }
+
+        return []
     }
 
     private writeLine(line: string): void {

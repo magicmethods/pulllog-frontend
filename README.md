@@ -195,6 +195,28 @@ Remove-Item Env:PLAYWRIGHT_PROJECTS
 
 VS Code では `Playwright: golden route` タスクからも実行できます。入力欄を空欄のまま実行すると全6プロジェクト、`chromium,iphone` のように入力すると対象を絞り込めます。
 
+### MarkdownレポートのPDF化
+
+E2Eテストのレポート出力とは独立して、`tests/test-results/` 配下の Markdown を後から PDF 化できます。既定では `tests/test-results/` を対象に、配下の `*.md` を走査し、同じ階層へ同名の `.pdf` を出力します。
+
+```sh
+pnpm run test:e2e:pdf
+```
+
+任意のパスを指定したい場合:
+
+```sh
+pnpm run test:e2e:pdf -- tests/test-results
+```
+
+単一ファイルを直接PDF化することもできます:
+
+```sh
+pnpm run test:e2e:pdf -- tests/test-results/e2e_report.md
+```
+
+VS Code では `E2E: export Markdown reports to PDF` タスクで既定パスを、その場で対象を変えたい場合は `E2E: export Markdown reports to PDF (custom path)` タスクを利用できます。
+
 > フロントエンド単体で `pnpm run test:e2e` を実行しても、Playwright 設定が `backend/stable` の `composer run e2e:serve` を自動起動して `/up` ヘルスチェック完了後にテストを開始します。
 
 ---

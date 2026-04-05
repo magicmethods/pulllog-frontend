@@ -20,6 +20,15 @@ const httpsOptions = {
     ),
 }
 
+const requestedDevServerPort = Number.parseInt(
+    process.env.NUXT_PORT ?? process.env.PORT ?? "4649",
+    10,
+)
+const devServerHost = process.env.NUXT_HOST ?? process.env.HOST ?? "pull.log"
+const devServerPort = Number.isNaN(requestedDevServerPort)
+    ? 4649
+    : requestedDevServerPort
+
 function sanitizeChunkName(name: string): string {
     return name
         .replace(/[^a-z0-9]+/gi, "-")
@@ -180,8 +189,8 @@ export default defineNuxtConfig({
         },
     },
     devServer: {
-        host: "pull.log",
-        port: 4649,
+        host: devServerHost,
+        port: devServerPort,
         https: httpsOptions,
     },
     experimental: {

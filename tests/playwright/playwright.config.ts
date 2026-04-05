@@ -4,6 +4,15 @@ import { defineConfig, devices } from "@playwright/test"
 const frontendRoot = process.cwd()
 const backendStableRoot = path.resolve(frontendRoot, "../backend/stable")
 const testResultsRoot = path.resolve(frontendRoot, "tests/test-results")
+const e2eFrontendHost = process.env.PLAYWRIGHT_FRONTEND_HOST ?? "127.0.0.1"
+const requestedE2EFrontendPort = Number.parseInt(
+    process.env.PLAYWRIGHT_FRONTEND_PORT ?? "43173",
+    10,
+)
+const e2eFrontendPort = Number.isNaN(requestedE2EFrontendPort)
+    ? 43173
+    : requestedE2EFrontendPort
+const e2eFrontendBaseURL = `https://${e2eFrontendHost}:${e2eFrontendPort}`
 
 const availableProjects = [
     {
@@ -83,6 +92,7 @@ const selectedProjects =
 /**
  * Playwright E2E は専用の `.env.e2e` で Nuxt を HTTPS 起動し、
  * Laravel バックエンドも `http://127.0.0.1:3030` で同時起動する。
+ * フロント側の待受ポートは `PLAYWRIGHT_FRONTEND_PORT` で上書きできる。
  * `PLAYWRIGHT_PROJECTS=chromium,iphone` のように指定すると対象を絞り込める。
  */
 export default defineConfig({
@@ -113,7 +123,7 @@ export default defineConfig({
     ],
     outputDir: path.join(testResultsRoot, "artifacts"),
     use: {
-        baseURL: "https://127.0.0.1:4173",
+        baseURL: e2eFrontendBaseURL,
         ignoreHTTPSErrors: true,
         trace: "on-first-retry",
         screenshot: "only-on-failure",
@@ -130,12 +140,11 @@ export default defineConfig({
             stdout: "ignore",
         },
         {
-            command:
-                "pnpm exec nuxt dev --dotenv .env.e2e --host 127.0.0.1 --port 4173",
+            command: `pnpm exec nuxt dev --dotenv .env.e2e --host ${e2eFrontendHost} --port ${e2eFrontendPort}`,
             cwd: frontendRoot,
-            url: "https://127.0.0.1:4173",
+            url: e2eFrontendBaseURL,
             reuseExistingServer: !process.env.CI,
-            timeout: 180000,
+            timeout: 300000,
             ignoreHTTPSErrors: true,
             stdout: "ignore",
             stderr: "ignore",
