@@ -1,0 +1,34 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Playwright: golden route",
+            "type": "shell",
+            "command": "pnpm",
+            "args": [
+                "exec",
+                "playwright",
+                "test",
+                "-c",
+                "tests/playwright/playwright.config.ts",
+                "tests/e2e/golden-route.spec.ts"
+            ],
+            "options": {
+                "env": {
+                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
+                }
+            },
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "e2eProjects",
+            "type": "promptString",
+            "description": "Run specific Playwright projects (blank=all, e.g. chromium,iphone or firefox,android)",
+            "default": ""
+        }
+    ]
+}

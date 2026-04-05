@@ -16,6 +16,10 @@ logs
 *.log
 !server/api/logs
 
+# E2E artifacts
+tests/test-results/
+tests/artifacts/
+
 # Misc
 .DS_Store
 .fleet

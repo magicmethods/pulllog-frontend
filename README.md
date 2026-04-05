@@ -16,6 +16,7 @@
 - [主な特徴](#主な特徴)
 - [技術スタック](#技術スタック)
 - [セットアップ方法](#セットアップ方法)
+- [E2Eテスト](#e2eテスト)
 - [ディレクトリ構成](#ディレクトリ構成)
 - [主要な設計・開発指針](#主要な設計開発指針)
 - [ストア責務分離方針](#ストア責務分離方針)
@@ -56,6 +57,7 @@
 - **マークダウン制御**: Marked v15.0.12
 - **ソート制御**: SortableJS v1.15.6
 - **バリデーション**: Zod v3.25.67
+- **E2Eテスト**: Playwright v1.58.2（ゴールデンルートE2E）
 - **パッケージ管理**: pnpm
 - **API通信**: fetch（useFetchは非推奨／APIプロキシ・`.env`/runtimeConfig経由で設定）
 - **その他**: Ulid, ESLint, PostCSS, TypeDoc, Biomeなど
@@ -123,6 +125,77 @@ pnpm run dev
 pnpm run build
 pnpm run preview
 ```
+
+---
+
+## E2Eテスト
+
+Playwright ベースのゴールデンルートE2Eは `tests/e2e/golden-route.spec.ts` を入口に、`tests/e2e/pages/` 配下のページオブジェクトと `tests/e2e/support/` の共通ヘルパーで構成しています。実行時は `tests/playwright/playwright.config.ts` が Nuxt フロントエンド（HTTPS, `127.0.0.1:4173`）と Laravel バックエンド（`127.0.0.1:3030`）を起動し、共有シードデータの競合を避けるため各ブラウザ/端末プロジェクトを直列に実行します。
+
+### 仕組み
+
+- 既定の対象は `chromium` / `firefox` / `webkit` / `iphone-14` / `ipad-pro-11` / `android-pixel-7` の6プロジェクトです
+- `PLAYWRIGHT_PROJECTS` または `E2E_PROJECTS` を指定すると、一部だけに絞って実行できます
+- 各シナリオでは「ページ到達時」「コミット直前」「重要操作後（チェックポイント）」のスナップショットを取得します
+- 実行前に旧レポート・旧スクリーンショットは自動削除され、結果は `tests/test-results/` に集約されます
+- E2Eログインにはバックエンドの Seeder で投入される専用アカウント `e2e@pulllog.net` を使用します
+
+### 主な出力物
+
+- `tests/test-results/result.log` : コンソール要約ログ
+- `tests/test-results/result.json` : Playwright JSONレポート
+- `tests/test-results/e2e_report.md` : 画像付きMarkdownレポート
+- `tests/test-results/html-report/` : Playwright HTMLレポート
+- `tests/test-results/snapshots/` : 各チェックポイントのキャプチャ画像
+
+### 実行例
+
+事前に Playwright ブラウザを導入していない場合は一度だけ以下を実行します。
+
+```sh
+pnpm run test:e2e:install
+```
+
+バックエンドの `.env.e2e` 初期化とDB再作成/Seedは次のコマンドで行えます。
+
+```sh
+pnpm run test:e2e:prepare
+```
+
+全6プロジェクトを実行する場合:
+
+```sh
+pnpm run test:e2e
+```
+
+デスクトップ3ブラウザのみ:
+
+```sh
+pnpm run test:e2e:desktop
+```
+
+モバイル3端末のみ:
+
+```sh
+pnpm run test:e2e:mobile
+```
+
+特定の組み合わせだけを実行する場合（PowerShell例）:
+
+```powershell
+$env:PLAYWRIGHT_PROJECTS = "chromium,iphone"
+pnpm run test:e2e
+```
+
+実行後に環境変数を戻す場合:
+
+```powershell
+Remove-Item Env:PLAYWRIGHT_PROJECTS
+```
+
+VS Code では `Playwright: golden route` タスクからも実行できます。入力欄を空欄のまま実行すると全6プロジェクト、`chromium,iphone` のように入力すると対象を絞り込めます。
+
+> フロントエンド単体で `pnpm run test:e2e` を実行しても、Playwright 設定が `backend/stable` の `composer run e2e:serve` を自動起動して `/up` ヘルスチェック完了後にテストを開始します。
 
 ---
 
@@ -198,6 +271,13 @@ pnpm run preview
 │    │    ├─ user/
 │    │    └─ [...path].ts # APIプロキシ・フォールバック
 │    └── utils/        # APIプロキシ用ユーティリティ
+├── tests/              # PlaywrightベースのE2Eテスト一式
+│    ├── e2e/          # ゴールデンルートE2Eシナリオ
+│    │    ├── pages/   # 各画面のページオブジェクト
+│    │    ├── support/ # 共通ヘルパー・スナップショット支援
+│    │    └── golden-route.spec.ts # ゴールデンルートの主シナリオ
+│    ├── playwright/   # Playwright設定とカスタムレポーター
+│    └── test-results/ # E2E実行結果（ログ / HTMLレポート / スナップショット）
 ├── .env                # 環境設定
 ├── app.vue             # アプリケーションコンテナ
 ├── app.config.ts       # Nuxtアプリ設定
