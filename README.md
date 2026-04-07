@@ -15,7 +15,9 @@
 
 - [主な特徴](#主な特徴)
 - [技術スタック](#技術スタック)
+- [設計・運用ドキュメント](#設計運用ドキュメント)
 - [セットアップ方法](#セットアップ方法)
+- [E2Eテスト](#e2eテスト)
 - [ディレクトリ構成](#ディレクトリ構成)
 - [主要な設計・開発指針](#主要な設計開発指針)
 - [ストア責務分離方針](#ストア責務分離方針)
@@ -46,19 +48,31 @@
 
 ## 技術スタック
 
-- **フレームワーク**: Nuxt.js v3.17.5
-- **UIフレームワーク**: PrimeVue v4.3.5
-- **状態管理**: Pinia v3.0.3
-- **スタイル**: TailwindCSS v4.1.10, SCSS
+- **フレームワーク**: Nuxt 3.17.6
+- **UIフレームワーク**: PrimeVue 4.3.3
+- **状態管理**: Pinia 3.0.2
+- **スタイル**: TailwindCSS 4.1.10, SCSS
 - **言語**: TypeScript
-- **日付管理**: Luxon v3.6.1
-- **グラフ描画**: Chart.js v4.5.0
-- **マークダウン制御**: Marked v15.0.12
-- **ソート制御**: SortableJS v1.15.6
-- **バリデーション**: Zod v3.25.67
+- **日付管理**: Luxon 3.6.1
+- **グラフ描画**: Chart.js 4.4.9
+- **マークダウン制御**: Marked 15.0.12
+- **ソート制御**: SortableJS 1.15.6
+- **バリデーション**: Zod 3.24.3
+- **E2Eテスト**: Playwright 1.58.2（manifest-driven E2E）
 - **パッケージ管理**: pnpm
-- **API通信**: fetch（useFetchは非推奨／APIプロキシ・`.env`/runtimeConfig経由で設定）
-- **その他**: Ulid, ESLint, PostCSS, TypeDoc, Biomeなど
+- **API通信**: `fetch`（`useFetch` は使用しない）
+- **その他**: Cloudflare Workers, Nitro proxy, Biome, TypeDoc
+
+---
+
+## 設計・運用ドキュメント
+
+長期保存向けの設計 / 運用情報は `docs/` 配下に整理しています。
+
+- `docs/README.md` : ドキュメント索引
+- `docs/architecture/overview.md` : フロントエンド全体構成
+- `docs/architecture/e2e-test.md` : Playwright E2E アーキテクチャ
+- `docs/operations/deploy-and-build.md` : 開発 / ビルド / 配備手順
 
 ---
 
@@ -69,35 +83,30 @@
 - Node.js (v20以上推奨)
 - pnpm
 
-### 2. .envファイルの作成
+### 2. 環境ファイルの作成
 
-- APIエンドポイントや各種秘匿情報は `.env` ファイルで管理できます。
-- 必要に応じて下記のようなファイルをルート直下に作成してください。
+- 設定は主に `.env.local` / `.env.production` / `.env.e2e` で管理します。
+- API 接続先や OAuth、E2E 用の資格情報は環境別に切り替えます。
 
 ```dotenv
-# .env.example
+# .env.local 例
 APP_NAME=PullLog
-APP_VERSION=0.9.0
-COPYRIGHT=© 2025 MAGIC METHODS
+APP_VERSION=1.2.2
+APP_AUTHOR=MAGIC METHODS
 DEFAULT_LOCALE=en
 
-API_BASE_URL=http://localhost:3000/api
+API_BASE_URL=http://127.0.0.1:3030/api/v1
 API_PROXY=/api
-SECRET_API_KEY=foo-bar-1234
-
-GA_ID=G-xxxxxxxxxx
-GOOGLE_ADSENSE_ACCOUNT=ca-pub-xxxxxxxxxxxxxxxx
-GOOGLE_CLIENT_ID=xxxxxxxxxx-xxxxxxxxxx.apps.googleusercontent.com
-
-DEMO_EMAIL=
-DEMO_PASSWORD=
+SECRET_API_KEY=your-local-key
+GOOGLE_CLIENT_ID=your-client-id.apps.googleusercontent.com
 
 IS_DEBUG=true
 MOCK_MODE=false
+USE_FEATURE_FLAG=true
 ```
 
-- `.env` ファイルはGit管理対象外（`.gitignore`）です。
-- 複数環境（ローカル・本番など）で値を切り替えて運用します。
+- `.env*` は原則 Git 管理対象外です（`.env.example` を除く）。
+- E2E 実行時は `.env.e2e` が使用されます。
 
 ### 3. インストール
 
@@ -108,14 +117,14 @@ pnpm install
 ### 4. 開発サーバ起動
 
 ```sh
-pnpm run dev
+pnpm dev
 ```
 
-- `http://localhost:3000` でアプリが起動します
-- APIバックエンド（pullog-api等）も別途起動しておいてください
-- **APIエンドポイント（例： `/api/` など）へのリクエストは、フロントエンドからバックエンドサーバへプロキシ経由（ `nuxt.config.ts` で設定）で自動ルーティングされます。**  
-ローカル開発時は `API_BASE_URL` の設定やCORS制御の心配なく利用できます。本番ビルド時は実サーバ用のAPI URLを `app.config.ts` で指定してください。
-- VHOST設定等で localhost 以外のホストを利用すると Google OAuth が失敗するため、ソーシャル連携ログインをする場合のホスト名は localhost 固定化が必須です。
+- 既定のローカル URL は **`https://pull.log:4649`** です
+- 必要に応じて `hosts` に `127.0.0.1 pull.log` を追加してください
+- API バックエンドも別途到達可能な状態にしておいてください
+- **API リクエストは Nitro プロキシ経由でバックエンドへ中継されます**
+- Google OAuth の確認を行う場合は、ホスト名の不一致に注意してください
 
 ### 5. 本番ビルド
 
@@ -123,6 +132,171 @@ pnpm run dev
 pnpm run build
 pnpm run preview
 ```
+
+---
+
+## E2Eテスト
+
+Pulllog の Playwright E2E は **manifest-driven** 構成です。ケース定義の正本は `e2e/cases/*.json` で、実装本体は `tests/e2e/core-flows.spec.ts`、`tests/e2e/pages/`、`tests/e2e/support/` にあります。つまり `tests/` 配下は現行ランナー実装であり、現時点では削除対象ではありません。実行時は `tests/playwright/playwright.config.ts` が Nuxt フロントエンド（HTTPS, `127.0.0.1:43173`）と Laravel バックエンド（`127.0.0.1:3030`）を起動し、共有シードデータの競合を避けるため各プロジェクトを直列に実行します。
+
+### 仕組み
+
+- 既定の対象は `chromium` / `ipad-pro-11` / `iphone-14` の標準マトリクスです
+- 必要に応じて `firefox` / `webkit` / `android-pixel-7` を明示指定で追加できます
+- `PLAYWRIGHT_PROJECTS` または `E2E_PROJECTS` を指定すると、一部だけに絞って実行できます
+- ケースレポートは `e2e/reports/YYYY-MM-DD/<case-id>/report.md` に集約され、複数プロジェクトの結果を1ファイルで確認できます
+- Playwright の生ログや HTML レポート、失敗時アーティファクトは `tests/test-results/` に残ります
+- E2E ログインにはバックエンドの Seeder で投入される専用アカウント `e2e@pulllog.net` を使用します
+
+### 主な出力物
+
+- `e2e/reports/YYYY-MM-DD/index.md` : 日次サマリー
+- `e2e/reports/YYYY-MM-DD/<case-id>/report.md` : ケース別 Markdown レポート
+- `tests/test-results/result.log` : コンソール要約ログ
+- `tests/test-results/result.json` : Playwright JSONレポート
+- `tests/test-results/html-report/` : Playwright HTMLレポート
+- `tests/test-results/artifacts/` : スクリーンショット・動画・トレースなどの失敗時アーティファクト
+
+### 実行例
+
+事前に Playwright ブラウザを導入していない場合は一度だけ以下を実行します。
+
+```sh
+pnpm run test:e2e:install
+```
+
+バックエンドの `.env.e2e` 初期化と DB 再作成 / Seed は次のコマンドで行えます。
+
+```sh
+pnpm run test:e2e:prepare
+```
+
+標準マトリクス（PC / Tablet / SP）を実行する場合:
+
+```sh
+pnpm run test:e2e
+```
+
+特定ケースだけを実行する場合:
+
+```sh
+pnpm run test:e2e:case -- auth-apps-smoke
+```
+
+特定タグだけを実行する場合:
+
+```sh
+pnpm run test:e2e:tag -- smoke
+```
+
+追加プロジェクトを含めて広めに確認したい場合:
+
+```sh
+pnpm run test:e2e:all
+```
+
+特定の組み合わせだけを実行する場合（PowerShell例）:
+
+```powershell
+$env:PLAYWRIGHT_PROJECTS = "chromium,ipad-pro-11,iphone-14"
+pnpm run test:e2e:case -- auth-apps-smoke
+```
+
+実行後に環境変数を戻す場合:
+
+```powershell
+Remove-Item Env:PLAYWRIGHT_PROJECTS
+```
+
+VS Code では `E2E: 標準マトリクスを実行`、`E2E: ケースを実行`、`E2E: タグを実行`、`E2E: スモークを実行` タスクから同じフローを実行できます。
+
+### E2E の Agent-driven 運用
+
+このリポジトリでは、Copilot のカスタムエージェントを使って **設計 → 実装 → デバッグ → レビュー** を役割分担できます。
+
+| エージェント | 役割 |
+|---|---|
+| `scenario-designer` | ケース設計、`case id` / manifest / coverage / tags の整理 |
+| `playwright-implementer` | 承認済みケースの実装、既存 helper 再利用、最小差分での検証 |
+| `e2e-debugger` | 失敗の再現、根本原因の切り分け、最小修正 |
+| `test-reviewer` | manifest / spec / report / evidence の品質レビュー |
+
+#### 推奨フロー
+
+1. `scenario-designer` にケース設計を依頼する
+2. `case id`、tags、事前条件、含める / 除外するカバレッジを確認する
+3. `playwright-implementer` に最小差分での実装を依頼する
+4. まず `chromium` 単体で確認する
+5. 問題なければ標準マトリクス（`chromium`, `ipad-pro-11`, `iphone-14`）で再検証する
+6. 失敗時は `e2e-debugger` にレポートと artifact を渡して原因調査を依頼する
+7. 安定したら `test-reviewer` に `Must fix / Should fix / Nice to have / Final verdict` 形式でレビューしてもらう
+8. 成功ケースで `pdfOnSuccess` が許可されていれば PDF evidence を生成する
+9. コミット時は `e2e/cases/`、`tests/e2e/`、`tests/playwright/`、関連 docs だけを含め、`tests/test-results/` などの一時成果物は含めない
+
+#### すぐ使えるプロンプト例
+
+**1) ケース設計を依頼する (`scenario-designer`)**
+
+```text
+`<target behavior>` 向けの manifest-driven E2E ケースを設計してください。
+`e2e/cases/` を正本とし、標準マトリクス（`chromium`, `ipad-pro-11`, `iphone-14`）前提で、
+対象フロー、含める / 除外するカバレッジ、事前条件、tags、`case id` を提案してください。
+```
+
+**2) 実装を依頼する (`playwright-implementer`)**
+
+```text
+承認済みの `<case-id>` を manifest-driven E2E として実装してください。
+`e2e/cases/`、`tests/e2e/core-flows.spec.ts`、`tests/e2e/pages/`、`tests/e2e/support/` を使い、
+既存ヘルパーを再利用して最小差分で進めてください。まず `chromium` だけで検証してください。
+```
+
+**3) 失敗調査を依頼する (`e2e-debugger`)**
+
+```text
+`<case-id>` が `<project>` で失敗しています。
+最新の `e2e/reports/.../report.md` と Playwright artifact を元に、
+根本原因を分類し、最小修正で安定化してください。修正後は関連スコープだけ再実行してください。
+```
+
+**4) 最終レビューを依頼する (`test-reviewer`)**
+
+```text
+`<case-id>` を manifest / spec / report / evidence の観点でレビューしてください。
+`Must fix` / `Should fix` / `Nice to have` / `Final verdict` 形式で返してください。
+```
+
+#### 実運用のコツ
+
+- まずは **1ケース + `chromium`** で短く回す
+- 標準マトリクス化は安定後に行う
+- ケース固有の前提や除外事項は **spec ではなく manifest に寄せる**
+- 失敗調査時は `report.md` と `tests/test-results/` をセットで渡す
+- 長期的な判断は `docs/architecture/e2e-test.md` を正本として扱う
+
+### MarkdownレポートのPDF化
+
+E2E テストのレポート出力とは独立して、`e2e/reports/` 配下の Markdown を後から PDF 化できます。既定では `e2e/reports/` を対象に、配下の `*.md` を走査し、同じ階層へ同名の `.pdf` を出力します。
+
+```sh
+pnpm run test:e2e:pdf
+```
+
+任意のパスを指定したい場合:
+
+```sh
+pnpm run test:e2e:pdf -- e2e/reports
+```
+
+単一ファイルを直接 PDF 化することもできます:
+
+```sh
+pnpm run test:e2e:pdf -- e2e/reports/2026-04-07/auth-apps-smoke/report.md
+```
+
+VS Code では `E2E: レポートを PDF 化` タスクで既定パスを、その場で対象を変えたい場合は `E2E: レポートを PDF 化（パス指定）` タスクを利用できます。
+
+> フロントエンド単体で `pnpm run test:e2e` を実行しても、Playwright 設定が `backend/stable` の `composer run e2e:serve` を自動起動して `/up` ヘルスチェック完了後にテストを開始します。
 
 ---
 
@@ -198,6 +372,13 @@ pnpm run preview
 │    │    ├─ user/
 │    │    └─ [...path].ts # APIプロキシ・フォールバック
 │    └── utils/        # APIプロキシ用ユーティリティ
+├── tests/              # PlaywrightベースのE2Eランナー実装
+│    ├── e2e/          # manifest-driven E2Eシナリオ本体
+│    │    ├── pages/   # 各画面のページオブジェクト
+│    │    ├── support/ # 共通ヘルパー・スナップショット支援
+│    │    └── core-flows.spec.ts # 現行コアフローの主シナリオ
+│    ├── playwright/   # Playwright設定とカスタムレポーター
+│    └── test-results/ # E2E実行結果（ログ / HTMLレポート / アーティファクト）
 ├── .env                # 環境設定
 ├── app.vue             # アプリケーションコンテナ
 ├── app.config.ts       # Nuxtアプリ設定
@@ -262,34 +443,36 @@ i18n によるロケール管理を行い、View側のコードは原則とし�
 
 ## 開発・運用Tips
 
-- APIエンドポイント定義は `utils/endpoints.ts` で一元管理
-- テーマ/ロケール等の設定値は `useOptionStore` およびローカルストレージに保存
-- テーマ切り替え時の遅延はグローバルCSSに `transition: none !important` を一時的に付与することで解消
-- マークダウンファイルをfetchで取得する場合は `public/` 配下に配置
-- エラー画面カスタマイズは `layouts/error.vue` で対応（Nuxtのデフォルトと競合する場合は注意）
-- コミット前に必ず `pnpm run lint` を実行
-- **APIプロキシ設定**
-  - Nuxtの`nuxt.config.ts`にて `/api/` などのパスは自動でバックエンドAPI（`API_BASE_URL`）へプロキシ転送されるように設定済み
-  - 開発時はCORS問題を気にせずAPI通信が可能
-  - バックエンドのURLを切り替える場合は `runtimeConfig` の `apiBaseURL` を編集
-  - `fetch`などでのリクエスト先は絶対パス・相対パスどちらでも可（詳細は`composables/useAPI.ts`等参照）
-- **runtimeConfig / .env管理**
-  - Nuxt 3の `runtimeConfig`（`nuxt.config.ts` の `runtimeConfig` セクション）で環境ごとの設定値（APIエンドポイント等）を一元管理
-  - 例えば `process.env.API_BASE_URL` は `useRuntimeConfig().public.apiBaseURL` から取得可能
-  - 開発/本番でのAPIルートの切り替えは `.env` または `nuxt.config.ts` の該当箇所を編集
-  - **.envの変更を反映するには、開発サーバ再起動が必要**
+- API エンドポイント定義は `api/endpoints.ts` で一元管理
+- テーマ / ロケール等の設定値は `useOptionStore` やローカルストレージで保持
+- マークダウン資産を `fetch` で読む場合は `public/` 配下に配置する
+- エラー画面の調整は `layouts/error.vue` を確認する
+- コミット前は少なくとも `pnpm format` または `npx @biomejs/biome check --write .` を実行する
+- API 追加・変更時は `../contract/api-schema.yaml` を正本として整合を確認する
+- E2E の運用ルールやレポート方針は `docs/architecture/e2e-test.md` を参照する
+- `.env` を変更した場合は開発サーバの再起動が必要です
 
 ---
 
 ## デプロイ・ホスティング
 
-mainブランチへのpush時に本番ビルドが行われ、ホスト先である Cloudflare に自動でデプロイされます。  
+PullLog フロントエンドは **Cloudflare Workers** を前提に配備します。  
+詳細は `docs/operations/deploy-and-build.md` を参照してください。
 
-- 以下、コマンドラインからの手動デプロイの方法を記載予定  
+主なコマンド:
 
-- さらに Cloudflare でのホスティングの設定等を追記予定  
+```sh
+pnpm build
+pnpm wrangler_preview
+pnpm wrangler_deploy
+```
 
-なお、NitroのNodeサーバでAPIプロキシを動かす必要があるため、 Cloudflare Workers でのホスティング必須です。  
+- `pnpm build` : Workers 向け成果物を `.output/` に生成
+- `pnpm wrangler_preview` : ローカルで Workers 動作確認
+- `pnpm wrangler_deploy` : 本番配備
+
+なお、Nitro ベースの API プロキシを利用するため、静的ホスティング前提ではなく Workers 配備を基本とします。
+
 
 ---
 
@@ -309,8 +492,13 @@ MAGIC METHODS に帰属します。
 ## 関連リンク
 
 - [PullLog バックエンドリポジトリ](https://github.com/magicmethods/pulllog-backend)
-- [PullLog API仕様書](https://github.com/magicmethods/pulllog-contract)
-- ドキュメント
+- [PullLog API仕様書 / Contract](https://github.com/magicmethods/pulllog-contract)
+- ローカル docs
+  - `docs/README.md`
+  - `docs/architecture/overview.md`
+  - `docs/architecture/e2e-test.md`
+  - `docs/operations/deploy-and-build.md`
+- 公開ドキュメント
   - [利用規約（日本語）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_ja.md)
   - [利用規約（English）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_en.md)
   - [利用規約（中国語・簡体字）](https://github.com/magicmethods/pulllog-frontend/blob/main/public/docs/terms_zh.md)

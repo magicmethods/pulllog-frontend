@@ -572,7 +572,7 @@ const adConfig: Record<string, AdProps> = {
                       <div class="flex-grow w-full">
                         <Textarea
                           v-model="freeText"
-                          inputId="note"
+                          id="note"
                           autoResize
                           :placeholder="t('history.activityPlaceholder', { maxLength: maxTextLength })"
                           rows="3"

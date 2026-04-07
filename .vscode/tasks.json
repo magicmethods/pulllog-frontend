@@ -1,0 +1,105 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "E2E: 標準マトリクスを実行",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e"],
+            "options": {
+                "env": {
+                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
+                }
+            },
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "E2E: ケースを実行",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:case", "--", "${input:e2eCaseId}"],
+            "options": {
+                "env": {
+                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
+                }
+            },
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "E2E: タグを実行",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:tag", "--", "${input:e2eCaseTag}"],
+            "options": {
+                "env": {
+                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
+                }
+            },
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "E2E: スモークを実行",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:tag", "--", "smoke"],
+            "options": {
+                "env": {
+                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
+                }
+            },
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "E2E: レポートを PDF 化",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:pdf"],
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "E2E: レポートを PDF 化（パス指定）",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:pdf", "--", "${input:markdownPdfTarget}"],
+            "isBackground": false,
+            "problemMatcher": [],
+            "group": "test"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "e2eProjects",
+            "type": "promptString",
+            "description": "対象プロジェクトをカンマ区切りで指定（空欄 = 既定: chromium, ipad-pro-11, iphone-14）",
+            "default": ""
+        },
+        {
+            "id": "e2eCaseId",
+            "type": "promptString",
+            "description": "実行する case id を指定（例: auth-apps-smoke / history-save-log）",
+            "default": "auth-apps-smoke"
+        },
+        {
+            "id": "e2eCaseTag",
+            "type": "promptString",
+            "description": "実行するタグを指定（例: smoke / stats / history）",
+            "default": "smoke"
+        },
+        {
+            "id": "markdownPdfTarget",
+            "type": "promptString",
+            "description": "PDF 化する Markdown のパス（既定: e2e/reports）",
+            "default": "e2e/reports"
+        }
+    ]
+}

@@ -1,0 +1,57 @@
+{
+    "id": "stats-aggregation-smoke",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "stats",
+        "url": "/stats",
+        "feature": "stats-aggregation"
+    },
+    "navigation": {
+        "startFrom": "header-navigation",
+        "skipProcess": false,
+        "prerequisiteState": "seeded_app_exists"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": true,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": false,
+        "excludeSetupFlow": true,
+        "notes": "The case verifies rendering of aggregated charts, not historical data seeding."
+    },
+    "preconditions": [
+        "The standard E2E user exists and can sign in.",
+        "At least one seeded app is available for aggregation.",
+        "The stats page can reach its backing APIs."
+    ],
+    "assertions": [
+        "The user can open the stats page from the authenticated shell.",
+        "Aggregation can be started for the seeded app.",
+        "At least one chart tile becomes visible after aggregation completes."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "stats-arrival",
+            "before-aggregation",
+            "charts-visible"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 1,
+        "timeoutMs": 180000,
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["stats", "smoke", "regression"],
+    "notes": "Keeps the stats verification isolated from logout and settings coverage."
+}

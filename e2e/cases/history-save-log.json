@@ -1,0 +1,57 @@
+{
+    "id": "history-save-log",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "history",
+        "url": "/history",
+        "feature": "daily-history-log"
+    },
+    "navigation": {
+        "startFrom": "apps",
+        "skipProcess": false,
+        "prerequisiteState": "seeded_app_exists"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": true,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": false,
+        "excludeSetupFlow": true,
+        "notes": "Seed data creation is intentionally excluded from this case."
+    },
+    "preconditions": [
+        "The standard E2E user exists and can sign in.",
+        "The seeded app \"Genshin Impact\" is available for history registration.",
+        "The local frontend and backend E2E servers are reachable."
+    ],
+    "assertions": [
+        "The user can open the history registration page from the apps list.",
+        "The daily log form can be saved successfully.",
+        "The saved note remains visible after the success toast disappears."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "history-arrival",
+            "before-save-confirmation",
+            "post-save-stable"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 1,
+        "timeoutMs": 180000,
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["history", "regression", "seeded-data"],
+    "notes": "Focuses only on the user-visible history save flow and excludes upstream app creation."
+}
