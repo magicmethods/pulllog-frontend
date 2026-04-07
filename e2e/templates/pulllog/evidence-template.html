@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <title>{{TITLE}}</title>
+        <base href="{{BASE_HREF}}" />
+        <style>
+            :root {
+                color-scheme: light;
+                --brand: #2563eb;
+                --ink: #0f172a;
+                --muted: #475569;
+                --line: #cbd5e1;
+                --surface: #f8fafc;
+                --accent: #eff6ff;
+                font-family: "Segoe UI", "Noto Sans JP", "Hiragino Sans", sans-serif;
+                font-size: 12px;
+                line-height: 1.65;
+                color: var(--ink);
+            }
+
+            * { box-sizing: border-box; }
+            html, body { margin: 0; background: #fff; }
+            body { overflow-wrap: anywhere; word-break: break-word; }
+            main { width: 100%; max-width: 100%; margin: 0 auto; }
+
+            .page-header {
+                margin-bottom: 1.25rem;
+                padding: 1rem 1.2rem;
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                background: linear-gradient(135deg, var(--accent) 0%, #f8fafc 100%);
+            }
+
+            .page-header h1 {
+                margin: 0 0 0.35rem;
+                color: var(--brand);
+                font-size: 1.55rem;
+            }
+
+            .meta-grid {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 0.35rem 1rem;
+                margin-top: 0.75rem;
+                color: var(--muted);
+                font-size: 0.95rem;
+            }
+
+            .comparison-section {
+                margin: 0 0 1.5rem;
+                padding: 0.9rem 1rem;
+                border: 1px solid var(--line);
+                border-radius: 10px;
+                background: #fff;
+            }
+
+            .comparison-section h2 {
+                margin-top: 0;
+                color: var(--brand);
+            }
+
+            h1, h2, h3, h4 {
+                margin-top: 1.4em;
+                margin-bottom: 0.6em;
+                color: var(--ink);
+                page-break-after: avoid;
+            }
+
+            p, ul, ol, table, blockquote, pre { margin: 0 0 1rem; }
+            ul, ol { padding-left: 1.35rem; }
+
+            table {
+                width: 100%;
+                table-layout: fixed;
+                border-collapse: collapse;
+                font-size: 0.92rem;
+            }
+
+            th, td {
+                padding: 0.5rem 0.65rem;
+                border: 1px solid var(--line);
+                text-align: left;
+                vertical-align: top;
+            }
+
+            th { background: var(--surface); }
+            .comparison-table th,
+            .comparison-table td { text-align: center; }
+            .comparison-table th:first-child,
+            .comparison-table td:first-child { text-align: left; }
+            .comparison-table img {
+                max-width: 100%;
+                max-height: 180px;
+                object-fit: contain;
+                margin: 0 auto;
+            }
+            .comparison-table .empty-cell {
+                color: var(--muted);
+                font-style: italic;
+            }
+
+            img {
+                display: block;
+                max-width: 100%;
+                height: auto;
+                margin: 0.75rem auto;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                page-break-inside: avoid;
+            }
+
+            code {
+                padding: 0.12rem 0.3rem;
+                border-radius: 4px;
+                background: #eff3f6;
+                font-family: "Cascadia Code", Consolas, monospace;
+                font-size: 0.88rem;
+                white-space: pre-wrap;
+            }
+
+            pre {
+                overflow-x: auto;
+                padding: 0.9rem 1rem;
+                border-radius: 8px;
+                background: #0f172a;
+                color: #e2e8f0;
+                white-space: pre-wrap;
+            }
+
+            pre code {
+                padding: 0;
+                background: transparent;
+                color: inherit;
+            }
+
+            blockquote {
+                padding-left: 1rem;
+                border-left: 4px solid #94a3b8;
+                color: var(--muted);
+            }
+
+            hr {
+                border: none;
+                border-top: 1px solid var(--line);
+                margin: 1.5rem 0;
+            }
+
+            @page { size: A4; }
+        </style>
+    </head>
+    <body>
+        <main>
+            <section class="page-header">
+                <h1>{{TITLE}}</h1>
+                <p>{{SUBTITLE}}</p>
+                <div class="meta-grid">
+                    <div><strong>元レポート:</strong> {{SOURCE_NAME}}</div>
+                    <div><strong>生成日時:</strong> {{GENERATED_AT}}</div>
+                </div>
+            </section>
+            {{SNAPSHOT_COMPARISON_SECTION}}
+            {{REPORT_BODY}}
+        </main>
+    </body>
+</html>

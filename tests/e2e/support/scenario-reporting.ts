@@ -1,6 +1,11 @@
 import { mkdir, writeFile } from "node:fs/promises"
 import path from "node:path"
 import type { Page, TestInfo } from "@playwright/test"
+import {
+    describeCoverage,
+    type E2ECaseManifest,
+    resolveBaseURLForCase,
+} from "./case-manifest"
 
 export type SnapshotStage = "page-arrival" | "before-commit" | "checkpoint"
 
@@ -15,16 +20,45 @@ export interface SnapshotEntry {
     capturedAt: string
 }
 
+interface ArtifactEntry {
+    name: string
+    contentType?: string
+    path?: string
+}
+
 interface ScenarioManifest {
+    caseId: string
     title: string
     file: string
     project: string
+    environment: string
+    baseURL?: string
+    targetPageId: string
+    targetUrl?: string
+    targetFeature?: string
     status: string
     expectedStatus: string
     durationMs: number
+    startedAt: string
+    finishedAt: string
+    preconditions: string[]
+    keyAssertions: string[]
+    includedCoverage: string[]
+    excludedCoverage: string[]
     notes: string[]
     errorMessages: string[]
     snapshots: SnapshotEntry[]
+    artifacts: ArtifactEntry[]
+    report: {
+        markdown: boolean
+        pdfOnSuccess: boolean
+        includeTraceOnFailure: boolean
+        includeVideoOnFailure: boolean
+        templates?: {
+            markdown?: string
+            evidence?: string
+        }
+    }
 }
 
 /**
@@ -40,6 +74,8 @@ export function resolveResultsRoot(): string {
 export class E2EScenarioArtifacts {
     private readonly snapshots: SnapshotEntry[] = []
     private readonly notes: string[] = []
+    private readonly startedAt = new Date().toISOString()
+    private caseManifest: E2ECaseManifest | null = null
     private captureCount = 0
 
     constructor(
@@ -47,6 +83,13 @@ export class E2EScenarioArtifacts {
         private readonly testInfo: TestInfo,
         private readonly resultsRoot = resolveResultsRoot(),
     ) {}
+
+    /**
+     * Stores the active case manifest so report generation can stay manifest-driven.
+     */
+    setCaseManifest(manifest: E2ECaseManifest): void {
+        this.caseManifest = manifest
+    }
 
     /**
      * Stores a screenshot for a newly reached page.
@@ -80,18 +123,63 @@ export class E2EScenarioArtifacts {
      * Finalizes the per-scenario manifest after the test completes.
      */
     async finalize(): Promise<void> {
+        const coverage = this.caseManifest
+            ? describeCoverage(this.caseManifest)
+            : { included: [], excluded: [] }
+        const reportConfig = this.caseManifest?.report ?? {
+            markdown: true,
+            pdfOnSuccess: false,
+            includeTraceOnFailure: true,
+            includeVideoOnFailure: false,
+        }
         const manifest: ScenarioManifest = {
+            caseId: this.caseManifest?.id ?? this.baseSlug(),
             title: this.testInfo.title,
             file: this.testInfo.file,
             project: this.testInfo.project.name,
+            environment:
+                this.caseManifest?.env ??
+                process.env.PLAYWRIGHT_CASE_ENV ??
+                "local",
+            baseURL: this.caseManifest
+                ? (resolveBaseURLForCase(this.caseManifest) ??
+                  this.resolveConfiguredBaseURL())
+                : this.resolveConfiguredBaseURL(),
+            targetPageId: this.caseManifest?.target.pageId ?? "unspecified",
+            targetUrl: this.caseManifest?.target.url,
+            targetFeature: this.caseManifest?.target.feature,
             status: this.testInfo.status ?? "unknown",
             expectedStatus: this.testInfo.expectedStatus,
             durationMs: this.testInfo.duration,
-            notes: this.notes,
+            startedAt: this.startedAt,
+            finishedAt: new Date().toISOString(),
+            preconditions: this.caseManifest?.preconditions ?? [],
+            keyAssertions: this.caseManifest?.assertions ?? [],
+            includedCoverage: coverage.included,
+            excludedCoverage: coverage.excluded,
+            notes: [
+                ...(this.caseManifest?.notes ? [this.caseManifest.notes] : []),
+                ...this.notes,
+            ],
             errorMessages: this.testInfo.errors.map(
                 (error) => error.message ?? "Unknown Playwright error",
             ),
             snapshots: this.snapshots,
+            artifacts: this.collectArtifacts(),
+            report: {
+                markdown: reportConfig.markdown,
+                pdfOnSuccess: reportConfig.pdfOnSuccess,
+                includeTraceOnFailure:
+                    reportConfig.includeTraceOnFailure ?? true,
+                includeVideoOnFailure:
+                    reportConfig.includeVideoOnFailure ?? false,
+                templates: reportConfig.templates
+                    ? {
+                          markdown: reportConfig.templates.markdown,
+                          evidence: reportConfig.templates.evidence,
+                      }
+                    : undefined,
+            },
         }
 
         const manifestDir = path.join(this.resultsRoot, "manifests")
@@ -109,7 +197,16 @@ export class E2EScenarioArtifacts {
         stage: SnapshotStage,
         action?: string,
     ): Promise<void> {
-        await this.page.waitForTimeout(250)
+        if (this.page.isClosed()) {
+            return
+        }
+
+        await this.page.waitForTimeout(250).catch(() => {})
+
+        if (this.page.isClosed()) {
+            return
+        }
+
         await this.page.waitForLoadState("networkidle").catch(() => {})
 
         const label =
@@ -128,16 +225,24 @@ export class E2EScenarioArtifacts {
         const absolutePath = path.join(screenshotDir, filename)
         const relativePath = `./snapshots/${filename}`
 
-        const image = await this.page.screenshot({
-            path: absolutePath,
-            fullPage: true,
-            animations: "disabled",
-        })
+        const image = await this.page
+            .screenshot({
+                path: absolutePath,
+                fullPage: true,
+                animations: "disabled",
+            })
+            .catch(() => null)
 
-        await this.testInfo.attach(label, {
-            body: image,
-            contentType: "image/png",
-        })
+        if (!image) {
+            return
+        }
+
+        await this.testInfo
+            .attach(label, {
+                body: image,
+                contentType: "image/png",
+            })
+            .catch(() => {})
 
         this.snapshots.push({
             label,
@@ -156,8 +261,44 @@ export class E2EScenarioArtifacts {
         })
     }
 
+    private collectArtifacts(): ArtifactEntry[] {
+        return this.testInfo.attachments
+            .map((attachment) => ({
+                name: attachment.name,
+                contentType: attachment.contentType,
+                path: attachment.path
+                    ? this.normalizePath(attachment.path)
+                    : undefined,
+            }))
+            .filter(
+                (attachment) =>
+                    !!attachment.path || attachment.name !== "trace",
+            )
+    }
+
+    private resolveConfiguredBaseURL(): string | undefined {
+        const projectUse = this.testInfo.project.use as
+            | {
+                  baseURL?: string
+              }
+            | undefined
+
+        return projectUse?.baseURL
+    }
+
+    private normalizePath(filePath: string): string {
+        const relativeToResults = path.relative(this.resultsRoot, filePath)
+
+        if (!relativeToResults.startsWith("..")) {
+            return `./${relativeToResults.split(path.sep).join("/")}`
+        }
+
+        return path.relative(process.cwd(), filePath).split(path.sep).join("/")
+    }
+
     private baseSlug(): string {
-        return slugify(`${this.testInfo.project.name}-${this.testInfo.title}`)
+        const caseIdOrTitle = this.caseManifest?.id ?? this.testInfo.title
+        return slugify(`${this.testInfo.project.name}-${caseIdOrTitle}`)
     }
 }
 

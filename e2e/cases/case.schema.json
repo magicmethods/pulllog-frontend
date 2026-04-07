@@ -1,0 +1,234 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://example.local/e2e/cases/case.schema.json",
+    "title": "Playwright E2E Case Manifest",
+    "description": "Schema for manifest-driven Playwright E2E cases. Unless a case explicitly overrides execution targets, the repository standard project matrix is `chromium`, `ipad-pro-11`, and `iphone-14`. Markdown reports and PDF evidence are rendered through the shared templates under `e2e/templates/`, including the repository-provided `e2e/templates/pulllog/` set, with optional global overrides from `.env.e2e` and per-case overrides in `report.templates`.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+        "id",
+        "enabled",
+        "env",
+        "account",
+        "target",
+        "coverage",
+        "report",
+        "tags"
+    ],
+    "properties": {
+        "id": {
+            "type": "string",
+            "minLength": 3,
+            "pattern": "^[a-z0-9][a-z0-9-_\\.]+$"
+        },
+        "enabled": {
+            "type": "boolean"
+        },
+        "env": {
+            "type": "string",
+            "minLength": 1
+        },
+        "baseURL": {
+            "type": "string",
+            "format": "uri"
+        },
+        "baseURLKey": {
+            "type": "string",
+            "minLength": 1
+        },
+        "account": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["key"],
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
+        "target": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["pageId"],
+            "properties": {
+                "pageId": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "url": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "routeName": {
+                    "type": "string"
+                },
+                "feature": {
+                    "type": "string"
+                }
+            }
+        },
+        "navigation": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "startFrom": {
+                    "type": "string"
+                },
+                "skipProcess": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "prerequisiteState": {
+                    "type": "string"
+                },
+                "stepsRef": {
+                    "type": "string"
+                }
+            }
+        },
+        "coverage": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+                "includeLoginFlow": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "includeNavigationProcess": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "excludeLoginFlow": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "excludeNavigationProcess": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "excludeSetupFlow": {
+                    "type": "boolean",
+                    "default": false
+                },
+                "notes": {
+                    "type": "string"
+                }
+            },
+            "required": []
+        },
+        "preconditions": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "assertions": {
+            "type": "array",
+            "items": {
+                "type": "string"
+            }
+        },
+        "report": {
+            "type": "object",
+            "description": "Report configuration for the shared template-based reporting flow. Markdown reports follow the templates under `e2e/templates/`, can use the Pulllog default set or another approved override, and should aggregate all executed project results for the same case. Successful archival uses the HTML evidence template when available.",
+            "additionalProperties": false,
+            "required": ["markdown", "pdfOnSuccess"],
+            "properties": {
+                "markdown": {
+                    "type": "boolean",
+                    "description": "Whether a Markdown execution report should be generated for this case."
+                },
+                "pdfOnSuccess": {
+                    "type": "boolean",
+                    "description": "Whether successful runs may be archived as PDF evidence using the shared evidence template flow."
+                },
+                "screenshots": {
+                    "type": "array",
+                    "description": "Named screenshot references expected in the Markdown report output.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "includeTraceOnFailure": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Whether Playwright trace artifacts should be preserved for failed runs."
+                },
+                "includeVideoOnFailure": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Whether video artifacts should be preserved for failed runs."
+                },
+                "templates": {
+                    "type": "object",
+                    "description": "Optional per-case template overrides. These override the repository defaults and any global `.env.e2e` template settings for the current case only.",
+                    "additionalProperties": false,
+                    "properties": {
+                        "markdown": {
+                            "type": "string",
+                            "description": "Optional Markdown report template path for this case. Relative values are resolved from `e2e/templates/` first, including the repository-provided `pulllog/` set."
+                        },
+                        "evidence": {
+                            "type": "string",
+                            "description": "Optional HTML evidence template path for this case when exporting PDF output. Relative values are resolved from `e2e/templates/` first, including the repository-provided `pulllog/` set."
+                        }
+                    }
+                }
+            }
+        },
+        "execution": {
+            "type": "object",
+            "description": "Optional execution overrides. If omitted, the repository standard matrix runs on `chromium`, `ipad-pro-11`, and `iphone-14`.",
+            "additionalProperties": false,
+            "properties": {
+                "retries": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0
+                },
+                "timeoutMs": {
+                    "type": "integer",
+                    "minimum": 1
+                },
+                "project": {
+                    "type": "string",
+                    "description": "Optional explicit Playwright project, alias, or comma-separated project list for a case-specific override. Leave unset to use the standard default matrix.",
+                    "examples": [
+                        "chromium",
+                        "ipad-pro-11",
+                        "iphone-14",
+                        "chromium,ipad-pro-11,iphone-14"
+                    ]
+                },
+                "browser": {
+                    "type": "string",
+                    "enum": ["chromium", "firefox", "webkit"],
+                    "description": "Optional browser-family override for troubleshooting or targeted execution."
+                }
+            }
+        },
+        "tags": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+                "type": "string",
+                "minLength": 1
+            }
+        },
+        "notes": {
+            "type": "string"
+        }
+    },
+    "oneOf": [
+        {
+            "required": ["baseURL"]
+        },
+        {
+            "required": ["baseURLKey"]
+        }
+    ]
+}

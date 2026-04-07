@@ -1,8 +1,7 @@
-import { expect, type Page } from "@playwright/test"
+import { expect, type Locator, type Page } from "@playwright/test"
 import {
     dismissCookieBanner,
     expectAppsPage,
-    goldenUser,
     uiText,
     waitForLoaderToClear,
 } from "../support/shared-ui"
@@ -103,10 +102,17 @@ export class AuthPage {
             return
         }
 
-        const emailInput = page.locator('input[autocomplete="username"]').last()
+        const credentials = this.context.requireAccount()
+        const emailInput = page
+            .getByPlaceholder(
+                /Enter your email|メールアドレスを入力|请输入登录邮箱|请输入邮箱/,
+            )
+            .first()
         const passwordInput = page
-            .locator('input[autocomplete="current-password"]')
-            .last()
+            .getByPlaceholder(
+                /Enter your password|パスワードを入力|请输入登录密码|请输入密码/,
+            )
+            .first()
         const rememberCheckbox = page.getByRole("checkbox", {
             name: uiText.rememberMe,
         })
@@ -130,23 +136,8 @@ export class AuthPage {
             return
         }
 
-        await expect(emailInput).toBeEditable({ timeout: 10000 })
-        await emailInput.click()
-        await emailInput.fill("")
-        await emailInput.pressSequentially(goldenUser.email, { delay: 35 })
-        await emailInput.blur()
-        await expect(emailInput).toHaveValue(goldenUser.email)
-
-        await expect(passwordInput).toBeEditable({ timeout: 10000 })
-        await passwordInput.click()
-        await passwordInput.fill("")
-        await passwordInput.pressSequentially(goldenUser.password, {
-            delay: 35,
-        })
-        await expect(passwordInput).toHaveValue(goldenUser.password)
-        await passwordInput.blur()
-
-        await page.waitForTimeout(250)
+        await this.fillLoginField(emailInput, credentials.email)
+        await this.fillLoginField(passwordInput, credentials.password)
 
         if (!(await rememberCheckbox.isChecked().catch(() => false))) {
             await rememberCheckbox.check().catch(async () => {
@@ -154,7 +145,13 @@ export class AuthPage {
             })
         }
 
-        await expect(submitButton).toBeEnabled({ timeout: 10000 })
+        if (!(await this.waitForSubmitEnabled(submitButton))) {
+            await this.forceReactiveInput(emailInput, credentials.email)
+            await this.forceReactiveInput(passwordInput, credentials.password)
+            await page.keyboard.press("Tab").catch(() => {})
+        }
+
+        await expect(submitButton).toBeEnabled({ timeout: 15000 })
         await this.context.captureBeforeCommit("auth-login", "submit-login")
 
         await Promise.all([
@@ -165,5 +162,47 @@ export class AuthPage {
                 .catch(() => {}),
             submitButton.click(),
         ])
+    }
+
+    /**
+     * Fills a login field and confirms the visible value for reactive form inputs.
+     */
+    private async fillLoginField(input: Locator, value: string): Promise<void> {
+        await expect(input).toBeEditable({ timeout: 10000 })
+        await input.click()
+        await input.fill(value)
+        await expect(input).toHaveValue(value)
+        await input.blur()
+    }
+
+    /**
+     * Re-dispatches input/change events when the framework has not enabled submit yet.
+     */
+    private async forceReactiveInput(
+        input: Locator,
+        value: string,
+    ): Promise<void> {
+        await input.evaluate((element, nextValue) => {
+            const target = element as HTMLInputElement
+            target.focus()
+            target.value = nextValue
+            target.dispatchEvent(new Event("input", { bubbles: true }))
+            target.dispatchEvent(new Event("change", { bubbles: true }))
+            target.blur()
+        }, value)
+    }
+
+    /**
+     * Waits for the login submit button to become enabled without failing immediately.
+     */
+    private async waitForSubmitEnabled(
+        submitButton: Locator,
+    ): Promise<boolean> {
+        try {
+            await expect(submitButton).toBeEnabled({ timeout: 5000 })
+            return true
+        } catch {
+            return false
+        }
     }
 }

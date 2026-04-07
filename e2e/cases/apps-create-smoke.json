@@ -1,0 +1,56 @@
+{
+    "id": "apps-create-smoke",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "apps",
+        "url": "/apps",
+        "feature": "app-create-flow"
+    },
+    "navigation": {
+        "startFrom": "login",
+        "skipProcess": false,
+        "prerequisiteState": "user_exists_and_app_slot_available"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case validates opening the add-app flow, saving a new app, and confirming it appears in the apps list."
+    },
+    "preconditions": [
+        "The standard E2E user exists and can sign in.",
+        "The local frontend and backend E2E servers are reachable.",
+        "At least one additional app can be created for the signed-in account.",
+        "A unique app name is available for the current run."
+    ],
+    "assertions": [
+        "The user can open the new app registration flow from the apps page.",
+        "Required fields can be filled and submitted successfully.",
+        "The created app becomes visible in the apps list after save."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "apps-page-arrival",
+            "app-create-modal-open",
+            "app-created-visible"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 1,
+        "timeoutMs": 180000
+    },
+    "tags": ["smoke", "apps", "create", "regression"],
+    "notes": "Keeps app creation verification isolated from edit/delete and downstream history/stats flows, while cleanup removes the created app after the assertion step."
+}

@@ -1,10 +1,8 @@
 import { expect, type Page } from "@playwright/test"
 
-export const goldenUser = {
-    email: process.env.PLAYWRIGHT_E2E_EMAIL ?? "e2e@pulllog.net",
-    password: process.env.PLAYWRIGHT_E2E_PASSWORD ?? "3ys3fVL+9E9A",
-} as const
-
+/**
+ * Shared UI text patterns used across manifest-driven E2E scenarios.
+ */
 export const uiText = {
     addNew: /Register New App|新規アプリを登録する|注册新应用/,
     registerHistory: /Register History|履歴を登録する|登记历史/,
@@ -20,6 +18,7 @@ export const uiText = {
     loggedOutPrompt:
         /Please enter your login information|ログイン情報を入力してください|请输入登录信息/,
     save: /Save|保存/,
+    delete: /Delete|削除|删除/,
 } as const
 
 /**

@@ -1,0 +1,55 @@
+{
+    "id": "auth-apps-smoke",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "apps",
+        "url": "/apps",
+        "feature": "authenticated-apps-entry"
+    },
+    "navigation": {
+        "startFrom": "login",
+        "skipProcess": false,
+        "prerequisiteState": "user_exists"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case validates authenticated entry and excludes upstream seed creation."
+    },
+    "preconditions": [
+        "The standard E2E user exists and is active.",
+        "The local frontend and backend E2E servers are reachable.",
+        "The seeded app \"Genshin Impact\" exists for visibility checks."
+    ],
+    "assertions": [
+        "The user can sign in successfully.",
+        "The apps page is displayed.",
+        "The seeded app card is visible after login."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "before-login-submit",
+            "auth-login-submit",
+            "apps-page-arrival"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 1,
+        "timeoutMs": 120000
+    },
+    "tags": ["smoke", "auth", "apps", "regression"],
+    "notes": "Use as a fast regression signal for authenticated entry into the apps screen across the standard PC / Tablet / SP matrix."
+}

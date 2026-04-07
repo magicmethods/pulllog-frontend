@@ -4,10 +4,29 @@ import { pathToFileURL } from "node:url"
 import { chromium } from "@playwright/test"
 import { marked } from "marked"
 
-const DEFAULT_TARGET = "tests/test-results"
+process.loadEnvFile?.(".env.e2e")
+
+const DEFAULT_TARGET = "e2e/reports"
+const DEFAULT_TEMPLATES_ROOT = path.resolve(process.cwd(), "e2e/templates")
+const DEFAULT_EVIDENCE_TEMPLATE_FILE = "evidence-template.html"
+const PROJECT_COMPARISON_COLUMNS = [
+    {
+        key: "chromium",
+        label: "PC (chromium)",
+    },
+    {
+        key: "ipad-pro-11",
+        label: "Tablet (iPad)",
+    },
+    {
+        key: "iphone-14",
+        label: "SP (iPhone)",
+    },
+]
 
 async function main() {
-    const rawTarget = process.argv[2]?.trim() || DEFAULT_TARGET
+    const rawArgs = process.argv.slice(2).filter((arg) => arg !== "--")
+    const rawTarget = rawArgs[0]?.trim() || DEFAULT_TARGET
     const targetPath = path.resolve(process.cwd(), rawTarget)
     const markdownFiles = await collectMarkdownFiles(targetPath)
 
@@ -92,6 +111,7 @@ async function exportMarkdownFile(page, markdownFilePath) {
         `${path.dirname(markdownFilePath)}${path.sep}`,
     ).href
     const outputPath = markdownFilePath.replace(/\.md$/i, ".pdf")
+    const templateMetadata = extractTemplateMetadata(markdown)
     const renderedHtml = marked.parse(markdown, {
         gfm: true,
         breaks: true,
@@ -101,9 +121,18 @@ async function exportMarkdownFile(page, markdownFilePath) {
         markdownFilePath,
     )
 
-    await page.setContent(buildHtmlDocument(title, baseHref, htmlBody), {
-        waitUntil: "load",
-    })
+    await page.setContent(
+        await buildHtmlDocument(
+            title,
+            baseHref,
+            htmlBody,
+            markdownFilePath,
+            templateMetadata,
+        ),
+        {
+            waitUntil: "load",
+        },
+    )
     await waitForImages(page)
     await page.emulateMedia({ media: "screen" })
     await page.pdf({
@@ -236,13 +265,12 @@ function getMimeType(filePath) {
     }
 }
 
-function buildHtmlDocument(title, baseHref, htmlBody) {
-    return `<!doctype html>
+const DEFAULT_EVIDENCE_TEMPLATE = `<!doctype html>
 <html lang="ja">
     <head>
         <meta charset="utf-8" />
-        <title>${escapeHtml(title)}</title>
-        <base href="${escapeHtml(baseHref)}" />
+        <title>{{TITLE}}</title>
+        <base href="{{BASE_HREF}}" />
         <style>
             :root {
                 color-scheme: light;
@@ -252,14 +280,8 @@ function buildHtmlDocument(title, baseHref, htmlBody) {
                 color: #1f2937;
             }
 
-            * {
-                box-sizing: border-box;
-            }
-
-            html {
-                background: #fff;
-            }
-
+            * { box-sizing: border-box; }
+            html { background: #fff; }
             body {
                 margin: 0;
                 background: #fff;
@@ -274,47 +296,23 @@ function buildHtmlDocument(title, baseHref, htmlBody) {
                 padding-right: 1mm;
             }
 
-            .report-meta {
-                margin-bottom: 1.5rem;
-                padding: 0.75rem 1rem;
+            .page-header {
+                margin-bottom: 1.25rem;
+                padding: 0.9rem 1rem;
                 border: 1px solid #d0d7de;
                 border-radius: 8px;
                 background: #f8fafc;
-                font-size: 0.95rem;
             }
 
-            h1,
-            h2,
-            h3,
-            h4 {
+            h1, h2, h3, h4 {
                 margin-top: 1.4em;
                 margin-bottom: 0.6em;
                 color: #0f172a;
                 page-break-after: avoid;
             }
 
-            p,
-            ul,
-            ol,
-            table,
-            blockquote,
-            pre {
-                margin: 0 0 1rem;
-            }
-
-            p,
-            li,
-            td,
-            th,
-            .report-meta div {
-                overflow-wrap: anywhere;
-                word-break: break-word;
-            }
-
-            ul,
-            ol {
-                padding-left: 1.35rem;
-            }
+            p, ul, ol, table, blockquote, pre { margin: 0 0 1rem; }
+            ul, ol { padding-left: 1.35rem; }
 
             table {
                 width: 100%;
@@ -323,17 +321,14 @@ function buildHtmlDocument(title, baseHref, htmlBody) {
                 font-size: 0.92rem;
             }
 
-            th,
-            td {
+            th, td {
                 padding: 0.5rem 0.65rem;
                 border: 1px solid #cbd5e1;
                 text-align: left;
                 vertical-align: top;
             }
 
-            th {
-                background: #f1f5f9;
-            }
+            th { background: #f1f5f9; }
 
             img {
                 display: block;
@@ -352,8 +347,6 @@ function buildHtmlDocument(title, baseHref, htmlBody) {
                 font-family: "Cascadia Code", Consolas, monospace;
                 font-size: 0.88rem;
                 white-space: pre-wrap;
-                overflow-wrap: anywhere;
-                word-break: break-word;
             }
 
             pre {
@@ -363,7 +356,6 @@ function buildHtmlDocument(title, baseHref, htmlBody) {
                 background: #0f172a;
                 color: #e2e8f0;
                 white-space: pre-wrap;
-                word-break: break-word;
             }
 
             pre code {
@@ -384,21 +376,236 @@ function buildHtmlDocument(title, baseHref, htmlBody) {
                 margin: 1.5rem 0;
             }
 
-            @page {
-                size: A4;
-            }
+            @page { size: A4; }
         </style>
     </head>
     <body>
         <main>
-            <div class="report-meta">
-                <div><strong>Source:</strong> ${escapeHtml(title)}.md</div>
-                <div><strong>Generated:</strong> ${escapeHtml(new Date().toISOString())}</div>
-            </div>
-            ${htmlBody}
+            <section class="page-header">
+                <h1>{{TITLE}}</h1>
+                <p>{{SUBTITLE}}</p>
+                <p><strong>Source:</strong> {{SOURCE_NAME}}</p>
+                <p><strong>Generated:</strong> {{GENERATED_AT}}</p>
+            </section>
+            {{REPORT_BODY}}
         </main>
     </body>
 </html>`
+
+async function buildHtmlDocument(
+    title,
+    baseHref,
+    htmlBody,
+    markdownFilePath,
+    templateMetadata = {},
+) {
+    const template = await loadEvidenceTemplate(templateMetadata)
+    const rawComparisonSection = buildSnapshotComparisonSection(templateMetadata)
+    const comparisonSection = rawComparisonSection
+        ? await inlineLocalImageSources(rawComparisonSection, markdownFilePath)
+        : ""
+    const reportBody = template.includes("{{SNAPSHOT_COMPARISON_SECTION}}")
+        ? htmlBody
+        : `${comparisonSection}${htmlBody}`
+
+    return applyHtmlTemplate(template, {
+        TITLE: escapeHtml(title),
+        BASE_HREF: escapeHtml(baseHref),
+        SUBTITLE: "PDF evidence generated from the manifest-driven E2E Markdown report.",
+        SOURCE_NAME: escapeHtml(`${title}.md`),
+        GENERATED_AT: escapeHtml(new Date().toISOString()),
+        SNAPSHOT_COMPARISON_SECTION: comparisonSection,
+        REPORT_BODY: reportBody,
+    })
+}
+
+function buildSnapshotComparisonSection(templateMetadata = {}) {
+    const projectReports = Array.isArray(templateMetadata?.projectReports)
+        ? templateMetadata.projectReports
+        : []
+
+    if (projectReports.length === 0) {
+        return ""
+    }
+
+    const rows = new Map()
+
+    for (const projectReport of projectReports) {
+        const columnKey = resolveComparisonColumnKey(projectReport.project)
+
+        if (!columnKey) {
+            continue
+        }
+
+        const snapshots = Array.isArray(projectReport.snapshots)
+            ? projectReport.snapshots
+            : []
+
+        for (const snapshot of snapshots) {
+            const rowLabel = snapshot?.label?.trim()
+
+            if (!rowLabel) {
+                continue
+            }
+
+            const existing = rows.get(rowLabel) ?? {
+                label: rowLabel,
+                cells: {},
+            }
+
+            existing.cells[columnKey] = snapshot.imagePath
+            rows.set(rowLabel, existing)
+        }
+    }
+
+    if (rows.size === 0) {
+        return ""
+    }
+
+    const tableRows = [...rows.values()]
+        .map((row) => {
+            const cells = PROJECT_COMPARISON_COLUMNS.map((column) => {
+                const imagePath = row.cells[column.key]
+
+                if (!imagePath) {
+                    return '<td class="empty-cell">—</td>'
+                }
+
+                return `<td><img src="${escapeHtml(imagePath)}" alt="${escapeHtml(`${row.label} - ${column.label}`)}" /></td>`
+            }).join("")
+
+            return `<tr><th scope="row">${escapeHtml(row.label)}</th>${cells}</tr>`
+        })
+        .join("")
+
+    writeInfo(
+        `[pdf-export] Snapshot comparison rows: ${rows.size} across ${projectReports.length} project result(s).`,
+    )
+
+    return `
+<section class="comparison-section">
+    <h2>プロジェクト比較スナップショット</h2>
+    <p>同一チェックポイントのスナップショットを PC / Tablet / SP の固定列で横並び表示しています。</p>
+    <table class="comparison-table">
+        <thead>
+            <tr>
+                <th>Label</th>
+                ${PROJECT_COMPARISON_COLUMNS.map((column) => `<th>${escapeHtml(column.label)}</th>`).join("")}
+            </tr>
+        </thead>
+        <tbody>
+            ${tableRows}
+        </tbody>
+    </table>
+</section>`
+}
+
+function resolveComparisonColumnKey(projectName) {
+    switch (projectName) {
+        case "chromium":
+            return "chromium"
+        case "ipad-pro-11":
+            return "ipad-pro-11"
+        case "iphone-14":
+            return "iphone-14"
+        default:
+            return null
+    }
+}
+
+async function loadEvidenceTemplate(templateMetadata = {}) {
+    const templateOverride =
+        templateMetadata?.templates?.evidence ??
+        process.env.PLAYWRIGHT_E2E_EVIDENCE_TEMPLATE?.trim() ??
+        process.env.PLAYWRIGHT_E2E_EVIDENCE_TEMPLATE_PATH?.trim()
+    const templateDir =
+        templateMetadata?.templateDir ??
+        process.env.PLAYWRIGHT_E2E_TEMPLATE_DIR?.trim()
+    const candidates = resolveTemplateCandidates(
+        DEFAULT_TEMPLATES_ROOT,
+        DEFAULT_EVIDENCE_TEMPLATE_FILE,
+        templateOverride,
+        templateDir,
+    )
+
+    for (const candidate of candidates) {
+        const template = await readFile(candidate, "utf8").catch(() => null)
+
+        if (template) {
+            return template
+        }
+    }
+
+    return DEFAULT_EVIDENCE_TEMPLATE
+}
+
+function resolveTemplateCandidates(
+    templatesRoot,
+    defaultFileName,
+    overridePath,
+    templateDir,
+) {
+    const candidates = new Set()
+
+    if (overridePath) {
+        addTemplateCandidate(candidates, templatesRoot, overridePath)
+    } else if (templateDir) {
+        addTemplateCandidate(
+            candidates,
+            templatesRoot,
+            path.posix.join(templateDir.replaceAll("\\", "/"), defaultFileName),
+        )
+    }
+
+    addTemplateCandidate(candidates, templatesRoot, defaultFileName)
+    return [...candidates]
+}
+
+function addTemplateCandidate(candidates, templatesRoot, candidatePath) {
+    const normalized = candidatePath?.trim()
+
+    if (!normalized) {
+        return
+    }
+
+    if (path.isAbsolute(normalized)) {
+        candidates.add(normalized)
+        return
+    }
+
+    if (normalized.startsWith("./") || normalized.startsWith("../")) {
+        candidates.add(path.resolve(process.cwd(), normalized))
+        return
+    }
+
+    candidates.add(path.resolve(templatesRoot, normalized))
+    candidates.add(path.resolve(process.cwd(), normalized))
+}
+
+function extractTemplateMetadata(markdown) {
+    const match = markdown.match(
+        /<!--\s*pulllog-e2e-meta\s+({[\s\S]*?})\s*-->/i,
+    )
+
+    if (!match?.[1]) {
+        return {}
+    }
+
+    try {
+        return JSON.parse(match[1])
+    } catch {
+        return {}
+    }
+}
+
+function applyHtmlTemplate(template, replacements) {
+    let rendered = template
+
+    for (const [key, value] of Object.entries(replacements)) {
+        rendered = rendered.replaceAll(`{{${key}}}`, value)
+    }
+
+    return rendered
 }
 
 function escapeHtml(value) {

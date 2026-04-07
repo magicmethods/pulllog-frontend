@@ -1,174 +1,250 @@
 # フロントエンド アーキテクチャ概要
 
-## システム全体構成
+## 1. 目的
 
-PullLog フロントエンドは **Nuxt 3 SSR + Cloudflare Workers** で構成され、バックエンド API（Laravel 12 / VPS）との通信は Nitro サーバが担うプロキシ層を経由する。
-
-```
-ブラウザ
-  └─→ Nuxt 3 SSR (Cloudflare Workers)
-         └─→ Nitro API Proxy (server/api/)
-                └─→ Laravel API (VPS: api.pulllog.net)
-                       └─→ PostgreSQL 14
-```
-
-クライアントからバックエンドへの直接リクエストは行わず、すべて Nitro プロキシ経由で転送する。これにより `SECRET_API_KEY` をクライアントへ露出させずに済む。
+この文書は、PullLog フロントエンドの**現行アーキテクチャ全体像**を素早く把握するための概要です。  
+詳細な E2E 運用は `docs/architecture/e2e-test.md`、ビルド / デプロイは `docs/operations/deploy-and-build.md` を参照してください。
 
 ---
 
-## ディレクトリ構成
+## 2. システム全体構成
 
-| ディレクトリ | 役割 |
+PullLog フロントエンドは **Nuxt 3 SSR** を中心に構成され、配備先は **Cloudflare Workers**、バックエンド連携は **Nitro プロキシ** を介して行います。
+
+```text
+Browser
+  → Nuxt 3 SSR
+    → Nitro server/api proxy
+      → Laravel API
+        → Database / Storage
+```
+
+### 基本方針
+
+- ブラウザからバックエンド API へ**直接アクセスしない**
+- API 呼び出しは `fetch` + `api/endpoints.ts` 経由に統一する
+- `SECRET_API_KEY` のような秘密情報は **server-side only** として扱う
+- API 契約の正本は `../contract/api-schema.yaml` を参照する
+
+---
+
+## 3. 実行モード
+
+| モード | 用途 | 主な入口 |
+|---|---|---|
+| ローカル開発 | 日常開発・画面確認 | `pnpm dev` |
+| ローカル本番確認 | ビルド済み動作確認 | `pnpm build` → `pnpm preview` |
+| E2E 検証 | Playwright による主要フロー確認 | `pnpm run test:e2e*` |
+| 本番配備 | Cloudflare Workers へデプロイ | `pnpm wrangler_deploy` |
+
+ローカル開発では HTTPS 証明書として `public/localhost.pem` / `public/localhost-key.pem` を利用し、既定ホストは `https://pull.log:4649` です。
+
+---
+
+## 4. ディレクトリ構成
+
+| ディレクトリ / ファイル | 役割 |
 |---|---|
 | `pages/` | ルート駆動の画面コンポーネント |
-| `layouts/` | 画面枠テンプレート（`default`, `auth`, `landing`, `error`） |
-| `components/` | 再利用可能な UI コンポーネント（PrimeVue Auto-Import） |
-| `composables/` | 再利用可能なロジック (`useXxx.ts`) |
-| `stores/` | Pinia ストア（責務別） |
-| `server/api/` | Nitro API ルート（バックエンドへのプロキシ） |
+| `layouts/` | 画面レイアウト (`default`, `auth`, `landing`, `error`) |
+| `components/` | 再利用 UI コンポーネント |
+| `composables/` | 再利用ロジック (`useXxx.ts`) |
+| `stores/` | Pinia ストア |
+| `server/api/` | Nitro API ルート / バックエンドプロキシ |
 | `server/middleware/` | Nitro ミドルウェア |
-| `api/endpoints.ts` | REST エンドポイント URL 定義の一元管理 |
-| `types/` | グローバル型定義 |
-| `i18n/locales/` | 翻訳ファイル（`ja.ts`, `en.ts`, `zh.ts`） |
-| `assets/styles/` | TailwindCSS / SCSS グローバルスタイル |
-| `theme/` | PrimeVue テーマ定義（`preset.ts`, `ptPreset.ts`） |
-| `config/` | アプリ共通設定 |
-| `directives/` | カスタム Vue ディレクティブ |
-| `public/` | 静的アセット / 証明書 / ドキュメント |
-| `docs/` | 開発・運用ドキュメント（gitignore 対象外） |
+| `middleware/` | Nuxt グローバルミドルウェア |
+| `api/endpoints.ts` | REST エンドポイント定義の一元管理 |
+| `config/` / `app.config.ts` | アプリ設定の読込 |
+| `theme/` | PrimeVue テーマ / PassThrough 設定 |
+| `i18n/locales/` | 翻訳辞書 |
+| `tests/e2e/` | Playwright E2E 実装本体 |
+| `tests/playwright/` | Playwright 設定 / reporter |
+| `e2e/cases/` | manifest-driven E2E ケース定義 |
+| `e2e/templates/` | Markdown / PDF evidence テンプレート |
+| `docs/` | 長期保存向け設計・運用ドキュメント |
 
 ---
 
-## ルーティング
+## 5. 画面ルーティング
 
-Nuxt のファイルシステムルーティングを採用。
+Nuxt のファイルシステムルーティングを採用しています。
 
 | パス | ファイル | 概要 |
 |---|---|---|
-| `/` | `pages/index.vue` | トップ（ランディング） |
+| `/` | `pages/index.vue` | ランディングページ |
 | `/:lang` | `pages/[lang].vue` | 言語別トップ |
-| `/apps` | `pages/apps.vue` | アプリ（タイトル）一覧 |
-| `/history` | `pages/history.vue` | ガチャ履歴 |
-| `/stats` | `pages/stats.vue` | 統計 |
+| `/apps` | `pages/apps.vue` | アプリ一覧 |
+| `/history` | `pages/history.vue` | 履歴管理 |
+| `/stats` | `pages/stats.vue` | 統計表示 |
 | `/settings` | `pages/settings.vue` | ユーザー設定 |
-| `/auth/*` | `pages/auth/` | 認証フロー（ログイン・登録等） |
+| `/auth/*` | `pages/auth/` | ログイン / 登録 / 認証関連 |
+| `/error/*` | `pages/error/` | エラー画面 |
 
----
+### レイアウト
 
-## レイアウト
-
-| レイアウト | 適用場面 |
+| レイアウト | 主な用途 |
 |---|---|
-| `default.vue` | 認証済みユーザーの通常画面 |
-| `auth.vue` | ログイン・登録画面 |
-| `landing.vue` | 未ログイントップ |
-| `error.vue` | エラー画面 |
+| `default.vue` | 認証後の通常画面 |
+| `auth.vue` | ログイン / 登録画面 |
+| `landing.vue` | 非ログイン向けトップ |
+| `error.vue` | エラー表示 |
 
 ---
 
-## 状態管理（Pinia ストア）
+## 6. 状態管理（Pinia）
 
-| ストア | 責務 |
+主要ストアは責務ごとに分離されています。
+
+| ストア | 主な責務 |
 |---|---|
 | `useUserStore` | 認証・ユーザー情報 |
-| `useAppStore` | ガチャタイトル（アプリ）情報 |
-| `useLogStore` | ガチャ履歴の取得・キャッシュ |
-| `useStatsStore` | 統計データ管理 |
-| `useStatsLayoutStore` | 統計タイル レイアウト管理 |
-| `useOptionStore` | ユーザー設定・選択肢 |
-| `useCsrfStore` | CSRF トークン管理 |
+| `useAppStore` | アプリ一覧 / 選択状態 |
+| `useLogStore` | 履歴データの取得・保持 |
+| `useStatsStore` | 統計データ |
+| `useStatsLayoutStore` | 統計表示レイアウト |
+| `useOptionStore` | ユーザー設定 |
+| `useCsrfStore` | CSRF トークン |
 | `useLoaderStore` | グローバルローディング状態 |
-| `useCurrencyStore` | 通貨データ管理 |
-| `useFeatureFlagStore` | フィーチャーフラグ管理 |
-| `globalStore` | 一時的なグローバル値 |
+| `useCurrencyStore` | 通貨データ |
+| `useFeatureFlagStore` | feature flag |
+| `globalStore` | 一時的な共有値 |
 
-**方針**: キャッシュは必要最小限。空配列やエラー時データのキャッシュは行わない。
+### ストア設計方針
+
+- キャッシュは必要最小限にする
+- エラー状態や空レスポンスを無制限に保持しない
+- 画面固有ロジックはコンポーネントへ、横断ロジックは composable / store へ寄せる
 
 ---
 
-## API 通信
+## 7. API 通信方針
 
-### エンドポイント定義
+### エンドポイント管理
 
-全 REST エンドポイント URL は `api/endpoints.ts` に一元化する。  
-コンポーネント・コンポーザブルからは必ずここを経由して URL を取得する。
+全 REST エンドポイント URL は `api/endpoints.ts` に集約しています。  
+画面や composable 側で URL 文字列を直書きしない方針です。
 
-### リクエストフロー
+### リクエストの流れ
 
-1. ブラウザ → `fetch(endpoints.xxx())` → Nitro プロキシ (`server/api/`)
-2. Nitro プロキシ → `SECRET_API_KEY` + `x-csrf-token` 付与 → Laravel API
-3. Laravel API → JSON レスポンス → Nitro プロキシ → ブラウザ
+1. ブラウザ側が `fetch(endpoints.xxx())` を呼ぶ
+2. Nitro (`server/api/`) がバックエンド API へ中継する
+3. 必要に応じて `SECRET_API_KEY` や認証関連ヘッダを付与する
+4. レスポンスを UI に返す
 
-### 認証方式
+### 認証 / セキュリティ
 
-- **API キー**: `SECRET_API_KEY` を Nitro サーバサイドで付与（クライアント非公開）
-- **CSRF トークン**: `/auth/login` レスポンスで取得し `useCsrfStore` で保持。失効時は `/auth/csrf/refresh` → リトライ
+- API 通信は **`fetch` を使用**し、`useFetch` は使わない
+- CSRF トークンは `useCsrfStore` で管理する
+- 認証切れ時は refresh / retry を考慮する
+- 追加 / 変更する API は必ず `../contract/api-schema.yaml` と整合させる
 
-### composable
+### 主な composable
 
 | composable | 役割 |
 |---|---|
-| `useAPI` | fetch ラッパー（エラーハンドリング・CSRF リトライ含む） |
-| `useAuth` | ログイン・ログアウト・セッション管理 |
-| `useGoogleAuth` | Google OAuth (PKCE) フロー |
-| `usePkce` | PKCE コード生成・検証 |
+| `useAPI` | API 共通ラッパー、エラーハンドリング、CSRF 再試行 |
+| `useAuth` | ログイン / ログアウト / セッション管理 |
+| `useGoogleAuth` | Google OAuth フロー |
+| `usePkce` | PKCE 補助 |
 
 ---
 
-## ミドルウェア
+## 8. Nuxt / Middleware / Config
 
-| ファイル | 種別 | 役割 |
+### グローバルミドルウェア
+
+| ファイル | 役割 |
+|---|---|
+| `middleware/auth.global.ts` | 未認証時のアクセス制御 |
+| `middleware/currency.global.ts` | 通貨データの初期ロード |
+
+### 設定読込
+
+- `nuxt.config.ts` で runtimeConfig / Nitro / Vite / i18n / PrimeVue を設定
+- `app.config.ts` は `config/settings.json` を読み込み、アプリ共通設定を注入
+- 環境差分は主に `.env.local` / `.env.production` / `.env.e2e` で切り替える
+
+---
+
+## 9. i18n / UI / スタイリング
+
+### 国際化
+
+- `@nuxtjs/i18n` を利用
+- ロケールは `ja` / `en` / `zh`
+- 翻訳ファイルは `i18n/locales/*.ts`
+- デフォルトロケールは `runtimeConfig.public.defaultLocale`
+
+### スタイリング原則
+
+1. **TailwindCSS v4** を優先
+2. 補助的なスタイルは `assets/styles/` に集約
+3. PrimeVue の見た目調整は `theme/` の preset / ptPreset で管理
+4. コンポーネント個別 CSS は必要最小限にとどめる
+
+---
+
+## 10. テスト / E2E アーキテクチャ
+
+フロントエンドの主要 E2E は **manifest-driven** です。
+
+| パス | 役割 |
+|---|---|
+| `e2e/cases/*.json` | ケース定義の正本 |
+| `tests/e2e/core-flows.spec.ts` | 現行の主要フロー実装 |
+| `tests/e2e/pages/` | page object |
+| `tests/e2e/support/` | 共通 helper / scenario support |
+| `tests/playwright/playwright.config.ts` | 実行設定 |
+| `tests/playwright/reporters/` | Markdown レポート生成 |
+
+### 標準マトリクス
+
+- PC: `chromium`
+- Tablet: `ipad-pro-11`
+- SP: `iphone-14`
+
+レポートは `e2e/reports/YYYY-MM-DD/<case-id>/report.md` に集約され、成功時は `pnpm run test:e2e:pdf -- <report.md>` で PDF evidence を生成できます。  
+詳細な運用は `docs/architecture/e2e-test.md` を参照してください。
+
+---
+
+## 11. ビルド / 配備
+
+- Nuxt + Vite によりビルド
+- `manualChunks` で PrimeVue / Chart / Luxon / i18n 系を分割し、初期ロードを最適化
+- 配備先は Cloudflare Workers（`nitro.preset = "cloudflare_module"`）
+
+主なコマンド:
+
+```bash
+pnpm dev
+pnpm build
+pnpm preview
+pnpm wrangler_preview
+pnpm wrangler_deploy
+```
+
+---
+
+## 12. 主要な環境変数
+
+| 変数名 | 用途 | 公開範囲 |
 |---|---|---|
-| `middleware/auth.global.ts` | グローバル | 未認証ユーザーのアクセス制御 |
-| `middleware/currency.global.ts` | グローバル | 通貨データの初期ロード |
-
----
-
-## 国際化（i18n）
-
-- `@nuxtjs/i18n` 使用
-- ロケール: `ja`（日本語）/ `en`（英語）/ `zh`（中国語）
-- 翻訳ファイル: `i18n/locales/*.ts`
-- デフォルトロケールは `runtimeConfig.public.defaultLocale` で設定
-
----
-
-## スタイリング原則
-
-1. ユーティリティは **TailwindCSS v4** を優先
-2. 詳細スタイルは `assets/styles/*.scss`
-3. PrimeVue 固有スタイルは **PassThrough API**（`theme/ptPreset.ts`）で管理
-4. コンポーネント内の `scoped` スタイルは原則書かない
-
----
-
-## ビルド・バンドル
-
-- Vite によるバンドル
-- `manualChunks` で PrimeVue / Chart.js / Luxon を個別チャンクに分割し初期ロードを最適化
-- Nuxt Sourcemap は `.env` の `NUXT_SOURCEMAP=true` で切り替え
-- Cloudflare Workers にデプロイするため `nitro.preset = "cloudflare_module"` を設定
-
----
-
-## 環境変数（主要）
-
-| 変数名 | 用途 | サイド |
-|---|---|---|
-| `API_BASE_URL` | バックエンド API ベース URL | Server |
-| `SECRET_API_KEY` | バックエンド認証キー（非公開） | Server |
+| `API_BASE_URL` | バックエンド API ベース URL | Server / Public runtime |
+| `API_PROXY` | フロント側 API プロキシパス | Server / Public runtime |
+| `SECRET_API_KEY` | バックエンド接続用秘密鍵 | Server only |
 | `GOOGLE_CLIENT_ID` | Google OAuth クライアント ID | Public |
-| `APP_VERSION` | アプリバージョン | Public |
+| `APP_NAME` / `APP_VERSION` | 表示用メタ情報 | Public |
 | `DEFAULT_LOCALE` | デフォルト言語 | Public |
-| `MOCK_MODE` | モックモード切り替え | Public |
-| `USE_FEATURE_FLAG` | フィーチャーフラグ有効化 | Public |
-
-設定ファイル: 開発用 `.env.local` / 本番ビルド用 `.env.production`
+| `MOCK_MODE` | モック切り替え | Public |
+| `USE_FEATURE_FLAG` / `NEW_FEATURES` | 機能フラグ制御 | Public |
 
 ---
 
-## 関連ドキュメント
+## 13. 関連ドキュメント
 
-- `docs/operations/deploy-and-build.md`: ビルド・デプロイ・開発環境構築手順
-- `docs/features/gallery/implementation-plan.md`: ギャラリー機能実装計画
-- `contract/api-schema.yaml`: API 契約（正本）
+- `docs/README.md`
+- `docs/architecture/e2e-test.md`
+- `docs/operations/deploy-and-build.md`
+- `docs/features/gallery/implementation-plan.md`
+- `../contract/api-schema.yaml`（API 契約の正本）

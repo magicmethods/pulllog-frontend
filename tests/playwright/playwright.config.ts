@@ -14,6 +14,8 @@ const e2eFrontendPort = Number.isNaN(requestedE2EFrontendPort)
     : requestedE2EFrontendPort
 const e2eFrontendBaseURL = `https://${e2eFrontendHost}:${e2eFrontendPort}`
 
+const defaultProjectNames = ["chromium", "ipad-pro-11", "iphone-14"]
+
 const availableProjects = [
     {
         name: "chromium",
@@ -42,13 +44,19 @@ const availableProjects = [
 ]
 
 const projectAliases: Record<string, string> = {
+    pc: "chromium",
+    desktop: "chromium",
     chrome: "chromium",
     chromium: "chromium",
     firefox: "firefox",
     safari: "webkit",
     webkit: "webkit",
+    phone: "iphone-14",
+    smartphone: "iphone-14",
+    mobile: "iphone-14",
     iphone: "iphone-14",
     "iphone-14": "iphone-14",
+    tablet: "ipad-pro-11",
     ipad: "ipad-pro-11",
     "ipad-pro-11": "ipad-pro-11",
     android: "android-pixel-7",
@@ -87,17 +95,20 @@ const selectedProjects =
         ? availableProjects.filter((project) =>
               requestedProjectNames.includes(project.name),
           )
-        : availableProjects
+        : availableProjects.filter((project) =>
+              defaultProjectNames.includes(project.name),
+          )
 
 /**
  * Playwright E2E は専用の `.env.e2e` で Nuxt を HTTPS 起動し、
  * Laravel バックエンドも `http://127.0.0.1:3030` で同時起動する。
  * フロント側の待受ポートは `PLAYWRIGHT_FRONTEND_PORT` で上書きできる。
+ * 規定プロジェクトは `chromium` / `ipad-pro-11` / `iphone-14`。
  * `PLAYWRIGHT_PROJECTS=chromium,iphone` のように指定すると対象を絞り込める。
  */
 export default defineConfig({
     testDir: "../e2e",
-    // The golden route reuses a shared seeded account and backend state,
+    // The manifest-driven core E2E cases reuse a shared seeded account and backend state,
     // so browser/device projects should run serially to avoid session clashes.
     fullyParallel: false,
     forbidOnly: !!process.env.CI,

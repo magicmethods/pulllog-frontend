@@ -16,9 +16,13 @@ logs
 *.log
 !server/api/logs
 
-# E2E artifacts
+# E2E artifacts (generated outputs only)
 tests/test-results/
 tests/artifacts/
+e2e/reports/
+e2e/evidence/
+!e2e/reports/.gitkeep
+!e2e/evidence/.gitkeep
 
 # Misc
 .DS_Store

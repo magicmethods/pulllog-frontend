@@ -1,0 +1,57 @@
+{
+    "id": "logout-drawer-smoke",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "auth-login",
+        "url": "/auth/login",
+        "feature": "settings-drawer-logout"
+    },
+    "navigation": {
+        "startFrom": "authenticated-shell",
+        "skipProcess": false,
+        "prerequisiteState": "user_logged_in"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case focuses on drawer preferences and logout, not upstream navigation setup."
+    },
+    "preconditions": [
+        "The standard E2E user exists and can sign in.",
+        "The authenticated shell header is available after login.",
+        "The language and theme controls are visible in the settings drawer."
+    ],
+    "assertions": [
+        "The user can open the settings drawer.",
+        "Language and theme changes are reflected in the drawer state.",
+        "Logout returns the browser to the login screen."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "settings-drawer-arrival",
+            "language-theme-switched",
+            "logged-out"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 1,
+        "timeoutMs": 180000,
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["logout", "settings", "regression"],
+    "notes": "Keeps preference switching and logout verification isolated from history and stats coverage."
+}
