@@ -138,25 +138,30 @@ function showToast(notice: Partial<ToastMessageOptions>) {
 async function loadAppStats() {
     if (apps.value.length === 0) return
 
-    const loaderId = loaderStore.show(t("apps.loading.stats"))
-    try {
-        // 各アプリIDで非同期取得（ローダーなしで呼ぶ）
-        const fetches = apps.value.map((app) =>
-            statsStore
-                .fetchStats(app.appId, "", "", undefined, false)
-                .then((data) => ({ appId: app.appId, data })),
-        )
-        const results = await Promise.all(fetches)
-        // 統計データを更新
-        for (const { appId, data } of results) {
-            if (data) {
-                appStats.value.set(appId, data)
-            } else {
-                appStats.value.delete(appId) // データが取得できなかった場合は削除
-            }
+    // アプリ一覧は統計取得前でも操作可能なため、統計はバックグラウンドで更新する
+    const fetches = apps.value.map((app) =>
+        statsStore
+            .fetchStats(app.appId, "", "", undefined, false)
+            .then((data) => ({
+                status: "fulfilled" as const,
+                appId: app.appId,
+                data,
+            }))
+            .catch(() => ({
+                status: "rejected" as const,
+                appId: app.appId,
+                data: null,
+            })),
+    )
+    const results = await Promise.all(fetches)
+
+    // 統計データを更新
+    for (const { status, appId, data } of results) {
+        if (status === "fulfilled" && data) {
+            appStats.value.set(appId, data)
+        } else {
+            appStats.value.delete(appId) // データが取得できなかった場合は削除
         }
-    } finally {
-        loaderStore.hide(loaderId)
     }
 }
 async function initialize() {
@@ -165,7 +170,7 @@ async function initialize() {
         await appStore.loadApps()
     }
     if (appStore.appList.length > 0) {
-        await loadAppStats()
+        void loadAppStats()
     } else {
         appStats.value.clear() // アプリがない場合は統計データをクリア
     }

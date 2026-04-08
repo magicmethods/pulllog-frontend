@@ -151,7 +151,7 @@ export default defineConfig({
             stdout: "ignore",
         },
         {
-            command: `pnpm exec nuxt dev --dotenv .env.e2e --host ${e2eFrontendHost} --port ${e2eFrontendPort}`,
+            command: `pnpm exec cross-env NUXT_TYPESCRIPT_CHECK=false nuxt dev --dotenv .env.e2e --host ${e2eFrontendHost} --port ${e2eFrontendPort}`,
             cwd: frontendRoot,
             url: e2eFrontendBaseURL,
             reuseExistingServer: !process.env.CI,

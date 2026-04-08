@@ -57,6 +57,26 @@ export interface E2ECaseManifest {
 
 const casesRoot = path.resolve(process.cwd(), "e2e/cases")
 
+const caseProjectAliases: Record<string, string> = {
+    pc: "chromium",
+    desktop: "chromium",
+    chrome: "chromium",
+    chromium: "chromium",
+    firefox: "firefox",
+    safari: "webkit",
+    webkit: "webkit",
+    phone: "iphone-14",
+    smartphone: "iphone-14",
+    mobile: "iphone-14",
+    iphone: "iphone-14",
+    "iphone-14": "iphone-14",
+    tablet: "ipad-pro-11",
+    ipad: "ipad-pro-11",
+    "ipad-pro-11": "ipad-pro-11",
+    android: "android-pixel-7",
+    "android-pixel-7": "android-pixel-7",
+}
+
 let manifestCache: E2ECaseManifest[] | null = null
 
 /**
@@ -102,7 +122,12 @@ export function getCaseManifest(caseId: string): E2ECaseManifest {
 /**
  * Determines whether the manifest should run for the active case and tag filters.
  */
-export function shouldRunCase(manifest: E2ECaseManifest): boolean {
+export function shouldRunCase(
+    manifest: E2ECaseManifest,
+    options?: {
+        projectName?: string
+    },
+): boolean {
     if (!manifest.enabled) {
         return false
     }
@@ -133,7 +158,53 @@ export function shouldRunCase(manifest: E2ECaseManifest): boolean {
         return false
     }
 
+    if (
+        options?.projectName &&
+        !shouldRunCaseOnProject(manifest, options.projectName)
+    ) {
+        return false
+    }
+
     return true
+}
+
+export function shouldRunCaseOnProject(
+    manifest: E2ECaseManifest,
+    projectName: string,
+): boolean {
+    const allowedProjects = resolveManifestProjectNames(manifest)
+
+    if (allowedProjects.length === 0) {
+        return true
+    }
+
+    return allowedProjects.includes(normalizeProjectName(projectName))
+}
+
+export function describeManifestProjectOverride(
+    manifest: E2ECaseManifest,
+): string | null {
+    const allowedProjects = resolveManifestProjectNames(manifest)
+
+    if (allowedProjects.length === 0) {
+        return null
+    }
+
+    return allowedProjects.join(", ")
+}
+
+function resolveManifestProjectNames(manifest: E2ECaseManifest): string[] {
+    const explicitProjects = parseTokens(manifest.execution?.project).map(
+        (value) => normalizeProjectName(value),
+    )
+
+    if (explicitProjects.length > 0) {
+        return [...new Set(explicitProjects)]
+    }
+
+    const browserOverride = manifest.execution?.browser?.trim()
+
+    return browserOverride ? [normalizeProjectName(browserOverride)] : []
 }
 
 /**
@@ -249,6 +320,12 @@ function normalizeEnvKey(value: string): string {
         .trim()
         .toUpperCase()
         .replace(/[^A-Z0-9]+/g, "_")
+}
+
+function normalizeProjectName(value: string): string {
+    const normalizedValue = value.trim().toLowerCase()
+
+    return caseProjectAliases[normalizedValue] ?? normalizedValue
 }
 
 function validateCaseManifest(manifest: E2ECaseManifest): E2ECaseManifest {

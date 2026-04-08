@@ -83,7 +83,7 @@ const implicitProjects = resolveManifestProjectOverride(env)
 if (!env.PLAYWRIGHT_PROJECTS && implicitProjects) {
     env.PLAYWRIGHT_PROJECTS = implicitProjects
     process.stderr.write(
-        `[run-e2e] Applying manifest project override: ${implicitProjects}\n`,
+        `[run-e2e] Applying manifest-driven project selection: ${implicitProjects}\n`,
     )
 }
 
@@ -174,16 +174,30 @@ function resolveManifestProjectOverride(runtimeEnv) {
         return undefined
     }
 
-    const overrides = selectedManifests
-        .map((manifest) => getManifestProjectOverride(manifest))
-        .filter(Boolean)
+    const resolvedProjects = new Set()
 
-    if (overrides.length !== selectedManifests.length) {
-        return undefined
+    for (const manifest of selectedManifests) {
+        const manifestProjects = getManifestProjectOverride(manifest)
+
+        if (manifestProjects.length === 0) {
+            for (const defaultProject of [
+                "chromium",
+                "ipad-pro-11",
+                "iphone-14",
+            ]) {
+                resolvedProjects.add(defaultProject)
+            }
+            continue
+        }
+
+        for (const manifestProject of manifestProjects) {
+            resolvedProjects.add(manifestProject)
+        }
     }
 
-    const uniqueOverrides = [...new Set(overrides)]
-    return uniqueOverrides.length === 1 ? uniqueOverrides[0] : undefined
+    return resolvedProjects.size > 0
+        ? [...resolvedProjects].join(",")
+        : undefined
 }
 
 function loadCaseManifests() {
@@ -207,11 +221,42 @@ function loadCaseManifests() {
 }
 
 function getManifestProjectOverride(manifest) {
-    return (
-        manifest?.execution?.project?.trim() ||
-        manifest?.execution?.browser?.trim() ||
-        undefined
+    const explicitProjects = parseTokens(manifest?.execution?.project).map(
+        normalizeProjectName,
     )
+
+    if (explicitProjects.length > 0) {
+        return [...new Set(explicitProjects)]
+    }
+
+    const browserOverride = manifest?.execution?.browser?.trim()
+
+    return browserOverride ? [normalizeProjectName(browserOverride)] : []
+}
+
+function normalizeProjectName(value) {
+    const normalizedValue = value.trim().toLowerCase()
+    const aliases = {
+        pc: "chromium",
+        desktop: "chromium",
+        chrome: "chromium",
+        chromium: "chromium",
+        firefox: "firefox",
+        safari: "webkit",
+        webkit: "webkit",
+        phone: "iphone-14",
+        smartphone: "iphone-14",
+        mobile: "iphone-14",
+        iphone: "iphone-14",
+        "iphone-14": "iphone-14",
+        tablet: "ipad-pro-11",
+        ipad: "ipad-pro-11",
+        "ipad-pro-11": "ipad-pro-11",
+        android: "android-pixel-7",
+        "android-pixel-7": "android-pixel-7",
+    }
+
+    return aliases[normalizedValue] ?? normalizedValue
 }
 
 function parseTokens(value) {

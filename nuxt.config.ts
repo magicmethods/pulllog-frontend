@@ -116,6 +116,12 @@ export default defineNuxtConfig({
         typeCheck: process.env.NUXT_TYPESCRIPT_CHECK !== "false",
         tsConfig: {
             include: ["types/**/*.d.ts"],
+            exclude: [
+                "../tests/test-results/**",
+                "../playwright-report/**",
+                "../e2e/reports/**",
+                "../e2e/evidence/**",
+            ],
         },
     },
     ssr: true,
@@ -278,6 +284,10 @@ export default defineNuxtConfig({
                     "**/.output/**",
                     "**/.vscode/**",
                     "**/coverage/**",
+                    "**/tests/test-results/**",
+                    "**/playwright-report/**",
+                    "**/e2e/reports/**",
+                    "**/e2e/evidence/**",
                 ],
             },
         },

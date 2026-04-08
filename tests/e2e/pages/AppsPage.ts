@@ -67,9 +67,15 @@ export class AppsPage {
         await this.context.captureBeforeCommit("apps", "create-app")
 
         const createResponsePromise = page.waitForResponse(
-            (response) =>
-                response.request().method() === "POST" &&
-                response.url().includes("/api/apps"),
+            (response) => {
+                if (response.request().method() !== "POST") {
+                    return false
+                }
+
+                const responseUrl = response.url()
+
+                return /\/api(?:\/v1)?\/apps(?:$|[/?#])/.test(responseUrl)
+            },
             { timeout: 15000 },
         )
 
@@ -237,9 +243,12 @@ export class AppsPage {
         const appCard = appHeader.locator(
             'xpath=ancestor::div[contains(@class,"border") and contains(@class,"rounded-lg")][1]',
         )
-        const configButton = appCard.getByRole("button").first()
+        const configButton = appCard
+            .locator('button[aria-haspopup="true"]')
+            .first()
 
         await expect(appHeader).toBeVisible({ timeout: 15000 })
+        await expect(configButton).toBeVisible({ timeout: 15000 })
         await configButton.click()
         await page.getByRole("menuitem", { name: uiText.delete }).click()
 
@@ -272,6 +281,10 @@ export class AppsPage {
         })
 
         await expect(registerHistoryButton).toBeEnabled({ timeout: 15000 })
-        await registerHistoryButton.click()
+
+        await Promise.all([
+            page.waitForURL(/\/history(?:\?.*)?$/, { timeout: 15000 }),
+            registerHistoryButton.click(),
+        ])
     }
 }

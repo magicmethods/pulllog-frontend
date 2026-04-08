@@ -21,6 +21,7 @@ const form = reactive({
     password: "",
     remember: false,
 })
+const loginFormRef = ref<HTMLFormElement | null>(null)
 const errors = reactive<{ email?: string; password?: string }>({})
 const globalError = ref<string | null>(null) // グローバルエラーメッセージ
 const touched = reactive<{ email: boolean; password: boolean }>({
@@ -74,7 +75,6 @@ const loginSchema = computed(() =>
         password: z.string().min(8, { message: t("validation.shortPassword") }),
     }),
 )
-const isFormValid = computed(() => loginSchema.value.safeParse(form).success)
 
 // Methods
 // 指定フィールドのみバリデーション
@@ -109,13 +109,49 @@ function validateAll(): boolean {
     return true
 }
 
+function syncAutofilledCredentials() {
+    if (!import.meta.client) {
+        return
+    }
+
+    const formElement = loginFormRef.value
+
+    if (!formElement) {
+        return
+    }
+
+    const emailInput = formElement.querySelector<HTMLInputElement>(
+        'input[autocomplete="username"]',
+    )
+    const passwordInput = formElement.querySelector<HTMLInputElement>(
+        'input[autocomplete="current-password"]',
+    )
+    const rememberInput =
+        formElement.querySelector<HTMLInputElement>("#remember-me")
+
+    if (emailInput?.value && form.email !== emailInput.value) {
+        form.email = emailInput.value
+    }
+
+    if (passwordInput?.value && form.password !== passwordInput.value) {
+        form.password = passwordInput.value
+    }
+
+    if (rememberInput && form.remember !== rememberInput.checked) {
+        form.remember = rememberInput.checked
+    }
+}
+
 function handleBlur(field: "email" | "password") {
+    syncAutofilledCredentials()
     touched[field] = true
     validateFields([field])
 }
 
 async function handleLogin() {
     globalError.value = null
+    syncAutofilledCredentials()
+    await nextTick()
     if (!validateAll()) return
     isSubmitting.value = true
     try {
@@ -170,6 +206,18 @@ onBeforeMount(async () => {
         }
     }
 })
+
+onMounted(() => {
+    syncAutofilledCredentials()
+
+    requestAnimationFrame(() => {
+        syncAutofilledCredentials()
+    })
+
+    window.setTimeout(() => {
+        syncAutofilledCredentials()
+    }, 300)
+})
 </script>
 
 <template>
@@ -182,7 +230,7 @@ onBeforeMount(async () => {
 
       <p class="text-surface-500 dark:text-surface-400 block mb-2">{{ t('auth.login.prompt') }}</p>
 
-      <form @submit.prevent="handleLogin" class="flex flex-col gap-4 w-full max-w-sm" autocomplete="on">
+      <form ref="loginFormRef" @submit.prevent="handleLogin" class="flex flex-col gap-4 w-full max-w-sm" autocomplete="on">
         <InputText
           v-model="form.email"
           inputmode="email"
@@ -232,7 +280,7 @@ onBeforeMount(async () => {
             type="submit"
             :label="isSubmitting ? t('auth.login.loading') : t('auth.login.submit')"
             class="btn btn-primary w-40"
-            :disabled="isSubmitting || !isFormValid"
+            :disabled="isSubmitting"
             :loading="isSubmitting"
           />
         </div>      
