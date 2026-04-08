@@ -14,6 +14,8 @@ export const uiText = {
     rememberMe: /Remember me|ログイン状態を保持|记住我/,
     stats: /Stats|Statistics|統計|统计/,
     startAggregation: /Aggregate|Start Aggregation|集計開始|集計|开始统计|统计/,
+    noAggregationResults:
+        /No aggregation results available|集計結果がありません|暂无统计结果/,
     logout: /Logout|ログアウト|退出登录/,
     loggedOutPrompt:
         /Please enter your login information|ログイン情報を入力してください|请输入登录信息/,

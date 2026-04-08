@@ -40,7 +40,7 @@ test.describe("manifest-driven core E2E flows", () => {
         "create a new app from the apps page",
         async (scenario) => {
             const nonce = Date.now().toString().slice(-8)
-            const createdAppName = `Playwright App ${nonce}`
+            const createdAppName = `Playwright create ${nonce}`
             const authPage = new AuthPage(scenario)
             const appsPage = new AppsPage(scenario)
             let createdAppId: string | null = null

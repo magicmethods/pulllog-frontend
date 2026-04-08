@@ -36,11 +36,21 @@ export class StatsPage {
         await expect(page).toHaveURL(/\/stats(?:\?.*)?$/)
         await dismissCookieBanner(page)
         await waitForLoaderToClear(page)
+        await expect(
+            page.getByRole("heading", { name: uiText.stats }).first(),
+        ).toBeVisible({
+            timeout: 15000,
+        })
         await expect(page.locator("#stats-controller")).toBeVisible({
             timeout: 15000,
         })
+        await expect(
+            page.getByText(uiText.noAggregationResults).first(),
+        ).toBeVisible({
+            timeout: 15000,
+        })
 
-        this.context.note(`Stats aggregation confirmed for: ${appName}`)
+        this.context.note(`Stats page is ready for the seeded app: ${appName}`)
         await this.context.capturePageArrival("stats")
     }
 
@@ -65,8 +75,22 @@ export class StatsPage {
         await startAggregationButton.click()
         await waitForLoaderToClear(page)
 
-        const chartTile = page.locator("#stats-content [data-tile-id]").first()
-        await expect(chartTile).toBeVisible({ timeout: 30000 })
+        await expect(
+            page.getByText(uiText.noAggregationResults).first(),
+        ).toBeHidden({
+            timeout: 30000,
+        })
+
+        const chartTiles = page.locator("#stats-content [data-tile-id]")
+        const firstChartTile = chartTiles.first()
+        await expect(firstChartTile).toBeVisible({ timeout: 30000 })
+        await expect(firstChartTile).toContainText(/\S+/, { timeout: 15000 })
+
+        const renderedTileCount = await chartTiles.count()
+        expect(renderedTileCount).toBeGreaterThan(0)
+        this.context.note(
+            `Stats aggregation rendered ${renderedTileCount} chart tile(s) for: ${appName}`,
+        )
         await this.context.captureCheckpoint("stats", "charts-visible")
     }
 
@@ -90,5 +114,9 @@ export class StatsPage {
         await expect(option).toBeVisible({ timeout: 15000 })
         await option.click()
         await waitForLoaderToClear(page)
+        await expect(appSelector).toContainText(appName)
+        this.context.note(
+            `The stats page opened without a selected app, so the seeded app was chosen explicitly: ${appName}`,
+        )
     }
 }

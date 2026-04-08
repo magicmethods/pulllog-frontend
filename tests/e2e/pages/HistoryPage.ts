@@ -102,6 +102,23 @@ export class HistoryPage {
             .catch(() => {})
         await waitForLoaderToClear(page)
         await this.context.captureCheckpoint("history", "post-save-stable")
-        await expect(page.locator("#note")).toHaveValue(input.note)
+
+        const activityField = page.locator("#note")
+        const latestHistorySection = page.getByText(
+            /Latest History List|最新の履歴一覧|最新历史列表/,
+        )
+        const savedNoteInHistory = page.getByText(input.note).first()
+
+        await expect(latestHistorySection).toBeVisible({ timeout: 15000 })
+        await expect(savedNoteInHistory).toBeVisible({ timeout: 15000 })
+
+        const currentNoteValue = await activityField
+            .inputValue()
+            .catch(() => "")
+        if (currentNoteValue && currentNoteValue !== input.note) {
+            this.context.note(
+                `The shared seeded date already contained a different activity value after save (${currentNoteValue}), but the newly saved note remained visible in the latest history list.`,
+            )
+        }
     }
 }

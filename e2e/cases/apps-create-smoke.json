@@ -28,8 +28,8 @@
     "preconditions": [
         "The standard E2E user exists and can sign in.",
         "The local frontend and backend E2E servers are reachable.",
-        "At least one additional app can be created for the signed-in account.",
-        "A unique app name is available for the current run."
+        "The shared E2E account can either create one more app or auto-clean stale Playwright-created apps before the save step.",
+        "A unique app name within the current plan length limit is available for the current run."
     ],
     "assertions": [
         "The user can open the new app registration flow from the apps page.",
@@ -52,5 +52,5 @@
         "timeoutMs": 180000
     },
     "tags": ["smoke", "apps", "create", "regression"],
-    "notes": "Keeps app creation verification isolated from edit/delete and downstream history/stats flows, while cleanup removes the created app after the assertion step."
+    "notes": "Keeps app creation verification isolated from edit/delete and downstream history/stats flows, while API-first cleanup removes stale Playwright-created apps before the run and deletes the newly created app after the assertion step."
 }

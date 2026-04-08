@@ -23,17 +23,17 @@
         "excludeLoginFlow": false,
         "excludeNavigationProcess": false,
         "excludeSetupFlow": true,
-        "notes": "The case verifies rendering of aggregated charts, not historical data seeding."
+        "notes": "The case verifies the user-visible stats shell and aggregated chart rendering for a seeded app, not historical data seeding or a fixed tile layout."
     },
     "preconditions": [
         "The standard E2E user exists and can sign in.",
-        "At least one seeded app is available for aggregation.",
+        "At least one seeded app with saved history data is available for aggregation.",
         "The stats page can reach its backing APIs."
     ],
     "assertions": [
-        "The user can open the stats page from the authenticated shell.",
-        "Aggregation can be started for the seeded app.",
-        "At least one chart tile becomes visible after aggregation completes."
+        "The user can open the stats page from the authenticated shell and see the stats controller.",
+        "Aggregation can be started for the seeded app, including explicit app selection when no app is preselected.",
+        "The initial empty-state message is replaced by one or more visible chart tiles after aggregation completes."
     ],
     "report": {
         "markdown": true,
@@ -53,5 +53,5 @@
         "browser": "chromium"
     },
     "tags": ["stats", "smoke", "regression"],
-    "notes": "Keeps the stats verification isolated from logout and settings coverage."
+    "notes": "Keeps the stats verification isolated from logout and settings coverage. The seeded data may produce different chart combinations, so the case accepts any valid rendered tile set rather than one specific chart identity."
 }

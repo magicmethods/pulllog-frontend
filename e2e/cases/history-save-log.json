@@ -28,12 +28,13 @@
     "preconditions": [
         "The standard E2E user exists and can sign in.",
         "The seeded app \"Genshin Impact\" is available for history registration.",
-        "The local frontend and backend E2E servers are reachable."
+        "The local frontend and backend E2E servers are reachable.",
+        "The target date may already contain shared seeded log data from prior local E2E runs."
     ],
     "assertions": [
         "The user can open the history registration page from the apps list.",
         "The daily log form can be saved successfully.",
-        "The saved note remains visible after the success toast disappears."
+        "The saved note remains visible in the latest history list after the success toast disappears."
     ],
     "report": {
         "markdown": true,
@@ -53,5 +54,5 @@
         "browser": "chromium"
     },
     "tags": ["history", "regression", "seeded-data"],
-    "notes": "Focuses only on the user-visible history save flow and excludes upstream app creation."
+    "notes": "Focuses only on the user-visible history save flow and excludes upstream app creation. Because the case reuses shared seeded data, the stable verification point is the latest history list entry after save rather than assuming the form field still echoes the newly entered activity text."
 }
