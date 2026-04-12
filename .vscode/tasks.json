@@ -2,7 +2,62 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "E2E: 標準マトリクスを実行",
+            "label": "Frontend: Start dev server",
+            "detail": "Nuxt のローカル開発サーバーを起動します。",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["dev"],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend: Stop dev server",
+            "detail": "Nuxt のローカル開発サーバーを停止します。",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "$targets = Get-CimInstance Win32_Process | Where-Object { $_.Name -match '^node(.exe)?$' -and $_.CommandLine -match 'nuxt dev --dotenv \\.env\\.local' -and $_.CommandLine -match 'pulllog\\\\frontend' }; if ($targets) { $targets | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }; Write-Host ('Stopped frontend dev server: ' + (($targets | ForEach-Object { $_.ProcessId }) -join ', ')) } else { Write-Host 'No frontend dev server process found.' }"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend: Open local app",
+            "detail": "起動済みのローカルアプリをブラウザで開きます。",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "$deadline = (Get-Date).AddSeconds(90); $frontendReady = $false; $backendReady = $false; while ((Get-Date) -lt $deadline) { $frontendReady = Test-NetConnection -ComputerName '127.0.0.1' -Port 4649 -InformationLevel Quiet -WarningAction SilentlyContinue; try { $response = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:3030/api/v1/dummy' -TimeoutSec 2; $backendReady = $response.StatusCode -eq 200 } catch { $backendReady = $false }; if ($frontendReady -and $backendReady) { break }; Start-Sleep -Milliseconds 500 }; if (-not ($frontendReady -and $backendReady)) { Write-Error 'Frontend or backend did not become ready within 90 seconds.'; exit 1 }; $targetUrl = 'https://localhost:4649'; try { [void][System.Net.Dns]::GetHostAddresses('pull.log'); $targetUrl = 'https://pull.log:4649' } catch {}; Start-Process $targetUrl; Write-Host ('Opened ' + $targetUrl)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Local: Start app stack and open browser",
+            "detail": "バックエンド起動 → フロントエンド起動 → ブラウザ起動を順番に実行します。",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "$backendPath = (Resolve-Path '${workspaceFolder}/../backend/stable').Path; $frontendPath = (Resolve-Path '${workspaceFolder}').Path; if (-not (Test-NetConnection -ComputerName '127.0.0.1' -Port 3030 -InformationLevel Quiet -WarningAction SilentlyContinue)) { Start-Process powershell -ArgumentList '-NoExit','-Command',\"Set-Location '$backendPath'; php artisan serve --host=127.0.0.1 --port=3030\" }; $backendReady = $false; $deadline = (Get-Date).AddSeconds(90); while ((Get-Date) -lt $deadline) { try { $response = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:3030/api/v1/dummy' -TimeoutSec 2; if ($response.StatusCode -eq 200) { $backendReady = $true; break } } catch {}; Start-Sleep -Milliseconds 500 }; if (-not $backendReady) { Write-Error 'Backend did not become ready on http://127.0.0.1:3030 within 90 seconds.'; exit 1 }; if (-not (Test-NetConnection -ComputerName '127.0.0.1' -Port 4649 -InformationLevel Quiet -WarningAction SilentlyContinue)) { Start-Process powershell -ArgumentList '-NoExit','-Command',\"Set-Location '$frontendPath'; pnpm dev\" }; $frontendReady = $false; $deadline = (Get-Date).AddSeconds(120); while ((Get-Date) -lt $deadline) { if (Test-NetConnection -ComputerName '127.0.0.1' -Port 4649 -InformationLevel Quiet -WarningAction SilentlyContinue) { $frontendReady = $true; break }; Start-Sleep -Milliseconds 500 }; if (-not $frontendReady) { Write-Error 'Frontend did not become ready on port 4649 within 120 seconds.'; exit 1 }; $targetUrl = 'https://localhost:4649'; try { [void][System.Net.Dns]::GetHostAddresses('pull.log'); $targetUrl = 'https://pull.log:4649' } catch {}; Start-Process $targetUrl; Write-Host ('Opened ' + $targetUrl)"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend E2E: Run default matrix",
+            "detail": "既定の PC・タブレット・スマホ構成で E2E を実行します。",
             "type": "shell",
             "command": "pnpm",
             "args": ["run", "test:e2e"],
@@ -11,12 +66,12 @@
                     "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
                 }
             },
-            "isBackground": false,
             "problemMatcher": [],
             "group": "test"
         },
         {
-            "label": "E2E: ケースを実行",
+            "label": "Frontend E2E: Run case",
+            "detail": "指定した case id の E2E を実行します。",
             "type": "shell",
             "command": "pnpm",
             "args": ["run", "test:e2e:case", "--", "${input:e2eCaseId}"],
@@ -25,12 +80,12 @@
                     "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
                 }
             },
-            "isBackground": false,
             "problemMatcher": [],
             "group": "test"
         },
         {
-            "label": "E2E: タグを実行",
+            "label": "Frontend E2E: Run tag",
+            "detail": "指定したタグの E2E ケースを実行します。",
             "type": "shell",
             "command": "pnpm",
             "args": ["run", "test:e2e:tag", "--", "${input:e2eCaseTag}"],
@@ -39,12 +94,12 @@
                     "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
                 }
             },
-            "isBackground": false,
             "problemMatcher": [],
             "group": "test"
         },
         {
-            "label": "E2E: スモークを実行",
+            "label": "Frontend E2E: Run smoke",
+            "detail": "smoke タグの E2E ケースを実行します。",
             "type": "shell",
             "command": "pnpm",
             "args": ["run", "test:e2e:tag", "--", "smoke"],
@@ -53,25 +108,24 @@
                     "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
                 }
             },
-            "isBackground": false,
             "problemMatcher": [],
             "group": "test"
         },
         {
-            "label": "E2E: レポートを PDF 化",
+            "label": "Frontend E2E: Export report to PDF",
+            "detail": "生成済みの E2E レポートを PDF に変換します。",
             "type": "shell",
             "command": "pnpm",
             "args": ["run", "test:e2e:pdf"],
-            "isBackground": false,
             "problemMatcher": [],
             "group": "test"
         },
         {
-            "label": "E2E: レポートを PDF 化（パス指定）",
+            "label": "Frontend E2E: Export report to PDF (path)",
+            "detail": "指定パスの E2E Markdown レポートを PDF に変換します。",
             "type": "shell",
             "command": "pnpm",
             "args": ["run", "test:e2e:pdf", "--", "${input:markdownPdfTarget}"],
-            "isBackground": false,
             "problemMatcher": [],
             "group": "test"
         }
@@ -80,25 +134,25 @@
         {
             "id": "e2eProjects",
             "type": "promptString",
-            "description": "対象プロジェクトをカンマ区切りで指定（空欄 = 既定: chromium, ipad-pro-11, iphone-14）",
+            "description": "対象プロジェクトをカンマ区切りで指定します（空欄で既定マトリクス）。",
             "default": ""
         },
         {
             "id": "e2eCaseId",
             "type": "promptString",
-            "description": "実行する case id を指定（例: auth-apps-smoke / history-save-log）",
+            "description": "実行する case id を指定します。",
             "default": "auth-apps-smoke"
         },
         {
             "id": "e2eCaseTag",
             "type": "promptString",
-            "description": "実行するタグを指定（例: smoke / stats / history）",
+            "description": "実行するタグを指定します。",
             "default": "smoke"
         },
         {
             "id": "markdownPdfTarget",
             "type": "promptString",
-            "description": "PDF 化する Markdown のパス（既定: e2e/reports）",
+            "description": "PDF 化する Markdown のパスを指定します。",
             "default": "e2e/reports"
         }
     ]
