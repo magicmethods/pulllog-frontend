@@ -1,0 +1,57 @@
+{
+    "id": "auth-email-signup-request-smoke",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "anonymous",
+        "role": "guest"
+    },
+    "target": {
+        "pageId": "auth-register",
+        "url": "/auth/register",
+        "feature": "email-signup-request"
+    },
+    "navigation": {
+        "startFrom": "direct-route",
+        "skipProcess": false,
+        "prerequisiteState": "anonymous_user_and_unique_email_available"
+    },
+    "coverage": {
+        "includeLoginFlow": false,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": true,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "Covers the email signup request acceptance route only. Excludes mailbox access, token verification completion, Google auth, and post-signup login."
+    },
+    "preconditions": [
+        "The local frontend and backend E2E servers are reachable.",
+        "The run starts in an anonymous state with no active session.",
+        "A unique signup email address can be generated for the current run.",
+        "The E2E backend mailer accepts signup mail dispatch without requiring a real inbox."
+    ],
+    "assertions": [
+        "The register form is visible at /auth/register.",
+        "A valid email-based signup request can be submitted successfully.",
+        "The account registration success message is displayed.",
+        "The confirmation-email notice is displayed after submission."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "auth-register-page",
+            "auth-register-request-submit",
+            "auth-register-accepted"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 0,
+        "timeoutMs": 120000
+    },
+    "tags": ["smoke", "auth", "signup", "email", "positive", "regression"],
+    "notes": "Generates a unique timestamp-based email address per run to keep the signup acceptance check repeatable in the local E2E environment."
+}

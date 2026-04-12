@@ -1,0 +1,57 @@
+{
+    "id": "auth-email-signup-validation-smoke",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "anonymous",
+        "role": "guest"
+    },
+    "target": {
+        "pageId": "auth-register",
+        "url": "/auth/register",
+        "feature": "email-signup-validation"
+    },
+    "navigation": {
+        "startFrom": "direct-route",
+        "skipProcess": false,
+        "prerequisiteState": "anonymous_user"
+    },
+    "coverage": {
+        "includeLoginFlow": false,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": true,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "Validates representative client-side signup guardrails such as invalid email, short password, and missing terms agreement without submitting a real registration request."
+    },
+    "preconditions": [
+        "The local frontend and backend E2E servers are reachable.",
+        "The run starts in an anonymous state with no active session.",
+        "The register page is available without Google auth prerequisites."
+    ],
+    "assertions": [
+        "The register form is visible at /auth/register.",
+        "The submit button stays disabled for invalid email and short password input.",
+        "Representative validation feedback appears for invalid email and short password.",
+        "The submit button only becomes enabled when the form is otherwise valid and terms are agreed.",
+        "The user cannot proceed while the terms agreement is unchecked."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "auth-register-page",
+            "auth-register-invalid-inputs",
+            "auth-register-submit-ready"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 0,
+        "timeoutMs": 90000
+    },
+    "tags": ["auth", "signup", "validation", "regression"],
+    "notes": "Keeps signup validation coverage isolated from mailbox-driven verification, duplicate-email handling, and successful registration acceptance."
+}

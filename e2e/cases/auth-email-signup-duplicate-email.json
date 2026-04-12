@@ -1,0 +1,56 @@
+{
+    "id": "auth-email-signup-duplicate-email",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "anonymous",
+        "role": "guest"
+    },
+    "target": {
+        "pageId": "auth-register",
+        "url": "/auth/register",
+        "feature": "email-signup-duplicate-email"
+    },
+    "navigation": {
+        "startFrom": "direct-route",
+        "skipProcess": false,
+        "prerequisiteState": "standard_user_exists"
+    },
+    "coverage": {
+        "includeLoginFlow": false,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": true,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "Validates that the email signup route rejects a duplicate address by reusing the seeded standard E2E user email."
+    },
+    "preconditions": [
+        "The local frontend and backend E2E servers are reachable.",
+        "The seeded standard E2E user exists with a registered email address.",
+        "The run starts in an anonymous state with no active session."
+    ],
+    "assertions": [
+        "The register form is visible at /auth/register.",
+        "Submitting a valid signup request with the seeded existing email is rejected.",
+        "A registration error message is displayed.",
+        "The success acceptance panel is not shown after the rejected request."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "auth-register-page",
+            "auth-register-duplicate-submit",
+            "auth-register-duplicate-rejected"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 0,
+        "timeoutMs": 120000
+    },
+    "tags": ["auth", "signup", "negative", "regression"],
+    "notes": "Uses the environment-backed standard E2E account email as the duplicate target while excluding mailbox access and token verification coverage."
+}

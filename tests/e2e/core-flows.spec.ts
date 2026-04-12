@@ -14,12 +14,63 @@ import { type E2EScenarioContext, expect, test } from "./support/test"
 
 const appName = "Genshin Impact"
 const authAppsManifest = getCaseManifest("auth-apps-smoke")
+const signupValidationManifest = getCaseManifest(
+    "auth-email-signup-validation-smoke",
+)
+const signupDuplicateManifest = getCaseManifest(
+    "auth-email-signup-duplicate-email",
+)
+const signupRequestManifest = getCaseManifest("auth-email-signup-request-smoke")
 const appsCreateManifest = getCaseManifest("apps-create-smoke")
 const historySaveLogManifest = getCaseManifest("history-save-log")
 const statsAggregationManifest = getCaseManifest("stats-aggregation-smoke")
 const logoutDrawerManifest = getCaseManifest("logout-drawer-smoke")
 
 test.describe("manifest-driven core E2E flows", () => {
+    caseTest(
+        signupValidationManifest,
+        "validate representative email-signup guardrails",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+
+            scenario.note(
+                "Representative signup validation coverage: invalid email, short password, and missing terms agreement.",
+            )
+
+            await authPage.validateEmailSignupGuardrails()
+            await expect(scenario.page).toHaveURL(/\/auth\/register(?:\?.*)?$/)
+        },
+    )
+
+    caseTest(
+        signupDuplicateManifest,
+        "reject a duplicate email signup request",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+            const duplicateEmail =
+                await authPage.submitDuplicateEmailSignupRequest()
+
+            scenario.note(`Duplicate signup target email: ${duplicateEmail}`)
+
+            await expect(scenario.page).toHaveURL(/\/auth\/register(?:\?.*)?$/)
+        },
+    )
+
+    caseTest(
+        signupRequestManifest,
+        "submit a new email signup request",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+            const submittedEmail = await authPage.submitEmailSignupRequest()
+
+            scenario.note(
+                `Submitted email signup request for: ${submittedEmail}`,
+            )
+
+            await expect(scenario.page).toHaveURL(/\/auth\/register(?:\?.*)?$/)
+        },
+    )
+
     caseTest(
         authAppsManifest,
         "sign in and land on the apps page",

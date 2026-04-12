@@ -5,7 +5,20 @@ import { expect, type Page } from "@playwright/test"
  */
 export const uiText = {
     addNew: /Register New App|新規アプリを登録する|注册新应用/,
+    register: /^Register$|^新規登録$|^注册$/,
     registerHistory: /Register History|履歴を登録する|登记历史/,
+    registerSuccess:
+        /Account registration completed successfully\.?|アカウント登録が完了しました|账号注册成功。?/,
+    registerConfirmation:
+        /A confirmation email has been sent to the registered email address|ご登録いただいたメールアドレスに確認メールを送信しました|激活邮件已发送到您的邮箱/,
+    registerError:
+        /Validation failed|バリデーションに失敗しました|验证失败|Registration failed|登録に失敗しました|注册失败/,
+    validationEmail:
+        /Please enter a valid email address|有効なメールアドレスを入力してください|请输入有效的邮箱地址/,
+    validationPassword:
+        /Password must be at least 8 characters long|パスワードは8文字以上で入力してください|密码需至少8位/,
+    validationTerms:
+        /You must agree to the terms of service and privacy policy|利用規約、プライバシーポリシーへの同意が必要です|您必须同意服务条款和隐私政策/,
     change: /Change|変更|更改/,
     currentTargetDate: /Current Target Date|現在の登録対象日|当前目标日期/,
     saveLog: /Save Log|履歴を保存|保存记录/,
