@@ -10,6 +10,7 @@
 | ファイル | 概要 |
 |---|---|
 | `architecture/overview.md` | フロントエンド全体構成、Nuxt / Nitro / Pinia / API プロキシ方針の整理 |
+| `architecture/feature-development-workflow.md` | 5役エージェントで進めるフロントエンド機能開発の標準ワークフロー |
 | `architecture/e2e-test.md` | Playwright の **manifest-driven E2E** アーキテクチャ、標準マトリクス、レポート / PDF evidence 方針 |
 | `operations/deploy-and-build.md` | 開発環境構築、`pnpm dev` / `pnpm build` / `pnpm preview` / Workers デプロイ手順 |
 | `integrations/backend/gallery-upload-ticket-api-spec.md` | ギャラリー upload ticket API のバックエンド連携仕様 |
@@ -24,8 +25,16 @@ docs/
 ├── README.md                                     # このファイル
 ├── architecture/
 │   ├── overview.md                               # システム構成・ルーティング・状態管理・API通信方針
+│   ├── feature-development-workflow.md           # 5役エージェントの feature 開発標準フロー
 │   └── e2e-test.md                               # Playwright E2E アーキテクチャ / manifest / report policy
 ├── features/
+│   ├── _templates/
+│   │   ├── README.md                            # 5役ワークフロー用の共通文書ひな形
+│   │   ├── workflow-notes.md                    # Orchestrator 用の進行メモ
+│   │   ├── feature-plan.md                      # Architect 用の設計ひな形
+│   │   ├── ui-spec.md                           # UI/UX 仕様ひな形
+│   │   ├── implementation-notes.md              # Implementer 用の検証メモ
+│   │   └── review-notes.md                      # Reviewer 用のレビューひな形
 │   └── gallery/
 │       ├── implementation-plan.md                # ギャラリー機能 全体実装計画・優先順位
 │       ├── api-foundation-plan.md                # FE-G1: API基盤整備
@@ -46,8 +55,8 @@ docs/
 
 | ディレクトリ | 置くもの |
 |---|---|
-| `architecture/` | 画面構成、状態管理、API 通信、E2E アーキテクチャなどの設計原則 |
-| `features/` | 機能単位の実装計画、仕様メモ、設計判断 |
+| `architecture/` | 画面構成、状態管理、API 通信、E2E アーキテクチャ、feature 開発フローなどの設計原則 |
+| `features/` | 機能単位の実装計画、仕様メモ、設計判断、共通テンプレート |
 | `integrations/` | バックエンドや外部システムとの連携仕様 |
 | `operations/` | ビルド、デプロイ、運用、開発環境構築手順 |
 
@@ -55,6 +64,8 @@ docs/
 
 ## 最近の更新ポイント
 
+- 5役エージェントによる feature 開発ワークフローを `architecture/feature-development-workflow.md` に追加
+- `features/_templates/` に feature 文書の共通ひな形を追加
 - Playwright E2E は **manifest-driven** 運用に統一
 - 標準実行マトリクスは **`chromium` / `ipad-pro-11` / `iphone-14`**
 - 実行レポートは `e2e/reports/YYYY-MM-DD/<case-id>/report.md` に集約
