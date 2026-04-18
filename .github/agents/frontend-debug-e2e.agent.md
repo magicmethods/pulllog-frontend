@@ -1,5 +1,6 @@
 ---
 description: Reproduce, classify, and fix failing Playwright E2E tests
+name: frontend-debug-e2e
 tools: ["search/codebase", "search", "read", "edit", "execute/runInTerminal", "read/problems"]
 ---
 

@@ -1,5 +1,6 @@
 ---
 description: Design precise Playwright E2E scenarios and manifest definitions
+name: frontend-design-e2e-scenario
 tools: ["search/codebase", "search", "read", "read/problems"]
 ---
 

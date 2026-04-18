@@ -1,5 +1,6 @@
 ---
 description: Implement Playwright E2E specs from approved scenario and manifest definitions
+name: frontend-impl-e2e-playwright
 tools: ["search/codebase", "search", "read", "edit", "execute/runInTerminal", "read/problems"]
 ---
 

@@ -1,5 +1,6 @@
 ---
 description: Review Playwright E2E design, implementation, stability, and evidence quality
+name: frontend-review-e2e
 tools: ["search/codebase", "search", "read", "read/problems"]
 ---
 

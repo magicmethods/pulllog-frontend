@@ -212,30 +212,39 @@ VS Code では `E2E: 標準マトリクスを実行`、`E2E: ケースを実行`
 
 ### E2E の Agent-driven 運用
 
-このリポジトリでは、Copilot のカスタムエージェントを使って **設計 → 実装 → デバッグ → レビュー** を役割分担できます。
+このリポジトリでは、Copilot のカスタムエージェントを使って **設計 → 実装 → デバッグ → レビュー** を役割分担できます。E2E の入口は原則として `frontend-orch-e2e` または prompt の `Start Frontend E2E Workflow` です。
 
 | エージェント | 役割 |
 |---|---|
-| `scenario-designer` | ケース設計、`case id` / manifest / coverage / tags の整理 |
-| `playwright-implementer` | 承認済みケースの実装、既存 helper 再利用、最小差分での検証 |
-| `e2e-debugger` | 失敗の再現、根本原因の切り分け、最小修正 |
-| `test-reviewer` | manifest / spec / report / evidence の品質レビュー |
+| `frontend-orch-e2e` | 入口 orchestrator。要求整理、ステージ振り分け、最終取りまとめ |
+| `frontend-design-e2e-scenario` | ケース設計、`case id` / manifest / coverage / tags の整理 |
+| `frontend-impl-e2e-playwright` | 承認済みケースの実装、既存 helper 再利用、最小差分での検証 |
+| `frontend-debug-e2e` | 失敗の再現、根本原因の切り分け、最小修正 |
+| `frontend-review-e2e` | manifest / spec / report / evidence の品質レビュー |
 
 #### 推奨フロー
 
-1. `scenario-designer` にケース設計を依頼する
+1. `frontend-orch-e2e` にケース設計または既存ケースの再利用判断を依頼する
 2. `case id`、tags、事前条件、含める / 除外するカバレッジを確認する
-3. `playwright-implementer` に最小差分での実装を依頼する
+3. `frontend-orch-e2e` から `frontend-impl-e2e-playwright` に最小差分での実装を進める
 4. まず `chromium` 単体で確認する
 5. 問題なければ標準マトリクス（`chromium`, `ipad-pro-11`, `iphone-14`）で再検証する
-6. 失敗時は `e2e-debugger` にレポートと artifact を渡して原因調査を依頼する
-7. 安定したら `test-reviewer` に `Must fix / Should fix / Nice to have / Final verdict` 形式でレビューしてもらう
+6. 失敗時は `frontend-debug-e2e` にレポートと artifact を渡して原因調査を依頼する
+7. 安定したら `frontend-review-e2e` に `Must fix / Should fix / Nice to have / Final verdict` 形式でレビューしてもらう
 8. 成功ケースで `pdfOnSuccess` が許可されていれば PDF evidence を生成する
 9. コミット時は `e2e/cases/`、`tests/e2e/`、`tests/playwright/`、関連 docs だけを含め、`tests/test-results/` などの一時成果物は含めない
 
 #### すぐ使えるプロンプト例
 
-**1) ケース設計を依頼する (`scenario-designer`)**
+**1) 入口から開始する (`frontend-orch-e2e`)**
+
+```text
+`<target behavior>` の E2E 作業を開始してください。
+ケース設計、実装、失敗調査、レビューのどこから始めるべきか判断し、
+必要なら `frontend-design-e2e-scenario` へ振り分けてください。
+```
+
+**2) ケース設計を依頼する (`frontend-design-e2e-scenario`)**
 
 ```text
 `<target behavior>` 向けの manifest-driven E2E ケースを設計してください。
@@ -243,7 +252,7 @@ VS Code では `E2E: 標準マトリクスを実行`、`E2E: ケースを実行`
 対象フロー、含める / 除外するカバレッジ、事前条件、tags、`case id` を提案してください。
 ```
 
-**2) 実装を依頼する (`playwright-implementer`)**
+**3) 実装を依頼する (`frontend-impl-e2e-playwright`)**
 
 ```text
 承認済みの `<case-id>` を manifest-driven E2E として実装してください。
@@ -251,7 +260,7 @@ VS Code では `E2E: 標準マトリクスを実行`、`E2E: ケースを実行`
 既存ヘルパーを再利用して最小差分で進めてください。まず `chromium` だけで検証してください。
 ```
 
-**3) 失敗調査を依頼する (`e2e-debugger`)**
+**4) 失敗調査を依頼する (`frontend-debug-e2e`)**
 
 ```text
 `<case-id>` が `<project>` で失敗しています。
@@ -259,7 +268,7 @@ VS Code では `E2E: 標準マトリクスを実行`、`E2E: ケースを実行`
 根本原因を分類し、最小修正で安定化してください。修正後は関連スコープだけ再実行してください。
 ```
 
-**4) 最終レビューを依頼する (`test-reviewer`)**
+**5) 最終レビューを依頼する (`frontend-review-e2e`)**
 
 ```text
 `<case-id>` を manifest / spec / report / evidence の観点でレビューしてください。

@@ -1,6 +1,6 @@
 ---
 description: Implement frontend features from approved architecture and UI specifications with minimal diffs and appropriate verification
-name: Frontend Implementer
+name: frontend-impl-feature
 tools: ["search/codebase", "search", "read", "edit", "execute/runInTerminal", "read/problems"]
 ---
 

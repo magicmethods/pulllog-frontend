@@ -48,11 +48,11 @@ Issue、要件書、要求仕様から着手し、設計、UI/UX、実装、レ�
 
 | 役割 | 担当 | 主な責務 |
 |---|---|---|
-| 司令塔 | Feature Orchestrator | 要求整理、段階管理、handoff、差し戻し管理、最終取りまとめ |
-| 設計 | System Architect | 最小構成の技術設計、影響範囲整理、API / backend 整合確認 |
-| UI/UX | UI/UX Designer | 画面構成、導線、状態設計、レスポンシブ、アクセシビリティ整理 |
-| 実装 | Frontend Implementer | 最小差分実装、必要なテスト追加、検証実施 |
-| レビュー | Feature Reviewer | 要求適合、規約順守、テスト妥当性、回帰リスク評価 |
+| 司令塔 | `frontend-orch-feature` | 要求整理、段階管理、handoff、差し戻し管理、最終取りまとめ |
+| 設計 | `frontend-arch-system` | 最小構成の技術設計、影響範囲整理、API / backend 整合確認 |
+| UI/UX | `frontend-design-uiux` | 画面構成、導線、状態設計、レスポンシブ、アクセシビリティ整理 |
+| 実装 | `frontend-impl-feature` | 最小差分実装、必要なテスト追加、検証実施 |
+| レビュー | `frontend-review-feature` | 要求適合、規約順守、テスト妥当性、回帰リスク評価 |
 
 ---
 
@@ -60,22 +60,22 @@ Issue、要件書、要求仕様から着手し、設計、UI/UX、実装、レ�
 
 ```text
 Request / Issue / Spec
-  -> Feature Orchestrator
-    -> System Architect
-      -> UI/UX Designer
-        -> Frontend Implementer
-          -> Feature Reviewer
-            -> Feature Orchestrator summary
+  -> frontend-orch-feature
+    -> frontend-arch-system
+      -> frontend-design-uiux
+        -> frontend-impl-feature
+          -> frontend-review-feature
+            -> frontend-orch-feature summary
 ```
 
-UI 変更が存在しない場合、`UI/UX Designer` を省略してもよいです。  
-バックエンド変更や API 契約変更が必要な場合は、System Architect の段階でその依存を明示し、frontend 単独で閉じる前提にしません。
+UI 変更が存在しない場合、`frontend-design-uiux` を省略してもよいです。  
+バックエンド変更や API 契約変更が必要な場合は、`frontend-arch-system` の段階でその依存を明示し、frontend 単独で閉じる前提にしません。
 
 ---
 
 ## 6. ステージ定義
 
-### 6.1 Feature Orchestrator
+### 6.1 `frontend-orch-feature`
 
 #### 入力
 
@@ -115,7 +115,7 @@ UI 変更が存在しない場合、`UI/UX Designer` を省略してもよいで
 
 ---
 
-### 6.2 System Architect
+### 6.2 `frontend-arch-system`
 
 #### 入力
 
@@ -157,12 +157,12 @@ UI 変更が存在しない場合、`UI/UX Designer` を省略してもよいで
 
 ---
 
-### 6.3 UI/UX Designer
+### 6.3 `frontend-design-uiux`
 
 #### 入力
 
 - 要件
-- System Architect の設計結果
+- `frontend-arch-system` の設計結果
 - 既存画面とコンポーネント
 - i18n 辞書
 
@@ -196,12 +196,12 @@ UI 変更が存在しない場合、`UI/UX Designer` を省略してもよいで
 
 ---
 
-### 6.4 Frontend Implementer
+### 6.4 `frontend-impl-feature`
 
 #### 入力
 
-- System Architect の設計結果
-- UI/UX Designer の handoff
+- `frontend-arch-system` の設計結果
+- `frontend-design-uiux` の handoff
 - 既存コードベース
 
 #### やること
@@ -232,7 +232,7 @@ UI 変更が存在しない場合、`UI/UX Designer` を省略してもよいで
 
 ---
 
-### 6.5 Feature Reviewer
+### 6.5 `frontend-review-feature`
 
 #### 入力
 
@@ -272,7 +272,7 @@ UI 変更が存在しない場合、`UI/UX Designer` を省略してもよいで
 
 ## 7. API / backend / contract 変更時の分岐
 
-System Architect は、要求を受けた時点で以下を判定します。
+`frontend-arch-system` は、要求を受けた時点で以下を判定します。
 
 | 判定 | 対応 |
 |---|---|
@@ -304,7 +304,7 @@ API や contract に影響する変更では、以下を最低限確認します
 
 ## 9. 開始前チェックリスト
 
-Feature Orchestrator は着手前に、最低でも以下を確認します。
+`frontend-orch-feature` は着手前に、最低でも以下を確認します。
 
 | 確認項目 | 内容 |
 |---|---|
@@ -509,8 +509,8 @@ feature ごとの長期成果物は、原則として `docs/features/<feature-sl
 
 以下はチャットだけで済ませず、原則として永続化します。
 
-- System Architect の最終設計結果
-- UI/UX Designer の最終 UI 仕様
+- `frontend-arch-system` の最終設計結果
+- `frontend-design-uiux` の最終 UI 仕様
 - backend / contract 依存が確定した判断
 - レビュー段階での Must Fix
 - 次回セッションへ持ち越す blocker
@@ -614,7 +614,7 @@ Must Fix:
 
 ## 13. 実運用時の開始テンプレート
 
-Feature Orchestrator を起動する際は、以下のような入力形式を推奨します。
+通常は prompt の `Start Frontend Feature Workflow` か、agent の `frontend-orch-feature` を入口にします。起動する際は、以下のような入力形式を推奨します。
 
 ```text
 対象: <issue or feature name>
@@ -650,8 +650,8 @@ Feature Orchestrator を起動する際は、以下のような入力形式を�
 - `docs/features/_templates/review-notes.md`
 - `api/endpoints.ts`
 - `../contract/api-schema.yaml`
-- `.github/agents/feature-orchestrator.agent.md`
-- `.github/agents/system-architect.agent.md`
-- `.github/agents/ui-ux-designer.agent.md`
-- `.github/agents/frontend-implementer.agent.md`
-- `.github/agents/feature-reviewer.agent.md`
+- `.github/agents/frontend-orch-feature.agent.md`
+- `.github/agents/frontend-arch-system.agent.md`
+- `.github/agents/frontend-design-uiux.agent.md`
+- `.github/agents/frontend-impl-feature.agent.md`
+- `.github/agents/frontend-review-feature.agent.md`

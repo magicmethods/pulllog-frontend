@@ -10,6 +10,7 @@
 | ファイル | 概要 |
 |---|---|
 | `architecture/overview.md` | フロントエンド全体構成、Nuxt / Nitro / Pinia / API プロキシ方針の整理 |
+| `architecture/e2e-test-ja.md` | Playwright の manifest-driven E2E アーキテクチャの日本語版概要 |
 | `architecture/feature-development-workflow.md` | 5役エージェントで進めるフロントエンド機能開発の標準ワークフロー |
 | `architecture/e2e-test.md` | Playwright の **manifest-driven E2E** アーキテクチャ、標準マトリクス、レポート / PDF evidence 方針 |
 | `operations/deploy-and-build.md` | 開発環境構築、`pnpm dev` / `pnpm build` / `pnpm preview` / Workers デプロイ手順 |
@@ -25,6 +26,7 @@ docs/
 ├── README.md                                     # このファイル
 ├── architecture/
 │   ├── overview.md                               # システム構成・ルーティング・状態管理・API通信方針
+│   ├── e2e-test-ja.md                            # Playwright E2E アーキテクチャの日本語版概要
 │   ├── feature-development-workflow.md           # 5役エージェントの feature 開発標準フロー
 │   └── e2e-test.md                               # Playwright E2E アーキテクチャ / manifest / report policy
 ├── features/

@@ -1,23 +1,23 @@
 ---
 description: Start the 5-role frontend feature development workflow from an issue, requirement, or specification
-name: Start Feature Workflow
+name: Start Frontend Feature Workflow
 argument-hint: Issue, requirement, or feature specification to orchestrate
-agent: Feature Orchestrator
+agent: frontend-orch-feature
 ---
 
 Start the frontend feature development workflow for the provided request.
 
-Use the repository's 5-role workflow and coordinate the work through the Feature Orchestrator first.
+Use the repository's 5-role workflow and coordinate the work through `frontend-orch-feature` first.
 
 Required references:
 - [Feature workflow](../../docs/architecture/feature-development-workflow.md)
 - [Architecture overview](../../docs/architecture/overview.md)
 - [Frontend rules](../../AGENTS.md)
-- [Feature Orchestrator](../agents/feature-orchestrator.agent.md)
-- [System Architect](../agents/system-architect.agent.md)
-- [UI/UX Designer](../agents/ui-ux-designer.agent.md)
-- [Frontend Implementer](../agents/frontend-implementer.agent.md)
-- [Feature Reviewer](../agents/feature-reviewer.agent.md)
+- [frontend-orch-feature](../agents/frontend-orch-feature.agent.md)
+- [frontend-arch-system](../agents/frontend-arch-system.agent.md)
+- [frontend-design-uiux](../agents/frontend-design-uiux.agent.md)
+- [frontend-impl-feature](../agents/frontend-impl-feature.agent.md)
+- [frontend-review-feature](../agents/frontend-review-feature.agent.md)
 
 Instructions:
 - Treat the user input as the primary request source unless it explicitly references a stricter source of truth

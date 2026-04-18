@@ -233,40 +233,44 @@ E2E の挙動を追加または変更する場合:
 6. 安定性と対象範囲をレビューする
 
 ## 15. Agent 駆動ワークフロー
-このリポジトリには、E2E 作業用のカスタム Agent が `.github/agents/` 配下に含まれています。
+このリポジトリでは、E2E 作業の入口として `frontend-orch-e2e` を使います。
 
-- `scenario-designer` : シナリオとマニフェストの設計
-- `playwright-implementer` : spec 実装と検証
-- `e2e-debugger` : 失敗再現と最小修正
-- `test-reviewer` : 保守性と証跡品質のレビュー
+- `frontend-orch-e2e` : ステージ振り分けと全体進行
+- `frontend-design-e2e-scenario` : シナリオとマニフェストの設計
+- `frontend-impl-e2e-playwright` : spec 実装と検証
+- `frontend-debug-e2e` : 失敗再現と最小修正
+- `frontend-review-e2e` : 保守性と証跡品質のレビュー
 
 推奨される実作業フロー:
-1. Copilot Chat を開き、適切なカスタム Agent を選ぶ
-2. `scenario-designer` に、ケース範囲とマニフェストの定義または改善を依頼する
+1. Copilot Chat を開き、`frontend-orch-e2e` または prompt の `Start Frontend E2E Workflow` から開始する
+2. `frontend-orch-e2e` に、ケース範囲整理と `frontend-design-e2e-scenario` への振り分けを依頼する
 3. 提案された `case id`、タグ、対象に含める範囲、除外する範囲、前提条件をレビューして承認する
-4. `playwright-implementer` に、承認済みケースを最小差分で実装するよう依頼する
+4. `frontend-orch-e2e` から `frontend-impl-e2e-playwright` へ実装を進める
 5. まず最小限の対象範囲でケースを検証する。通常は次:
    - `pnpm run test:e2e:case -- <case-id> --project=chromium`
 6. その後、必要に応じて標準マトリクスでも検証する:
    - `pnpm run test:e2e:case -- <case-id> --project=chromium,ipad-pro-11,iphone-14`
-7. 実行が失敗した場合は、レポートパス・アーティファクト・失敗範囲を添えて `e2e-debugger` へ切り替える
-8. 実行が安定したら、`test-reviewer` にマニフェスト / spec / レポート / 証跡品質のレビューを依頼する
+7. 実行が失敗した場合は、レポートパス・アーティファクト・失敗範囲を添えて `frontend-debug-e2e` へ切り替える
+8. 実行が安定したら、`frontend-review-e2e` にマニフェスト / spec / レポート / 証跡品質のレビューを依頼する
 9. ケースが成功し、保管が許可されていれば、生成済み Markdown レポートから PDF 証跡を出力する
 10. 一時的な Playwright アーティファクトではなく、意図したソース / ドキュメント変更のみをコミットする
 
 ### 推奨プロンプトテンプレート
 次のようなプロンプトを使います。
 
-`scenario-designer` 向け:
+`frontend-orch-e2e` 向け:
+> `<target behavior>` の E2E 作業をオーケストレーションしてください。シナリオ設計、実装、失敗調査、レビューのどこから始めるべきか判断し、既定マトリクス（`chromium`, `ipad-pro-11`, `iphone-14`）を前提に必要ステージを整理してください。
+
+`frontend-design-e2e-scenario` 向け:
 > `<target behavior>` のためのマニフェスト駆動 E2E ケースを設計してください。既定マトリクス（`chromium`, `ipad-pro-11`, `iphone-14`）を維持し、対象に含める範囲・除外する範囲・前提条件・タグを定義し、`e2e/cases/<case-id>.json` を提案してください。
 
-`playwright-implementer` 向け:
+`frontend-impl-e2e-playwright` 向け:
 > 承認済みの `<case-id>` を、現在のマニフェスト駆動構成（`e2e/cases/`, `tests/e2e/core-flows.spec.ts`, page objects, support helpers）に従って実装してください。可能な限り既存ヘルパーを再利用し、まず `pnpm run test:e2e:case -- <case-id> --project=chromium` で検証してください。
 
-`e2e-debugger` 向け:
+`frontend-debug-e2e` 向け:
 > 最新の `e2e/reports/.../report.md` と Playwright アーティファクトを使って、`<project>` 上での `<case-id>` 失敗を再現してください。根本原因を分類し、正当化できる最小修正を適用したうえで、関連範囲を再実行してください。
 
-`test-reviewer` 向け:
+`frontend-review-e2e` 向け:
 > `<case-id>` について、対象範囲、安定性、マニフェスト整合性、Markdown / PDF レポート品質、長期保守性をレビューしてください。`Must fix`、`Should fix`、`Nice to have`、`Final verdict` を返してください。
 
 ### コミット範囲の指針

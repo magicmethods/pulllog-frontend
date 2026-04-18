@@ -1,6 +1,6 @@
 ---
 description: Review frontend feature implementation against requirements, architecture, tests, and repository rules using Must Fix Should Fix Nice to Have and Final Verdict
-name: Feature Reviewer
+name: frontend-review-feature
 tools: ["search/codebase", "search", "read", "read/problems"]
 ---
 

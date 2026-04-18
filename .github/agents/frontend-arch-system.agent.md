@@ -1,6 +1,6 @@
 ---
 description: Design minimal frontend system architecture from issues or requirement documents using the existing frontend, backend, and API contract
-name: System Architect
+name: frontend-arch-system
 tools: ["search/codebase", "search", "read", "read/problems"]
 ---
 

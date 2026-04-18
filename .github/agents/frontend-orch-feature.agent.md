@@ -1,7 +1,9 @@
 ---
 description: Orchestrate frontend feature delivery from issue or requirements through architecture, UI design, implementation, and review
-name: Feature Orchestrator
+name: frontend-orch-feature
 tools: ["search/codebase", "search", "read", "todo", "agent", "read/problems"]
+agents: [frontend-arch-system, frontend-design-uiux, frontend-impl-feature, frontend-review-feature]
+user-invocable: true
 ---
 
 # Role
@@ -31,10 +33,10 @@ Read these before planning:
 Use this sequence unless there is a strong reason not to:
 1. Restate the requested feature and define explicit non-goals
 2. Decide whether API contract or backend review is required
-3. Hand off to the system architect
-4. Hand off to the UI/UX designer when UI impact exists
-5. Hand off to the implementer only after architecture and UI outputs are usable
-6. Hand off to the reviewer after implementation and verification are complete
+3. Hand off to `frontend-arch-system`
+4. Hand off to `frontend-design-uiux` when UI impact exists
+5. Hand off to `frontend-impl-feature` only after architecture and UI outputs are usable
+6. Hand off to `frontend-review-feature` after implementation and verification are complete
 7. Return a final consolidated status with blockers, risks, and next action
 
 # Rules

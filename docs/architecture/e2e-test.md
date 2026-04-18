@@ -233,40 +233,44 @@ When adding or changing E2E behavior:
 6. review for stability and scope
 
 ## 15. Agent-driven workflow
-This repository includes the following custom agents for E2E work under `.github/agents/`:
+This repository uses `frontend-orch-e2e` as the default entry point for E2E work under `.github/agents/`.
 
-- `scenario-designer` for scenario and manifest design
-- `playwright-implementer` for spec implementation and verification
-- `e2e-debugger` for failure reproduction and minimal fixes
-- `test-reviewer` for maintainability and evidence review
+- `frontend-orch-e2e` for stage routing and consolidated status
+- `frontend-design-e2e-scenario` for scenario and manifest design
+- `frontend-impl-e2e-playwright` for spec implementation and verification
+- `frontend-debug-e2e` for failure reproduction and minimal fixes
+- `frontend-review-e2e` for maintainability and evidence review
 
 The recommended hands-on flow is:
-1. open Copilot Chat and select the appropriate custom agent
-2. ask `scenario-designer` to define or refine the case scope and manifest
+1. open Copilot Chat and start with `frontend-orch-e2e` or the `Start Frontend E2E Workflow` prompt
+2. ask `frontend-orch-e2e` to define or refine the case scope and route work to `frontend-design-e2e-scenario`
 3. review and approve the proposed `case id`, tags, included coverage, excluded coverage, and prerequisites
-4. ask `playwright-implementer` to implement the approved case with minimal diffs
+4. ask `frontend-orch-e2e` to route approved implementation work to `frontend-impl-e2e-playwright`
 5. verify the case first with the minimum relevant scope, usually:
    - `pnpm run test:e2e:case -- <case-id> --project=chromium`
 6. then verify the standard matrix when appropriate:
    - `pnpm run test:e2e:case -- <case-id> --project=chromium,ipad-pro-11,iphone-14`
-7. if the run fails, switch to `e2e-debugger` with the report path, artifacts, and failure scope
-8. once the run is stable, ask `test-reviewer` to review the manifest/spec/report/evidence quality
+7. if the run fails, switch to `frontend-debug-e2e` with the report path, artifacts, and failure scope
+8. once the run is stable, ask `frontend-review-e2e` to review the manifest/spec/report/evidence quality
 9. if the case succeeds and archival is allowed, export PDF evidence from the generated Markdown report
 10. commit only the intended source/doc changes, not transient Playwright artifacts
 
 ### Recommended prompt templates
 Use prompts like the following.
 
-For `scenario-designer`:
+For `frontend-orch-e2e`:
+> Orchestrate E2E work for `<target behavior>` and decide whether this needs scenario design, implementation, debugging, or review. Keep the default matrix (`chromium`, `ipad-pro-11`, `iphone-14`) unless the case clearly justifies another scope.
+
+For `frontend-design-e2e-scenario`:
 > Design a manifest-driven E2E case for `<target behavior>`. Keep the default matrix (`chromium`, `ipad-pro-11`, `iphone-14`), define included/excluded coverage, prerequisites, tags, and propose `e2e/cases/<case-id>.json`.
 
-For `playwright-implementer`:
+For `frontend-impl-e2e-playwright`:
 > Implement the approved `<case-id>` using the current manifest-driven structure (`e2e/cases/`, `tests/e2e/core-flows.spec.ts`, page objects, and support helpers). Reuse existing helpers where possible and verify with `pnpm run test:e2e:case -- <case-id> --project=chromium` first.
 
-For `e2e-debugger`:
+For `frontend-debug-e2e`:
 > Reproduce the `<case-id>` failure on `<project>` using the latest `e2e/reports/.../report.md` and Playwright artifacts. Classify the root cause and apply the smallest justified fix, then rerun the relevant scope.
 
-For `test-reviewer`:
+For `frontend-review-e2e`:
 > Review `<case-id>` for scope, stability, manifest consistency, Markdown/PDF report quality, and long-term maintainability. Return `Must fix`, `Should fix`, `Nice to have`, and `Final verdict`.
 
 ### Commit scope guidance

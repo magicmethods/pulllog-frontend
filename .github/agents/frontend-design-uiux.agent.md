@@ -1,6 +1,6 @@
 ---
 description: Design frontend UI and UX from requirements and architecture while preserving the existing Pulllog web app tone and usability
-name: UI/UX Designer
+name: frontend-design-uiux
 tools: ["search/codebase", "search", "read", "read/problems"]
 ---
 
