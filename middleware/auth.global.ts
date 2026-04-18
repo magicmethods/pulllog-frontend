@@ -14,6 +14,7 @@ export default defineNuxtRouteMiddleware((to, _from) => {
     // 認証が必要なルート
     const allowedPrefixes = [
         "/apps",
+        "/gallery",
         "/history",
         "/stats",
         "/settings",

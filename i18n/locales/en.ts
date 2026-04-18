@@ -487,6 +487,141 @@ export default defineI18nLocale(async () => ({
             stats: "Loading statistics data...",
         },
     },
+    // Gallery Page
+    gallery: {
+        header: "Gallery",
+        description: "Browse your uploaded images.",
+        loading: "Loading gallery...",
+        loadingMore: "Loading more...",
+        empty: "No uploaded images yet",
+        error: "Failed to load the gallery",
+        loadMore: "Load more",
+        actions: {
+            upload: "Upload image",
+        },
+        filters: {
+            period: "Period",
+            last7Days: "7d",
+            last30Days: "30d",
+            last90Days: "90d",
+            all: "All",
+        },
+        upload: {
+            title: "Upload image",
+            description:
+                "Adding an image refreshes the gallery list and storage usage. The initial scope supports title, description, visibility, and file selection only.",
+            fileLabel: "Image file",
+            chooseFile: "Choose image",
+            dropzone: "Drag and drop an image here, or use file selection.",
+            imageOnlyHint:
+                "Only image files are supported in the initial release.",
+            previewAlt: "Image preview for upload",
+            previewEmpty: "A preview appears here after you choose an image.",
+            selectedFile: "Selected file",
+            notSelected: "None",
+            initialScopeNote:
+                "Tag input and log reassignment are out of scope until FE-G5.",
+            cancel: "Cancel",
+            submit: "Upload",
+            uploading: "Uploading...",
+            fields: {
+                title: "Title",
+                titlePlaceholder: "Enter a title",
+                description: "Description",
+                descriptionPlaceholder: "Enter a description",
+                visibility: "Visibility",
+            },
+            error: {
+                fileRequired: "Choose an image to upload.",
+                imageOnly: "Only image files can be uploaded.",
+                conflict:
+                    "This image already exists. Check for duplicates before retrying.",
+                forbidden:
+                    "Your current plan or permissions do not allow uploads.",
+                validation:
+                    "Check the form values and file constraints, then try again.",
+                generic: "Failed to upload the image. Please try again later.",
+            },
+        },
+        usage: {
+            title: "Storage usage",
+            loading: "Loading storage usage...",
+            used: "Used",
+            limit: "Limit",
+            remaining: "Remaining",
+            files: "Files",
+            progress: "Usage",
+        },
+        card: {
+            untitled: "Untitled",
+            noDescription: "No description",
+            createdAt: "Created",
+            size: "Size",
+            open: "Open details",
+            openExternal: "Open in new tab",
+            noPreview: "No preview",
+            visibility: {
+                private: "Private",
+                unlisted: "Unlisted",
+                public: "Public",
+            },
+        },
+        detail: {
+            title: "Asset details",
+            description:
+                "Review the asset and update its title, description, and visibility.",
+            loading: "Loading asset details...",
+            previewEmpty: "No preview is available for this asset.",
+            fields: {
+                title: "Title",
+                titlePlaceholder: "Enter a title",
+                description: "Description",
+                descriptionPlaceholder: "Enter a description",
+                visibility: "Visibility",
+            },
+            actions: {
+                cancel: "Close",
+                save: "Save",
+                saving: "Saving...",
+            },
+            delete: {
+                title: "Delete asset",
+                description:
+                    "Deleting this asset cannot be undone. Continue only if you are sure.",
+                action: "Delete",
+                confirm: "Confirm delete",
+                cancel: "Keep asset",
+                confirmation:
+                    "Press delete again to permanently remove this asset.",
+            },
+            meta: {
+                createdAt: "Created",
+                updatedAt: "Updated",
+                size: "Size",
+                mime: "MIME type",
+                notAvailable: "Not available",
+            },
+            error: {
+                assetRequired: "No asset is selected.",
+                load: "Failed to load the asset details.",
+                save: "Failed to update the asset.",
+                delete: "Failed to delete the asset.",
+            },
+        },
+        toast: {
+            infoTitle: "Gallery",
+            infoDetail: "Gallery state has been updated.",
+            uploadSuccessTitle: "Upload complete",
+            uploadSuccessDetail: "The image was added to your gallery.",
+            uploadErrorTitle: "Upload failed",
+            saveSuccessTitle: "Saved",
+            saveSuccessDetail: "The asset details were updated.",
+            saveErrorTitle: "Save failed",
+            deleteSuccessTitle: "Deleted",
+            deleteSuccessDetail: "The asset was removed from your gallery.",
+            deleteErrorTitle: "Delete failed",
+        },
+    },
     // Settings Page
     settings: {
         header: "Account Information",

@@ -11,6 +11,10 @@ export const useCsrfStore = defineStore("csrf", () => {
     // State
     const token = ref<string>("")
 
+    function getRememberToken(): string | null {
+        return useCookie<string | null>("remember_token").value ?? null
+    }
+
     // Actions
     function setToken(newToken: string): void {
         token.value = newToken
@@ -20,19 +24,17 @@ export const useCsrfStore = defineStore("csrf", () => {
     }
 
     // Methods
-    async function refresh(): Promise<boolean> {
+    async function refresh(expiredToken?: string | null): Promise<boolean> {
         const { callApi } = useAPI()
-        const rememberCookie = useCookie<string | null>("remember_token")
-        // console.log('Calling CSRF refresh:', token.value, rememberCookie.value)
-        if (!rememberCookie.value) return false
+        const rememberToken = getRememberToken()
+        if (!rememberToken) return false
 
         try {
             const data = {
-                expired_csrf_token: token.value || null,
-                remember_token: rememberCookie.value || null,
+                expired_csrf_token: (expiredToken ?? token.value) || null,
+                remember_token: rememberToken,
             }
-            if (!data.expired_csrf_token || !data.remember_token) {
-                // CSRFトークンやremember_tokenがない場合
+            if (!data.remember_token) {
                 return false
             }
             const res = await callApi<CsrfTokenResponse>({
@@ -51,10 +53,23 @@ export const useCsrfStore = defineStore("csrf", () => {
         }
     }
 
+    async function bootstrap(): Promise<boolean> {
+        if (token.value) return true
+        if (!getRememberToken()) return false
+        return await refresh(null)
+    }
+
+    async function ensureToken(): Promise<boolean> {
+        if (token.value) return true
+        return await bootstrap()
+    }
+
     return {
         token,
         setToken,
         clearToken,
         refresh,
+        bootstrap,
+        ensureToken,
     }
 })

@@ -13,6 +13,7 @@
         "dev": "nuxt dev --dotenv .env.local",
         "generate": "nuxt generate --dotenv .env.production",
         "preview": "nuxt preview --dotenv .env.production",
+        "test:unit": "vitest run",
         "test:e2e:prepare": "cd ../backend/stable && composer run e2e:prepare",
         "test:e2e": "node ./scripts/run-e2e.mjs",
         "test:e2e:all": "node ./scripts/run-e2e.mjs --projects chromium,firefox,webkit,ipad-pro-11,iphone-14,android-pixel-7",
@@ -79,6 +80,7 @@
         "sass": "^1.86.3",
         "typedoc": "^0.28.2",
         "unplugin-vue-components": "^28.5.0",
+        "vitest": "^3.2.4",
         "vue-tsc": "^2.2.8"
     }
 }

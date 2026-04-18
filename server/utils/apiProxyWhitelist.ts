@@ -1,6 +1,7 @@
 export const API_PROXY_ALLOW_LIST = [
     // /api/apps, /api/user/profile など正規表現やパスで指定
     /^apps(?:\/|$)/,
+    /^gallery(?:\/|$)/,
     /^logs(?:\/|$)/,
     /^stats(?:\/|$)/,
     /^user(?:\/|$)/,

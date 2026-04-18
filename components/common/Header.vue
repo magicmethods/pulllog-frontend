@@ -56,6 +56,13 @@ const naviLinks = computed(() => [
         prefix: "symbol",
         path: "/stats",
     },
+    {
+        name: t("gallery.header"),
+        icon: "pi pi-images",
+        symbol: "🖼️",
+        prefix: "symbol",
+        path: "/gallery",
+    },
 ])
 const homePage = computed(
     () => userStore.user?.homePage ?? naviLinks.value[0].path,

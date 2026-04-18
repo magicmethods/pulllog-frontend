@@ -15,7 +15,7 @@
 | `architecture/e2e-test.md` | Playwright の **manifest-driven E2E** アーキテクチャ、標準マトリクス、レポート / PDF evidence 方針 |
 | `operations/deploy-and-build.md` | 開発環境構築、`pnpm dev` / `pnpm build` / `pnpm preview` / Workers デプロイ手順 |
 | `integrations/backend/gallery-upload-ticket-api-spec.md` | ギャラリー upload ticket API のバックエンド連携仕様 |
-| `features/gallery/*.md` | ギャラリー機能の実装計画・段階別メモ |
+| `features/gallery/*.md` | ギャラリー機能の current-state 文書、仕様、実装メモ |
 
 ---
 
@@ -38,12 +38,11 @@ docs/
 │   │   ├── implementation-notes.md              # Implementer 用の検証メモ
 │   │   └── review-notes.md                      # Reviewer 用のレビューひな形
 │   └── gallery/
-│       ├── implementation-plan.md                # ギャラリー機能 全体実装計画・優先順位
-│       ├── api-foundation-plan.md                # FE-G1: API基盤整備
-│       ├── list-ui-plan.md                       # FE-G2: 一覧・フィルタUI
-│       ├── usage-meter-plan.md                   # FE-G3: 使用量メーター
-│       ├── upload-flow-plan.md                   # FE-G4: アップロードフロー
-│       └── asset-detail-and-private-access-plan.md # FE-G5: 詳細・配信強化
+│       ├── gallery-plan.md                       # ギャラリー機能の統合計画
+│       ├── gallery-ui-spec.md                    # ギャラリー UI 仕様
+│       ├── implementation-notes.md               # 実装時の確認メモ
+│       ├── review-notes.md                       # レビュー結果メモ
+│       └── workflow-notes.md                     # 進行管理メモ
 ├── integrations/
 │   └── backend/
 │       └── gallery-upload-ticket-api-spec.md     # バックエンド連携仕様（uploadTicket API）

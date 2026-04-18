@@ -85,4 +85,16 @@ export const endpoints = {
     currency: {
         list: () => `${useConfig().apiProxy}/currencies`, // GET
     },
+    gallery: {
+        uploadTicket: () =>
+            `${useConfig().apiProxy}/gallery/assets/upload-ticket`, // POST
+        list: () => `${useConfig().apiProxy}/gallery/assets`, // GET
+        detail: (assetId: string) =>
+            `${useConfig().apiProxy}/gallery/assets/${assetId}`, // GET
+        update: (assetId: string) =>
+            `${useConfig().apiProxy}/gallery/assets/${assetId}`, // PATCH
+        delete: (assetId: string) =>
+            `${useConfig().apiProxy}/gallery/assets/${assetId}`, // DELETE
+        usage: () => `${useConfig().apiProxy}/gallery/usage`, // GET
+    },
 }

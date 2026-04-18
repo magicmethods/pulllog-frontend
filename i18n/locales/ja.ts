@@ -481,6 +481,140 @@ export default defineI18nLocale(async () => ({
             stats: "統計データを読み込み中...",
         },
     },
+    // Gallery Page
+    gallery: {
+        header: "ギャラリー",
+        description: "アップロード済みの画像を確認できます。",
+        loading: "ギャラリーを読み込み中...",
+        loadingMore: "さらに読み込み中...",
+        empty: "アップロードされた画像はありません",
+        error: "ギャラリーの読み込みに失敗しました",
+        loadMore: "もっと見る",
+        actions: {
+            upload: "画像をアップロード",
+        },
+        filters: {
+            period: "表示期間",
+            last7Days: "7日",
+            last30Days: "30日",
+            last90Days: "90日",
+            all: "全期間",
+        },
+        upload: {
+            title: "画像をアップロード",
+            description:
+                "画像を追加すると、ギャラリー一覧と使用量を自動で更新します。初期スコープではタイトル・説明・公開範囲のみ編集できます。",
+            fileLabel: "画像ファイル",
+            chooseFile: "画像を選択",
+            dropzone:
+                "ここに画像をドラッグ&ドロップするか、ファイル選択を使用してください。",
+            imageOnlyHint: "初期リリースでは画像ファイルのみ対応します。",
+            previewAlt: "アップロード予定の画像プレビュー",
+            previewEmpty: "画像を選択するとここにプレビューを表示します。",
+            selectedFile: "選択中のファイル",
+            notSelected: "未選択",
+            initialScopeNote:
+                "タグ入力とログ紐付け変更は FE-G5 以降で対応予定です。",
+            cancel: "キャンセル",
+            submit: "アップロード",
+            uploading: "アップロード中...",
+            fields: {
+                title: "タイトル",
+                titlePlaceholder: "タイトルを入力",
+                description: "説明",
+                descriptionPlaceholder: "説明を入力",
+                visibility: "公開範囲",
+            },
+            error: {
+                fileRequired: "アップロードする画像を選択してください。",
+                imageOnly: "画像ファイルのみアップロードできます。",
+                conflict:
+                    "同じ画像が既に登録されています。重複を確認してください。",
+                forbidden: "現在のプランまたは権限ではアップロードできません。",
+                validation: "入力内容またはファイル条件を確認してください。",
+                generic:
+                    "画像のアップロードに失敗しました。しばらくしてから再試行してください。",
+            },
+        },
+        usage: {
+            title: "使用量",
+            loading: "使用量を読み込み中...",
+            used: "使用済み",
+            limit: "上限",
+            remaining: "残り容量",
+            files: "ファイル数",
+            progress: "使用率",
+        },
+        card: {
+            untitled: "タイトル未設定",
+            noDescription: "説明はありません",
+            createdAt: "作成日時",
+            size: "サイズ",
+            open: "詳細を開く",
+            openExternal: "新しいタブで開く",
+            noPreview: "プレビューなし",
+            visibility: {
+                private: "非公開",
+                unlisted: "限定公開",
+                public: "公開",
+            },
+        },
+        detail: {
+            title: "画像詳細",
+            description:
+                "画像の詳細を確認し、タイトル・説明・公開範囲を更新できます。",
+            loading: "画像詳細を読み込み中...",
+            previewEmpty: "プレビューを表示できる画像がありません。",
+            fields: {
+                title: "タイトル",
+                titlePlaceholder: "タイトルを入力",
+                description: "説明",
+                descriptionPlaceholder: "説明を入力",
+                visibility: "公開範囲",
+            },
+            actions: {
+                cancel: "閉じる",
+                save: "保存",
+                saving: "保存中...",
+            },
+            delete: {
+                title: "画像を削除",
+                description:
+                    "この画像を削除すると元に戻せません。必要な場合だけ実行してください。",
+                action: "削除する",
+                confirm: "削除を確定",
+                cancel: "削除をやめる",
+                confirmation:
+                    "削除を実行するには、もう一度削除ボタンを押してください。",
+            },
+            meta: {
+                createdAt: "作成日時",
+                updatedAt: "更新日時",
+                size: "サイズ",
+                mime: "MIME タイプ",
+                notAvailable: "未設定",
+            },
+            error: {
+                assetRequired: "対象の画像が選択されていません。",
+                load: "画像詳細の取得に失敗しました。",
+                save: "画像の更新に失敗しました。",
+                delete: "画像の削除に失敗しました。",
+            },
+        },
+        toast: {
+            infoTitle: "ギャラリー",
+            infoDetail: "ギャラリー操作を更新しました。",
+            uploadSuccessTitle: "アップロード完了",
+            uploadSuccessDetail: "画像をギャラリーに追加しました。",
+            uploadErrorTitle: "アップロード失敗",
+            saveSuccessTitle: "保存完了",
+            saveSuccessDetail: "画像の情報を更新しました。",
+            saveErrorTitle: "保存失敗",
+            deleteSuccessTitle: "削除完了",
+            deleteSuccessDetail: "画像を削除しました。",
+            deleteErrorTitle: "削除失敗",
+        },
+    },
     // Settings Page
     settings: {
         header: "登録情報変更",
