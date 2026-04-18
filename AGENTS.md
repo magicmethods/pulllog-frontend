@@ -1,5 +1,10 @@
 # リポジトリ ガイドライン
 
+## 用語方針
+- PullLog 全体は `workspace`、`frontend/` など各トップレベルディレクトリは `subproject` と呼ぶ。
+- 正式な定義は `../pulllog-docs/docs/workspace-terminology.md` を参照する。
+- VS Code 機能の説明では `workspace` / `workspace folder`、pnpm の説明では `pnpm workspace` など公式用語を優先する。
+
 ## プロジェクト構成とモジュールの整理
 - `pages/`: ルート駆動のビュー。`layouts/` は画面枠、`middleware/` はガード処理、`app.vue` はルートコンポーネント。
 - `components/`: 再利用可能な Vue コンポーネント（PrimeVue リゾルバ経由で自動インポート）。

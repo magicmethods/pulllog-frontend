@@ -3,6 +3,8 @@
 個人のガチャ履歴を記録・管理するWebアプリ「PullLog」のフロントエンドリポジトリです。  
 本アプリはNuxt.js 3 + PrimeVue 4 + Pinia 3 + TailwindCSS 4 + TypeScript + Luxon + Chart.jsを中心技術として構築されています。
 
+> 用語方針: PullLog 全体は workspace、`frontend/` など各トップレベルディレクトリは subproject と呼びます。正式な定義は `../pulllog-docs/docs/workspace-terminology.md` を参照してください。VS Code や pnpm の機能名に言及する場合は、それぞれの公式用語を優先します。
+
 #### スクリーンショット
 
 | ![アプリ管理](./public/images/gallery-image1.webp "アプリ管理") | ![履歴管理](./public/images/gallery-image2.webp "履歴登録・管理") | ![統計・分析](./public/images/gallery-image3.webp "統計・分析") |
