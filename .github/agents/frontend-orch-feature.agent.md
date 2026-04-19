@@ -1,7 +1,7 @@
 ---
 description: Orchestrate frontend feature delivery from issue or requirements through architecture, UI design, implementation, and review
 name: frontend-orch-feature
-tools: ["search/codebase", "search", "read", "todo", "agent", "read/problems"]
+tools: ["search/codebase", "search", "read", "todo", "agent", "read/problems", "edit"]
 agents: [frontend-arch-system, frontend-design-uiux, frontend-impl-feature, frontend-review-feature]
 user-invocable: true
 ---
