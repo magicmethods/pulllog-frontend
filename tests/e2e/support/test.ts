@@ -3,7 +3,11 @@ import {
     type E2EAccountCredentials,
     resolveAccountCredentials,
 } from "./account-resolver"
-import { annotateCase, type E2ECaseManifest } from "./case-manifest"
+import {
+    annotateCase,
+    type E2ECaseManifest,
+    resolveRuntimeLaneForCase,
+} from "./case-manifest"
 import { E2EScenarioArtifacts } from "./scenario-reporting"
 
 export interface E2EScenarioContext {
@@ -33,6 +37,12 @@ export const test = base.extend<{ scenario: E2EScenarioContext }>({
                 activeAccount = null
                 artifacts.setCaseManifest(manifest)
                 annotateCase(testInfo, manifest)
+
+                const runtimeLane = resolveRuntimeLaneForCase(manifest)
+                const runtimeNote = `[e2e-runtime] lane=${runtimeLane} case=${manifest.id} account=${manifest.account.key}`
+
+                artifacts.addNote(runtimeNote)
+                process.stderr.write(`${runtimeNote}\n`)
             },
             getCaseManifest: () => activeManifest,
             requireCaseManifest: () => {

@@ -22,6 +22,18 @@ const accountEnvPairs: Record<string, AccountEnvPair> = {
             "PLAYWRIGHT_E2E_PASSWORD",
         ],
     },
+    demo_user: {
+        emailKeys: [
+            "PLAYWRIGHT_E2E_DEMO_USER_EMAIL",
+            "E2E_ACCOUNT_DEMO_USER_EMAIL",
+            "DEMO_EMAIL",
+        ],
+        passwordKeys: [
+            "PLAYWRIGHT_E2E_DEMO_USER_PASSWORD",
+            "E2E_ACCOUNT_DEMO_USER_PASSWORD",
+            "DEMO_PASSWORD",
+        ],
+    },
     admin_user: {
         emailKeys: [
             "PLAYWRIGHT_E2E_ADMIN_USER_EMAIL",

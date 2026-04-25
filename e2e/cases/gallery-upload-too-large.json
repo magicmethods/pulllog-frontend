@@ -1,0 +1,59 @@
+{
+    "id": "gallery-upload-too-large",
+    "enabled": true,
+    "env": "local",
+    "baseURL": "https://pull.log:4649",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "gallery",
+        "url": "/gallery",
+        "feature": "gallery-upload-too-large"
+    },
+    "navigation": {
+        "startFrom": "login",
+        "skipProcess": false,
+        "prerequisiteState": "gallery_upload_ready_for_standard_user"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case verifies that a fixture above the upload size limit is rejected before direct upload begins."
+    },
+    "preconditions": [
+        "The seeded standard user can sign in on the local-dev frontend.",
+        "The local frontend and backend development servers are already running.",
+        "The backend upload-ticket endpoint validates expectedBytes against the plan upload limit.",
+        "The prepared invalid-too-large fixture exists under e2e/fixtures/."
+    ],
+    "assertions": [
+        "The upload dialog can be opened.",
+        "Submitting the oversized fixture returns 422 from the upload-ticket endpoint.",
+        "The upload dialog shows an error state and direct upload does not proceed."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "gallery-upload-dialog-opened",
+            "gallery-upload-submit",
+            "gallery-upload-rejected"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 0,
+        "timeoutMs": 120000,
+        "runtimeLane": "local-dev",
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["gallery", "upload", "boundary", "size", "regression"],
+    "notes": "Uses e2e/fixtures/invalid-too-large.jpg to verify upload-ticket size rejection on the existing local-dev lane."
+}

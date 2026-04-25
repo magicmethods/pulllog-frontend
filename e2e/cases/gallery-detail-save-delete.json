@@ -1,0 +1,58 @@
+{
+    "id": "gallery-detail-save-delete",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "gallery",
+        "url": "/gallery",
+        "feature": "gallery-detail-save-delete"
+    },
+    "navigation": {
+        "startFrom": "login",
+        "skipProcess": false,
+        "prerequisiteState": "gallery_asset_exists_for_standard_user"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case verifies gallery detail fetch, save update, and delete on the standard local-e2e lane. Upload is intentionally excluded from both setup and assertions."
+    },
+    "preconditions": [
+        "The seeded standard user can sign in on the local-e2e frontend.",
+        "Playwright can start the frontend and backend webServer pair for local-e2e.",
+        "The backend gallery runtime recovery migration has been applied to the local database."
+    ],
+    "assertions": [
+        "The gallery detail modal fetches the asset detail successfully.",
+        "Saving updated gallery title and description returns 200 and updates the visible card state.",
+        "Deleting the same asset returns 204 and removes it from the visible gallery list."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "gallery-detail-open",
+            "gallery-detail-saved",
+            "gallery-detail-deleted"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 1,
+        "timeoutMs": 300000,
+        "runtimeLane": "local-e2e",
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["gallery", "detail", "update", "delete", "regression"],
+    "notes": "Pilot local-e2e migration target for FE-G5 detail/save/delete after gallery runtime smoke passes."
+}

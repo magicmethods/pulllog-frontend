@@ -80,7 +80,7 @@ export async function waitForLoaderToClear(page: Page): Promise<void> {
  * Verifies that the browser is already on the apps page.
  */
 export async function expectAppsPage(page: Page): Promise<void> {
-    await expect(page).toHaveURL(/\/apps(?:\?.*)?$/)
+    await expect(page).toHaveURL(/\/apps\/?(?:[?#].*)?$/)
 }
 
 /**

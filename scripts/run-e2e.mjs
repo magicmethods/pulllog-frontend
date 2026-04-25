@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process"
+import { spawn, spawnSync } from "node:child_process"
 import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 
@@ -40,6 +40,13 @@ for (const arg of rawArgs) {
         continue
     }
 
+    if (arg.startsWith("--lane=")) {
+        env.PLAYWRIGHT_RUNTIME_LANE = normalizeRuntimeLane(
+            arg.slice("--lane=".length),
+        )
+        continue
+    }
+
     if (pendingOption === "case") {
         env.PLAYWRIGHT_CASE_ID = appendValue(env.PLAYWRIGHT_CASE_ID, arg)
         pendingOption = null
@@ -58,6 +65,12 @@ for (const arg of rawArgs) {
         continue
     }
 
+    if (pendingOption === "lane") {
+        env.PLAYWRIGHT_RUNTIME_LANE = normalizeRuntimeLane(arg)
+        pendingOption = null
+        continue
+    }
+
     switch (arg) {
         case "--case":
             pendingOption = "case"
@@ -68,6 +81,9 @@ for (const arg of rawArgs) {
         case "--project":
         case "--projects":
             pendingOption = "projects"
+            break
+        case "--lane":
+            pendingOption = "lane"
             break
         default:
             passThroughArgs.push(arg)
@@ -84,6 +100,30 @@ if (!env.PLAYWRIGHT_PROJECTS && implicitProjects) {
     env.PLAYWRIGHT_PROJECTS = implicitProjects
     process.stderr.write(
         `[run-e2e] Applying manifest-driven project selection: ${implicitProjects}\n`,
+    )
+}
+
+const runtimeSelection = resolveRuntimeSelection(env)
+if (runtimeSelection.baseURL) {
+    env.PLAYWRIGHT_BASE_URL = runtimeSelection.baseURL
+    process.stderr.write(
+        `[run-e2e] Applying manifest-driven base URL: ${runtimeSelection.baseURL}\n`,
+    )
+}
+
+process.stderr.write(
+    `[run-e2e] Resolved runtime lane: ${runtimeSelection.lane}\n`,
+)
+
+if (runtimeSelection.lane === "local-dev") {
+    runLocalDevHealthCheck(env, runtimeSelection)
+}
+
+if (runtimeSelection.useExistingServers) {
+    env.PLAYWRIGHT_DISABLE_BACKEND_WEBSERVER = "1"
+    env.PLAYWRIGHT_DISABLE_FRONTEND_WEBSERVER = "1"
+    process.stderr.write(
+        "[run-e2e] Using existing frontend/backend servers for this case.\n",
     )
 }
 
@@ -135,40 +175,7 @@ function appendValue(existingValue, nextValue) {
 }
 
 function resolveManifestProjectOverride(runtimeEnv) {
-    const caseIds = parseTokens(
-        runtimeEnv.PLAYWRIGHT_CASE_IDS ?? runtimeEnv.PLAYWRIGHT_CASE_ID,
-    ).map((value) => value.toLowerCase())
-    const caseTags = parseTokens(
-        runtimeEnv.PLAYWRIGHT_CASE_TAGS ?? runtimeEnv.PLAYWRIGHT_CASE_TAG,
-    ).map((value) => value.toLowerCase())
-    const requestedEnv = runtimeEnv.PLAYWRIGHT_CASE_ENV?.trim().toLowerCase()
-    const manifests = loadCaseManifests()
-    const selectedManifests = manifests.filter((manifest) => {
-        if (!manifest?.enabled) {
-            return false
-        }
-
-        if (
-            caseIds.length > 0 &&
-            !caseIds.includes(manifest.id?.trim().toLowerCase())
-        ) {
-            return false
-        }
-
-        if (requestedEnv && manifest.env?.trim().toLowerCase() !== requestedEnv) {
-            return false
-        }
-
-        if (caseTags.length === 0) {
-            return true
-        }
-
-        const manifestTags = Array.isArray(manifest.tags)
-            ? manifest.tags.map((value) => value.toLowerCase())
-            : []
-
-        return caseTags.some((tag) => manifestTags.includes(tag))
-    })
+    const selectedManifests = resolveSelectedManifests(runtimeEnv)
 
     if (selectedManifests.length === 0) {
         return undefined
@@ -200,6 +207,209 @@ function resolveManifestProjectOverride(runtimeEnv) {
         : undefined
 }
 
+function resolveRuntimeSelection(runtimeEnv) {
+    const selectedManifests = resolveSelectedManifests(runtimeEnv)
+    const requestedLane = runtimeEnv.PLAYWRIGHT_RUNTIME_LANE
+        ? normalizeRuntimeLane(runtimeEnv.PLAYWRIGHT_RUNTIME_LANE)
+        : undefined
+
+    if (selectedManifests.length === 0) {
+        return {
+            lane: requestedLane ?? "local-e2e",
+            baseURL: resolveLaneBaseURL(requestedLane ?? "local-e2e", runtimeEnv),
+            useExistingServers: (requestedLane ?? "local-e2e") === "local-dev",
+        }
+    }
+
+    const manifestsByLane = new Map()
+    const resolvedBaseURLs = new Set()
+
+    for (const manifest of selectedManifests) {
+        const runtimeLane = resolveManifestRuntimeLane(manifest)
+        const manifestsForLane = manifestsByLane.get(runtimeLane) ?? []
+
+        manifestsForLane.push(manifest.id)
+        manifestsByLane.set(runtimeLane, manifestsForLane)
+
+        const baseURL = resolveManifestBaseURL(manifest, runtimeEnv)
+
+        if (!baseURL) {
+            throw new Error(
+                `Unable to resolve base URL for manifest "${manifest.id}" on lane "${runtimeLane}".`,
+            )
+        }
+
+        resolvedBaseURLs.add(baseURL)
+    }
+
+    if (manifestsByLane.size > 1) {
+        const laneSummary = [...manifestsByLane.entries()]
+            .map(([lane, caseIds]) => `${lane}: ${caseIds.join(", ")}`)
+            .join(" | ")
+
+        throw new Error(
+            `Selected manifests span multiple runtime lanes and cannot run together. ${laneSummary}`,
+        )
+    }
+
+    const [resolvedLane] = manifestsByLane.keys()
+
+    if (requestedLane && requestedLane !== resolvedLane) {
+        throw new Error(
+            `Requested runtime lane "${requestedLane}" does not match the selected manifest lane "${resolvedLane}".`,
+        )
+    }
+
+    if (resolvedBaseURLs.size !== 1) {
+        throw new Error(
+            `Selected manifests resolve to multiple base URLs on lane "${resolvedLane}": ${[...resolvedBaseURLs].join(", ")}`,
+        )
+    }
+
+    const [baseURL] = [...resolvedBaseURLs]
+
+    return {
+        lane: resolvedLane,
+        baseURL,
+        useExistingServers: resolvedLane === "local-dev",
+    }
+}
+
+function resolveSelectedManifests(runtimeEnv) {
+    const caseIds = parseTokens(
+        runtimeEnv.PLAYWRIGHT_CASE_IDS ?? runtimeEnv.PLAYWRIGHT_CASE_ID,
+    ).map((value) => value.toLowerCase())
+    const caseTags = parseTokens(
+        runtimeEnv.PLAYWRIGHT_CASE_TAGS ?? runtimeEnv.PLAYWRIGHT_CASE_TAG,
+    ).map((value) => value.toLowerCase())
+    const requestedEnv = runtimeEnv.PLAYWRIGHT_CASE_ENV?.trim().toLowerCase()
+    const manifests = loadCaseManifests()
+
+    return manifests.filter((manifest) => {
+        if (!manifest?.enabled) {
+            return false
+        }
+
+        if (
+            caseIds.length > 0 &&
+            !caseIds.includes(manifest.id?.trim().toLowerCase())
+        ) {
+            return false
+        }
+
+        if (requestedEnv && manifest.env?.trim().toLowerCase() !== requestedEnv) {
+            return false
+        }
+
+        if (caseTags.length === 0) {
+            return true
+        }
+
+        const manifestTags = Array.isArray(manifest.tags)
+            ? manifest.tags.map((value) => value.toLowerCase())
+            : []
+
+        return caseTags.some((tag) => manifestTags.includes(tag))
+    })
+}
+
+function resolveManifestBaseURL(manifest, runtimeEnv) {
+    const runtimeLane = resolveManifestRuntimeLane(manifest)
+
+    if (
+        runtimeLane === "local-dev" &&
+        runtimeEnv.PLAYWRIGHT_LOCAL_DEV_FRONTEND_URL
+    ) {
+        return runtimeEnv.PLAYWRIGHT_LOCAL_DEV_FRONTEND_URL
+    }
+
+    if (typeof manifest?.baseURL === "string" && manifest.baseURL.length > 0) {
+        return manifest.baseURL
+    }
+
+    if (typeof manifest?.baseURLKey !== "string" || manifest.baseURLKey.length === 0) {
+        return runtimeEnv.PLAYWRIGHT_BASE_URL
+    }
+
+    const normalizedKey = manifest.baseURLKey
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "_")
+
+    return (
+        runtimeEnv[`PLAYWRIGHT_BASE_URL_${normalizedKey}`] ??
+        runtimeEnv.PLAYWRIGHT_BASE_URL
+    )
+}
+
+function resolveManifestRuntimeLane(manifest) {
+    const explicitLane = manifest?.execution?.runtimeLane
+
+    if (explicitLane) {
+        return normalizeRuntimeLane(explicitLane)
+    }
+
+    if (typeof manifest?.baseURL === "string" && manifest.baseURL.length > 0) {
+        return "local-dev"
+    }
+
+    if (typeof manifest?.baseURLKey === "string" && manifest.baseURLKey.length > 0) {
+        return "local-e2e"
+    }
+
+    return "local-e2e"
+}
+
+function resolveLaneBaseURL(lane, runtimeEnv) {
+    if (lane === "local-dev") {
+        return runtimeEnv.PLAYWRIGHT_LOCAL_DEV_FRONTEND_URL
+    }
+
+    return runtimeEnv.PLAYWRIGHT_BASE_URL_LOCAL_E2E ?? runtimeEnv.PLAYWRIGHT_BASE_URL
+}
+
+function runLocalDevHealthCheck(runtimeEnv, runtimeSelection) {
+    const scriptPath = path.resolve(process.cwd(), "scripts/check-e2e-health.mjs")
+    const healthArgs = [
+        scriptPath,
+        "--lane",
+        runtimeSelection.lane,
+    ]
+
+    env.PLAYWRIGHT_RUNTIME_LANE = runtimeSelection.lane
+    if (runtimeSelection.baseURL) {
+        healthArgs.push("--frontend-url", runtimeSelection.baseURL)
+    }
+
+    if (runtimeEnv.PLAYWRIGHT_LOCAL_DEV_BACKEND_URL) {
+        healthArgs.push(
+            "--backend-url",
+            runtimeEnv.PLAYWRIGHT_LOCAL_DEV_BACKEND_URL,
+        )
+    }
+
+    if (runtimeEnv.PLAYWRIGHT_E2E_HEALTH_TIMEOUT_MS) {
+        healthArgs.push(
+            "--timeout-ms",
+            runtimeEnv.PLAYWRIGHT_E2E_HEALTH_TIMEOUT_MS,
+        )
+    }
+
+    const result = spawnSync(process.execPath, healthArgs, {
+        cwd: process.cwd(),
+        env: runtimeEnv,
+        stdio: "inherit",
+    })
+
+    if (result.error) {
+        throw result.error
+    }
+
+    if (result.status !== 0) {
+        process.exit(result.status ?? 1)
+    }
+}
+
 function loadCaseManifests() {
     const casesRoot = path.resolve(process.cwd(), "e2e/cases")
 
@@ -218,6 +428,18 @@ function loadCaseManifests() {
     } catch {
         return []
     }
+}
+
+function normalizeRuntimeLane(value) {
+    const normalizedValue = value.trim().toLowerCase()
+
+    if (normalizedValue === "local-e2e" || normalizedValue === "local-dev") {
+        return normalizedValue
+    }
+
+    throw new Error(
+        `Unknown runtime lane "${value}". Expected one of: local-e2e, local-dev.`,
+    )
 }
 
 function getManifestProjectOverride(manifest) {

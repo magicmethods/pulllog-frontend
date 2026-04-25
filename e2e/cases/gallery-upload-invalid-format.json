@@ -1,0 +1,59 @@
+{
+    "id": "gallery-upload-invalid-format",
+    "enabled": true,
+    "env": "local",
+    "baseURL": "https://pull.log:4649",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "gallery",
+        "url": "/gallery",
+        "feature": "gallery-upload-invalid-format"
+    },
+    "navigation": {
+        "startFrom": "login",
+        "skipProcess": false,
+        "prerequisiteState": "gallery_upload_ready_for_standard_user"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case verifies that an unsupported image MIME type is rejected before direct upload begins."
+    },
+    "preconditions": [
+        "The seeded standard user can sign in on the local-dev frontend.",
+        "The local frontend and backend development servers are already running.",
+        "The backend upload-ticket endpoint validates allowed MIME types for gallery uploads.",
+        "The prepared invalid-format fixture exists under e2e/fixtures/."
+    ],
+    "assertions": [
+        "The upload dialog can be opened.",
+        "Submitting the unsupported fixture returns 422 from the upload-ticket endpoint.",
+        "The upload dialog shows an error state and direct upload does not proceed."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "gallery-upload-dialog-opened",
+            "gallery-upload-submit",
+            "gallery-upload-rejected"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 0,
+        "timeoutMs": 120000,
+        "runtimeLane": "local-dev",
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["gallery", "upload", "boundary", "format", "regression"],
+    "notes": "Uses e2e/fixtures/invalid-format.gif to verify upload-ticket MIME rejection on the existing local-dev lane."
+}

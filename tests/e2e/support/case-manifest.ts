@@ -2,6 +2,8 @@ import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 import type { TestInfo } from "@playwright/test"
 
+export type E2ERuntimeLane = "local-e2e" | "local-dev"
+
 export interface E2ECaseManifest {
     id: string
     enabled: boolean
@@ -49,6 +51,7 @@ export interface E2ECaseManifest {
         retries?: number
         timeoutMs?: number
         project?: string
+        runtimeLane?: E2ERuntimeLane
         browser?: "chromium" | "firefox" | "webkit"
     }
     tags: string[]
@@ -226,6 +229,10 @@ export function annotateCase(
         type: "case-target",
         description: manifest.target.pageId,
     })
+    testInfo.annotations.push({
+        type: "case-runtime-lane",
+        description: resolveRuntimeLaneForCase(manifest),
+    })
 
     if (manifest.target.feature) {
         testInfo.annotations.push({
@@ -297,6 +304,24 @@ export function resolveBaseURLForCase(
     )
 }
 
+export function resolveRuntimeLaneForCase(
+    manifest: E2ECaseManifest,
+): E2ERuntimeLane {
+    if (manifest.execution?.runtimeLane) {
+        return manifest.execution.runtimeLane
+    }
+
+    if (manifest.baseURL) {
+        return "local-dev"
+    }
+
+    if (manifest.baseURLKey) {
+        return "local-e2e"
+    }
+
+    return "local-e2e"
+}
+
 /**
  * Formats the deterministic date folder used by Markdown reports and evidence.
  */
@@ -354,6 +379,15 @@ function validateCaseManifest(manifest: E2ECaseManifest): E2ECaseManifest {
     if (!Array.isArray(manifest.tags) || manifest.tags.length === 0) {
         throw new Error(
             `E2E case manifest "${manifest.id}" must define at least one tag.`,
+        )
+    }
+
+    if (
+        manifest.execution?.runtimeLane &&
+        !["local-e2e", "local-dev"].includes(manifest.execution.runtimeLane)
+    ) {
+        throw new Error(
+            `E2E case manifest "${manifest.id}" has an invalid execution.runtimeLane value: ${manifest.execution.runtimeLane}.`,
         )
     }
 

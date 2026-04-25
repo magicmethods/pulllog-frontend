@@ -204,6 +204,11 @@
                         "chromium,ipad-pro-11,iphone-14"
                     ]
                 },
+                "runtimeLane": {
+                    "type": "string",
+                    "enum": ["local-e2e", "local-dev"],
+                    "description": "Optional runtime lane override. Omit to infer from baseURL/baseURLKey and default to `local-e2e`. Cases from different runtime lanes cannot be executed together in the same run."
+                },
                 "browser": {
                     "type": "string",
                     "enum": ["chromium", "firefox", "webkit"],

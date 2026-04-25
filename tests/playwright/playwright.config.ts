@@ -1,6 +1,17 @@
 import path from "node:path"
 import { defineConfig, devices } from "@playwright/test"
 
+type LocalWebServerConfig = {
+    command: string
+    cwd: string
+    url: string
+    reuseExistingServer: boolean
+    timeout: number
+    stdout?: "pipe" | "ignore"
+    stderr?: "pipe" | "ignore"
+    ignoreHTTPSErrors?: boolean
+}
+
 const frontendRoot = process.cwd()
 const backendStableRoot = path.resolve(frontendRoot, "../backend/stable")
 const testResultsRoot = path.resolve(frontendRoot, "tests/test-results")
@@ -13,6 +24,37 @@ const e2eFrontendPort = Number.isNaN(requestedE2EFrontendPort)
     ? 43173
     : requestedE2EFrontendPort
 const e2eFrontendBaseURL = `https://${e2eFrontendHost}:${e2eFrontendPort}`
+const configuredBaseURL = process.env.PLAYWRIGHT_BASE_URL ?? e2eFrontendBaseURL
+const shouldStartBackendWebServer =
+    process.env.PLAYWRIGHT_DISABLE_BACKEND_WEBSERVER !== "1"
+const shouldStartFrontendWebServer =
+    process.env.PLAYWRIGHT_DISABLE_FRONTEND_WEBSERVER !== "1"
+
+const webServers: LocalWebServerConfig[] = []
+
+if (shouldStartBackendWebServer) {
+    webServers.push({
+        command: "composer run e2e:serve",
+        cwd: backendStableRoot,
+        url: "http://127.0.0.1:3030/up",
+        reuseExistingServer: !process.env.CI,
+        timeout: 120000,
+        stdout: "ignore",
+    })
+}
+
+if (shouldStartFrontendWebServer) {
+    webServers.push({
+        command: `pnpm exec cross-env NUXT_TYPESCRIPT_CHECK=false nuxt dev --dotenv .env.e2e --host ${e2eFrontendHost} --port ${e2eFrontendPort}`,
+        cwd: frontendRoot,
+        url: e2eFrontendBaseURL,
+        reuseExistingServer: !process.env.CI,
+        timeout: 300000,
+        ignoreHTTPSErrors: true,
+        stdout: "ignore",
+        stderr: "ignore",
+    })
+}
 
 const defaultProjectNames = ["chromium", "ipad-pro-11", "iphone-14"]
 
@@ -134,31 +176,12 @@ export default defineConfig({
     ],
     outputDir: path.join(testResultsRoot, "artifacts"),
     use: {
-        baseURL: e2eFrontendBaseURL,
+        baseURL: configuredBaseURL,
         ignoreHTTPSErrors: true,
         trace: "on-first-retry",
         screenshot: "only-on-failure",
         video: "retain-on-failure",
     },
     projects: selectedProjects,
-    webServer: [
-        {
-            command: "composer run e2e:serve",
-            cwd: backendStableRoot,
-            url: "http://127.0.0.1:3030/up",
-            reuseExistingServer: !process.env.CI,
-            timeout: 120000,
-            stdout: "ignore",
-        },
-        {
-            command: `pnpm exec cross-env NUXT_TYPESCRIPT_CHECK=false nuxt dev --dotenv .env.e2e --host ${e2eFrontendHost} --port ${e2eFrontendPort}`,
-            cwd: frontendRoot,
-            url: e2eFrontendBaseURL,
-            reuseExistingServer: !process.env.CI,
-            timeout: 300000,
-            ignoreHTTPSErrors: true,
-            stdout: "ignore",
-            stderr: "ignore",
-        },
-    ],
+    webServer: webServers,
 })

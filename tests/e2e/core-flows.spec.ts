@@ -1,5 +1,6 @@
 import { AppsPage } from "./pages/AppsPage"
 import { AuthPage } from "./pages/AuthPage"
+import { GalleryPage } from "./pages/GalleryPage"
 import { HistoryPage } from "./pages/HistoryPage"
 import { ShellPage } from "./pages/ShellPage"
 import { StatsPage } from "./pages/StatsPage"
@@ -14,6 +15,17 @@ import { type E2EScenarioContext, expect, test } from "./support/test"
 
 const appName = "Genshin Impact"
 const authAppsManifest = getCaseManifest("auth-apps-smoke")
+const galleryDetailSaveDeleteManifest = getCaseManifest(
+    "gallery-detail-save-delete",
+)
+const galleryUploadInvalidFormatManifest = getCaseManifest(
+    "gallery-upload-invalid-format",
+)
+const galleryUploadTooLargeManifest = getCaseManifest(
+    "gallery-upload-too-large",
+)
+const galleryUploadDirectManifest = getCaseManifest("gallery-upload-direct")
+const galleryRuntimeManifest = getCaseManifest("gallery-runtime-smoke")
 const signupValidationManifest = getCaseManifest(
     "auth-email-signup-validation-smoke",
 )
@@ -83,6 +95,99 @@ test.describe("manifest-driven core E2E flows", () => {
             await authPage.loginAndOpenApps()
             await appsPage.expectAppVisible(appName)
             await expect(scenario.page).toHaveURL(/\/apps(?:\?.*)?$/)
+        },
+    )
+
+    caseTest(
+        galleryRuntimeManifest,
+        "sign in and land on the gallery page with healthy runtime APIs",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+            const galleryPage = new GalleryPage(scenario)
+
+            scenario.note(
+                "This case isolates gallery runtime health from direct upload and FE-G5 detail actions.",
+            )
+
+            await authPage.loginAndOpenApps()
+            await galleryPage.openAndExpectRuntimeHealthy()
+        },
+    )
+
+    caseTest(
+        galleryDetailSaveDeleteManifest,
+        "verify gallery detail fetch, save update, and delete",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+            const galleryPage = new GalleryPage(scenario)
+
+            scenario.note(
+                "This case verifies FE-G5 detail/save/delete on local-dev and requires a disposable pre-seeded gallery asset for the standard user.",
+            )
+
+            await authPage.loginAndOpenApps()
+            await galleryPage.ensureDisposableAssetForActiveAccount()
+            await galleryPage.openAndExpectRuntimeHealthy()
+            await galleryPage.verifyDetailSaveDelete()
+        },
+    )
+
+    caseTest(
+        galleryUploadDirectManifest,
+        "verify gallery direct upload against the local backend",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+            const galleryPage = new GalleryPage(scenario)
+
+            scenario.note(
+                "This case rechecks the non-mock gallery upload path on the local-dev existing-server lane and cleans up the uploaded asset at the end.",
+            )
+
+            await authPage.loginAndOpenApps()
+            await galleryPage.openAndExpectRuntimeHealthy()
+            await galleryPage.verifyDirectUpload()
+        },
+    )
+
+    caseTest(
+        galleryUploadInvalidFormatManifest,
+        "reject an unsupported gallery upload format",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+            const galleryPage = new GalleryPage(scenario)
+
+            scenario.note(
+                "This case verifies that unsupported image MIME types are rejected at upload-ticket time on the local-dev lane.",
+            )
+
+            await authPage.loginAndOpenApps()
+            await galleryPage.openAndExpectRuntimeHealthy()
+            await galleryPage.verifyUploadTicketRejected({
+                fixtureName: "invalidFormatGif",
+                expectedStatus: 422,
+                titlePrefix: "FE-G4-UPLOAD-FORMAT",
+            })
+        },
+    )
+
+    caseTest(
+        galleryUploadTooLargeManifest,
+        "reject an oversized gallery upload",
+        async (scenario) => {
+            const authPage = new AuthPage(scenario)
+            const galleryPage = new GalleryPage(scenario)
+
+            scenario.note(
+                "This case verifies that a file above the plan upload limit is rejected at upload-ticket time on the local-dev lane.",
+            )
+
+            await authPage.loginAndOpenApps()
+            await galleryPage.openAndExpectRuntimeHealthy()
+            await galleryPage.verifyUploadTicketRejected({
+                fixtureName: "invalidTooLargeJpg",
+                expectedStatus: 422,
+                titlePrefix: "FE-G4-UPLOAD-SIZE",
+            })
         },
     )
 

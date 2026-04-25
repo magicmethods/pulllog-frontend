@@ -1,4 +1,9 @@
-import { expect, type Locator, type Page } from "@playwright/test"
+import {
+    expect,
+    type Locator,
+    type Page,
+    type Response,
+} from "@playwright/test"
 import { resolveAccountCredentials } from "../support/account-resolver"
 import {
     dismissCookieBanner,
@@ -13,6 +18,8 @@ import type { E2EScenarioContext } from "../support/test"
  */
 export class AuthPage {
     constructor(private readonly context: E2EScenarioContext) {}
+
+    private static readonly APPS_URL_PATTERN = /\/apps\/?(?:[?#].*)?$/
 
     /**
      * Logs in the seeded E2E user and lands on the apps page.
@@ -227,7 +234,12 @@ export class AuthPage {
                 })
             } catch (error) {
                 lastError = error
-                await page.waitForTimeout(3000)
+
+                if (page.isClosed()) {
+                    break
+                }
+
+                await page.waitForTimeout(3000).catch(() => {})
                 continue
             }
 
@@ -238,12 +250,16 @@ export class AuthPage {
                 .catch(() => {})
             await waitForLoaderToClear(page)
 
-            if (/\/apps(?:\?.*)?$/.test(page.url())) {
+            if (this.isAppsUrl(page.url())) {
                 await expectAppsPage(page)
                 return
             }
 
-            await page.waitForTimeout(1500)
+            if (page.isClosed()) {
+                break
+            }
+
+            await page.waitForTimeout(1500).catch(() => {})
         }
 
         if (lastError) {
@@ -258,18 +274,18 @@ export class AuthPage {
      */
     private async recoverFromAuthInterruption(page: Page): Promise<void> {
         await page
-            .waitForURL(/\/(?:apps|auth\/login|error\/419)(?:\?.*)?$/, {
+            .waitForURL(/\/(?:apps\/?|auth\/login|error\/419)(?:[?#].*)?$/, {
                 timeout: 15000,
             })
             .catch(() => {})
 
-        if (/\/error\/419(?:\?.*)?$/.test(page.url())) {
+        if (/\/error\/419(?:[?#].*)?$/.test(page.url())) {
             await page.goto("/auth/login?redirect=%2Fapps", {
                 waitUntil: "domcontentloaded",
             })
         }
 
-        if (/\/auth\/login(?:\?.*)?$/.test(page.url())) {
+        if (/\/auth\/login(?:[?#].*)?$/.test(page.url())) {
             await waitForLoaderToClear(page)
             await this.context.capturePageArrival("auth-login")
             await this.submitLoginForm(page)
@@ -282,7 +298,7 @@ export class AuthPage {
     private async submitLoginForm(page: Page): Promise<void> {
         await page.waitForLoadState("domcontentloaded").catch(() => {})
 
-        if (/\/apps(?:\?.*)?$/.test(page.url())) {
+        if (this.isAppsUrl(page.url())) {
             return
         }
 
@@ -306,27 +322,35 @@ export class AuthPage {
 
         const loginScreenState = await Promise.race([
             page
-                .waitForURL(/\/apps(?:\?.*)?$/, { timeout: 10000 })
+                .waitForURL(AuthPage.APPS_URL_PATTERN, { timeout: 10000 })
                 .then(() => "apps"),
             emailInput
                 .waitFor({ state: "visible", timeout: 10000 })
                 .then(() => "form"),
         ]).catch(() => "timeout")
 
-        if (
-            loginScreenState === "apps" ||
-            /\/apps(?:\?.*)?$/.test(page.url())
-        ) {
+        if (loginScreenState === "apps" || this.isAppsUrl(page.url())) {
             return
         }
 
         await this.fillLoginField(emailInput, credentials.email)
+        if (await this.didAuthRecoveryReachApps(page)) {
+            return
+        }
+
         await this.fillLoginField(passwordInput, credentials.password)
+        if (await this.didAuthRecoveryReachApps(page)) {
+            return
+        }
 
         if (!(await rememberCheckbox.isChecked().catch(() => false))) {
             await rememberCheckbox.check().catch(async () => {
                 await rememberCheckbox.click()
             })
+        }
+
+        if (await this.didAuthRecoveryReachApps(page)) {
+            return
         }
 
         if (!(await this.waitForSubmitEnabled(submitButton))) {
@@ -335,17 +359,75 @@ export class AuthPage {
             await page.keyboard.press("Tab").catch(() => {})
         }
 
+        if (await this.didAuthRecoveryReachApps(page)) {
+            return
+        }
+
         await expect(submitButton).toBeEnabled({ timeout: 15000 })
         await this.context.captureBeforeCommit("auth-login", "submit-login")
 
+        const loginResponsePromise = this.waitForLoginResponse(page).catch(
+            () => null,
+        )
+
         await Promise.all([
             page
-                .waitForURL(/\/(?:apps|error\/419)(?:\?.*)?$/, {
+                .waitForURL(/\/(?:apps\/?|error\/419)(?:[?#].*)?$/, {
                     timeout: 15000,
                 })
                 .catch(() => {}),
             submitButton.click(),
         ])
+
+        const loginResponse = await loginResponsePromise
+        if (loginResponse && loginResponse.status() >= 400) {
+            const responseBody =
+                await this.readResponseBodySnippet(loginResponse)
+
+            throw new Error(
+                `auth login failed with ${loginResponse.status()}; response body: ${responseBody}`,
+            )
+        }
+
+        await page.waitForLoadState("domcontentloaded").catch(() => {})
+        const currentUrl = page.url()
+
+        if (this.isAppsUrl(currentUrl)) {
+            return
+        }
+
+        if (/\/auth\/login(?:[?#].*)?$/.test(currentUrl)) {
+            const [loginStatusSummary, loginErrorMessage] = await Promise.all([
+                this.formatLoginResponseSummary(loginResponse),
+                this.readVisibleLoginError(page),
+            ])
+
+            throw new Error(
+                `auth login did not reach /apps; current URL is ${currentUrl}; ${loginStatusSummary}; visible error: ${loginErrorMessage}`,
+            )
+        }
+
+        const loginStatusSummary =
+            await this.formatLoginResponseSummary(loginResponse)
+
+        throw new Error(
+            `auth login did not reach /apps; current URL is ${currentUrl}; ${loginStatusSummary}`,
+        )
+    }
+
+    private async didAuthRecoveryReachApps(page: Page): Promise<boolean> {
+        await page.waitForLoadState("domcontentloaded").catch(() => {})
+
+        return !page.isClosed() && this.isAppsUrl(page.url())
+    }
+
+    private isAppsUrl(url: string): boolean {
+        try {
+            const parsed = new URL(url, "https://pulllog.invalid")
+            return /^\/apps\/?$/.test(parsed.pathname)
+        } catch {
+            return AuthPage.APPS_URL_PATTERN.test(url)
+        }
     }
 
     /**
@@ -421,6 +503,62 @@ export class AuthPage {
                 /\/auth\/register(?:\?.*)?$/.test(response.url())
             )
         })
+    }
+
+    private async waitForLoginResponse(page: Page): Promise<Response> {
+        return page.waitForResponse((response) => {
+            return (
+                response.request().method() === "POST" &&
+                /\/auth\/login(?:\?.*)?$/.test(response.url())
+            )
+        })
+    }
+
+    private async readResponseBodySnippet(response: Response): Promise<string> {
+        const body = await response.text().catch(() => "<unavailable>")
+        const compactBody = body.replace(/\s+/g, " ").trim()
+
+        if (!compactBody) {
+            return "<empty>"
+        }
+
+        return compactBody.length > 300
+            ? `${compactBody.slice(0, 300)}...`
+            : compactBody
+    }
+
+    private async formatLoginResponseSummary(
+        loginResponse: Response | null,
+    ): Promise<string> {
+        if (!loginResponse) {
+            return "login response: <not captured>"
+        }
+
+        const responseBody = await this.readResponseBodySnippet(loginResponse)
+        return `login response: status ${loginResponse.status()}, body ${responseBody}`
+    }
+
+    private async readVisibleLoginError(page: Page): Promise<string> {
+        const candidates = [
+            page.getByRole("alert").first(),
+            page.locator("form .p-message-error").first(),
+            page.locator("form [class*='message'][class*='error']").first(),
+        ]
+
+        for (const locator of candidates) {
+            await locator
+                .waitFor({ state: "visible", timeout: 1000 })
+                .catch(() => {})
+
+            const text = await locator.textContent().catch(() => null)
+            const normalizedText = text?.replace(/\s+/g, " ").trim()
+
+            if (normalizedText) {
+                return normalizedText
+            }
+        }
+
+        return "<none>"
     }
 
     /**

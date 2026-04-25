@@ -1,0 +1,59 @@
+{
+    "id": "gallery-runtime-smoke",
+    "enabled": true,
+    "env": "local",
+    "baseURLKey": "local_e2e",
+    "account": {
+        "key": "demo_user",
+        "role": "demo"
+    },
+    "target": {
+        "pageId": "gallery",
+        "url": "/gallery",
+        "feature": "gallery-runtime"
+    },
+    "navigation": {
+        "startFrom": "login",
+        "skipProcess": false,
+        "prerequisiteState": "gallery_runtime_ready"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case validates authenticated gallery arrival plus assets and usage API health on the standard local-e2e lane. Direct upload is intentionally excluded."
+    },
+    "preconditions": [
+        "The demo user can sign in on the local-e2e frontend.",
+        "Playwright can start the frontend and backend webServer pair for local-e2e.",
+        "The backend gallery runtime recovery migration has been applied to the local database."
+    ],
+    "assertions": [
+        "The demo user can sign in successfully.",
+        "The gallery page is displayed after authentication.",
+        "The gallery assets API returns 200.",
+        "The gallery usage API returns 200."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "auth-login-submit",
+            "gallery-page-arrival",
+            "gallery-runtime-healthy"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 1,
+        "timeoutMs": 120000,
+        "runtimeLane": "local-e2e",
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["gallery", "smoke", "runtime", "regression"],
+    "notes": "Pilot local-e2e migration target for gallery runtime. Use this case as the minimum reproducible check before moving additional gallery scenarios off the local-dev exception lane."
+}

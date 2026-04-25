@@ -1,0 +1,62 @@
+{
+    "id": "gallery-upload-direct",
+    "enabled": true,
+    "env": "local",
+    "baseURL": "https://pull.log:4649",
+    "account": {
+        "key": "standard_user",
+        "role": "user"
+    },
+    "target": {
+        "pageId": "gallery",
+        "url": "/gallery",
+        "feature": "gallery-upload-direct"
+    },
+    "navigation": {
+        "startFrom": "login",
+        "skipProcess": false,
+        "prerequisiteState": "gallery_upload_ready_for_standard_user"
+    },
+    "coverage": {
+        "includeLoginFlow": true,
+        "includeNavigationProcess": false,
+        "excludeLoginFlow": false,
+        "excludeNavigationProcess": true,
+        "excludeSetupFlow": true,
+        "notes": "This case verifies the non-mock gallery upload flow against the existing local-dev frontend/backend pair, including upload ticket issuance, direct backend upload, and post-upload gallery refresh."
+    },
+    "preconditions": [
+        "The seeded standard user can sign in on the local-dev frontend.",
+        "The local frontend and backend development servers are already running.",
+        "The backend upload blocker fix has been applied and gallery upload tickets can be issued for the standard user.",
+        "The local-dev frontend is running with MOCK_MODE=false from .env.e2e."
+    ],
+    "assertions": [
+        "The standard user can open the gallery upload dialog.",
+        "The upload ticket API returns 200.",
+        "The direct upload request to the backend succeeds.",
+        "The uploaded asset appears in the gallery and usage/list refresh requests succeed.",
+        "The uploaded asset can be removed again to keep the case repeatable."
+    ],
+    "report": {
+        "markdown": true,
+        "pdfOnSuccess": true,
+        "screenshots": [
+            "gallery-upload-dialog-opened",
+            "gallery-upload-submit",
+            "gallery-upload-succeeded",
+            "gallery-upload-cleaned"
+        ],
+        "includeTraceOnFailure": true,
+        "includeVideoOnFailure": false
+    },
+    "execution": {
+        "retries": 0,
+        "timeoutMs": 120000,
+        "runtimeLane": "local-dev",
+        "project": "chromium",
+        "browser": "chromium"
+    },
+    "tags": ["gallery", "upload", "direct", "regression"],
+    "notes": "Use this case after gallery runtime smoke passes on the existing local-dev server lane. The upload uses a real image file and sends the binary to the backend directly instead of mock mode."
+}
