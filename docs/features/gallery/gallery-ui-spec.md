@@ -4,7 +4,7 @@
 
 - feature 名: Gallery current UI snapshot with blocked FE-G5 detail modal
 - 対象画面: `pages/gallery.vue`
-- 参照設計: `_list-ui-plan.md`, `_usage-meter-plan.md`, `_upload-flow-plan.md`, `_asset-detail-and-private-access-plan.md`
+- 参照設計: `implementation-notes.md`, `workflow-notes.md`
 
 ## UI Objective
 
