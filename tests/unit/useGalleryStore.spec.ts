@@ -224,6 +224,86 @@ describe("useGalleryStore", () => {
         expect(store.selectedAssetId).toBe("asset-uploaded")
     })
 
+    it("fetchDetail stores the selected asset without setting page error", async () => {
+        const store = useGalleryStore()
+        const asset = createAsset("asset-detail")
+        galleryApiMock.detail.mockResolvedValueOnce(asset)
+
+        await store.fetchDetail(asset.id)
+
+        expect(galleryApiMock.detail).toHaveBeenCalledWith(asset.id)
+        expect(store.selectedAssetId).toBe(asset.id)
+        expect(store.assetMap[asset.id]?.id).toBe(asset.id)
+        expect(store.error).toBeNull()
+    })
+
+    it("updateAsset updates the selected asset without leaking page error", async () => {
+        const store = useGalleryStore()
+        const asset = createAsset("asset-a")
+        const updatedAsset: GalleryAsset = {
+            ...asset,
+            title: "Updated title",
+            description: "Updated description",
+            visibility: "public",
+        }
+
+        galleryApiMock.list.mockResolvedValueOnce(
+            createListResponse(1, [asset.id], {
+                lastPage: 1,
+                next: null,
+                total: 1,
+            }),
+        )
+        galleryApiMock.update.mockResolvedValueOnce(updatedAsset)
+
+        await store.fetchList({ page: 1, per: 10 })
+        await store.updateAsset(asset.id, {
+            title: updatedAsset.title,
+            description: updatedAsset.description,
+            visibility: updatedAsset.visibility,
+        })
+
+        expect(galleryApiMock.update).toHaveBeenCalledWith(asset.id, {
+            title: "Updated title",
+            description: "Updated description",
+            visibility: "public",
+        })
+        expect(store.assetMap[asset.id]?.title).toBe("Updated title")
+        expect(store.error).toBeNull()
+    })
+
+    it("detail action failures do not overwrite page-level error state", async () => {
+        const store = useGalleryStore()
+        galleryApiMock.list.mockRejectedValueOnce(new Error("List failed"))
+
+        await expect(store.fetchList({ page: 1, per: 10 })).rejects.toThrow(
+            "List failed",
+        )
+        expect(store.error).toBe("List failed")
+
+        galleryApiMock.detail.mockRejectedValueOnce(new Error("Detail failed"))
+        await expect(store.fetchDetail("asset-a")).rejects.toThrow(
+            "Detail failed",
+        )
+        expect(store.error).toBe("List failed")
+
+        galleryApiMock.update.mockRejectedValueOnce(new Error("Update failed"))
+        await expect(
+            store.updateAsset("asset-a", {
+                title: "Updated title",
+                description: null,
+                visibility: "private",
+            }),
+        ).rejects.toThrow("Update failed")
+        expect(store.error).toBe("List failed")
+
+        galleryApiMock.delete.mockRejectedValueOnce(new Error("Delete failed"))
+        await expect(store.deleteAsset("asset-a")).rejects.toThrow(
+            "Delete failed",
+        )
+        expect(store.error).toBe("List failed")
+    })
+
     it("deleteAsset removes the asset from state and clears the selection", async () => {
         const store = useGalleryStore()
         galleryApiMock.list.mockResolvedValueOnce(

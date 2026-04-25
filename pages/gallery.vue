@@ -19,6 +19,9 @@ const loadMoreSentinel = ref<HTMLElement | null>(null)
 const uploadDialogVisible = ref(false)
 const detailModalVisible = ref(false)
 const selectedAssetId = ref<string | null>(null)
+const e2eGalleryState = ref<"booting" | "loading" | "ready" | "error">(
+    "booting",
+)
 
 let intersectionObserver: IntersectionObserver | null = null
 
@@ -66,10 +69,15 @@ function buildPresetFilters(
 }
 
 async function initializePage(): Promise<void> {
-    await Promise.allSettled([
+    e2eGalleryState.value = "loading"
+
+    const results = await Promise.allSettled([
         galleryStore.fetchList(buildPresetFilters(selectedPreset.value)),
         galleryStore.fetchUsage(),
     ])
+
+    const hasRejected = results.some((result) => result.status === "rejected")
+    e2eGalleryState.value = hasRejected ? "error" : "ready"
 }
 
 async function applyPreset(preset: GalleryPeriodPreset): Promise<void> {
@@ -135,6 +143,7 @@ watch(loadMoreSentinel, () => {
 })
 
 onMounted(() => {
+    e2eGalleryState.value = "booting"
     void initializePage()
     attachIntersectionObserver()
 })
@@ -145,7 +154,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="w-full h-max p-4 flex flex-col justify-between">
+    <div
+        id="gallery-page-root"
+        class="w-full h-max p-4 flex flex-col justify-between"
+        :data-e2e-gallery-state="e2eGalleryState"
+        :data-e2e-upload-ready="e2eGalleryState === 'ready' ? 'true' : 'false'"
+    >
         <Head>
             <Title>{{ `${t('gallery.header')} | ${t('app.name')}` }}</Title>
         </Head>

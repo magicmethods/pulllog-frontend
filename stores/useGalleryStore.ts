@@ -206,7 +206,6 @@ export const useGalleryStore = defineStore("gallery", () => {
 
     async function fetchDetail(assetId: string): Promise<GalleryAsset> {
         isLoading.value = true
-        clearError()
 
         try {
             const asset = await galleryApi.detail(assetId)
@@ -214,10 +213,6 @@ export const useGalleryStore = defineStore("gallery", () => {
             upsertAsset(asset)
             return asset
         } catch (cause: unknown) {
-            error.value =
-                cause instanceof Error
-                    ? cause.message
-                    : "Failed to fetch gallery asset"
             throw cause
         } finally {
             isLoading.value = false
@@ -248,17 +243,12 @@ export const useGalleryStore = defineStore("gallery", () => {
         payload: GalleryAssetUpdateRequest,
     ): Promise<GalleryAsset> {
         isSaving.value = true
-        clearError()
 
         try {
             const asset = await galleryApi.update(assetId, payload)
             upsertAsset(asset)
             return asset
         } catch (cause: unknown) {
-            error.value =
-                cause instanceof Error
-                    ? cause.message
-                    : "Failed to update gallery asset"
             throw cause
         } finally {
             isSaving.value = false
@@ -267,7 +257,6 @@ export const useGalleryStore = defineStore("gallery", () => {
 
     async function deleteAsset(assetId: string): Promise<boolean> {
         isSaving.value = true
-        clearError()
 
         try {
             const deleted = await galleryApi.delete(assetId)
@@ -277,10 +266,6 @@ export const useGalleryStore = defineStore("gallery", () => {
             }
             return deleted
         } catch (cause: unknown) {
-            error.value =
-                cause instanceof Error
-                    ? cause.message
-                    : "Failed to delete gallery asset"
             throw cause
         } finally {
             isSaving.value = false
@@ -291,17 +276,12 @@ export const useGalleryStore = defineStore("gallery", () => {
         payload: GalleryUploadTicketRequest,
     ): Promise<GalleryUploadTicketResponse> {
         isUploading.value = true
-        clearError()
 
         try {
             const ticket = await galleryApi.requestUploadTicket(payload)
             lastUploadTicket.value = ticket
             return ticket
         } catch (cause: unknown) {
-            error.value =
-                cause instanceof Error
-                    ? cause.message
-                    : "Failed to request gallery upload ticket"
             throw cause
         } finally {
             isUploading.value = false
@@ -312,7 +292,6 @@ export const useGalleryStore = defineStore("gallery", () => {
         request: GalleryDirectUploadRequest,
     ): Promise<GalleryAsset> {
         isUploading.value = true
-        clearError()
 
         try {
             const ticket = await galleryApi.requestUploadTicket({
@@ -363,10 +342,6 @@ export const useGalleryStore = defineStore("gallery", () => {
 
             return asset
         } catch (cause: unknown) {
-            error.value =
-                cause instanceof Error
-                    ? cause.message
-                    : "Failed to upload gallery asset"
             throw cause
         } finally {
             isUploading.value = false
