@@ -1,7 +1,7 @@
 ---
 description: Orchestrate manifest-driven Playwright E2E work from scenario design through implementation, debugging, review, and evidence-ready completion
 name: frontend-orch-e2e
-tools: ["search/codebase", "search", "read", "todo", "agent", "read/problems", "edit"]
+tools: ["search/codebase", "search", "read", "todo", "agent", "read/problems", "edit", "execute/runInTerminal"]
 agents: [frontend-design-e2e-scenario, frontend-impl-e2e-playwright, frontend-debug-e2e, frontend-review-e2e]
 user-invocable: true
 argument-hint: Target behavior, case id, report path, or E2E request to orchestrate

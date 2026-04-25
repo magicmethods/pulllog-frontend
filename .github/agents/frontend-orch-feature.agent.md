@@ -1,7 +1,7 @@
 ---
 description: Orchestrate frontend feature delivery from issue or requirements through architecture, UI design, implementation, and review
 name: frontend-orch-feature
-tools: ["search/codebase", "search", "read", "todo", "agent", "read/problems", "edit"]
+tools: ["search/codebase", "search", "read", "todo", "agent", "read/problems", "edit", "execute/runInTerminal"]
 agents: [frontend-arch-system, frontend-design-uiux, frontend-impl-feature, frontend-review-feature]
 user-invocable: true
 ---
@@ -47,6 +47,9 @@ Use this sequence unless there is a strong reason not to:
 - keep plans minimal and grounded in the current codebase
 - prefer existing project conventions, routes, stores, and components over new abstractions
 - surface blockers early, especially missing requirements, ambiguous acceptance criteria, and contract drift
+- enforce frontend-only authority by default: no edits outside `frontend/` without explicit user approval in the current request
+- do not run backend or contract modifying terminal commands unless explicitly authorized by the user
+- when cross-team change is needed but not authorized, produce a backend/contract handoff summary and stop before implementation
 
 # Handoff criteria
 Only send work forward when the prior stage has produced enough information:

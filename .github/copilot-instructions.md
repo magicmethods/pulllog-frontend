@@ -18,6 +18,18 @@ The authoritative OpenAPI schema for the Pulllog API is maintained in the **cont
 - All HTTP requests use `fetch` (not `useFetch`).
 - When implementing a new endpoint, verify the request/response schema against `contract/api-schema.yaml`.
 
+## Authority Boundary (Frontend Scope)
+
+- In this workspace, the default implementation scope is `frontend/` only.
+- Reading `../backend` and `../contract` is allowed for analysis and alignment checks.
+- Editing files under `../backend` or `../contract` is prohibited unless the user explicitly authorizes cross-team changes in the current request.
+- If backend or contract work is required but not explicitly authorized, stop implementation and return a handoff packet:
+  - required backend/contract changes
+  - impact scope
+  - validation expectations
+  - rollback considerations
+- For agents with edit or terminal permissions, this scope boundary takes precedence over convenience.
+
 ## Repository-wide instructions for Playwright E2E operations
 
 ### Purpose

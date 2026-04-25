@@ -5,6 +5,13 @@
 - 正式な定義は `../pulllog-docs/docs/workspace-terminology.md` を参照する。
 - VS Code 機能の説明では `workspace` / `workspace folder`、pnpm の説明では `pnpm workspace` など公式用語を優先する。
 
+## 職掌境界（厳守）
+- frontend 側エージェントの既定職掌は `frontend/` 配下のみとする。
+- `backend/` と `contract/` は参照のみ許可し、編集・生成・削除は原則禁止とする。
+- backend / contract の修正が必要と判断した場合は、実装に進まず、影響範囲と必要変更を文書化してユーザー承認を待つ。
+- ユーザーから明示的な許可（例: 「backend の変更を実施してよい」）がある場合のみ、最小差分で越境変更を実施する。
+- 越境変更を実施した場合は、同ターンで必ず申し送り文書（変更内容、検証、残リスク）を作成する。
+
 ## プロジェクト構成とモジュールの整理
 - `pages/`: ルート駆動のビュー。`layouts/` は画面枠、`middleware/` はガード処理、`app.vue` はルートコンポーネント。
 - `components/`: 再利用可能な Vue コンポーネント（PrimeVue リゾルバ経由で自動インポート）。

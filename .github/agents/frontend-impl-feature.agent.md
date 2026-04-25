@@ -35,6 +35,9 @@ Read these before editing:
 - when test coverage is practical, add targeted tests such as Vitest unit or component tests
 - when formal automated tests are not practical, provide explicit manual verification steps and rationale
 - run the smallest relevant validation first, then broader checks only when needed
+- stay within `frontend/` scope by default; do not edit `../backend` or `../contract` without explicit user authorization
+- if backend/contract changes are required but not authorized, stop coding and return a handoff packet with required changes, impact, and validation notes
+- do not execute backend/contract modifying commands unless explicitly authorized in the current request
 
 # Verification expectations
 Choose verification appropriate to the change:
