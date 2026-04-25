@@ -112,6 +112,45 @@
             "group": "test"
         },
         {
+            "label": "Frontend E2E: Health check (local-dev)",
+            "detail": "local-dev レーンの事前ヘルスチェックを実行します。",
+            "type": "shell",
+            "command": "pnpm",
+            "args": ["run", "test:e2e:health", "--", "--lane", "local-dev"],
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
+            "label": "Frontend E2E: Run case (local-dev internal)",
+            "detail": "指定した case id を local-dev レーンで実行します。",
+            "type": "shell",
+            "command": "pnpm",
+            "args": [
+                "run",
+                "test:e2e:local-dev",
+                "--",
+                "--case",
+                "${input:e2eCaseId}"
+            ],
+            "options": {
+                "env": {
+                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
+                }
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend E2E: Run case (local-dev)",
+            "detail": "local-dev レーンのヘルスチェック後に指定 case を実行します。",
+            "dependsOn": [
+                "Frontend E2E: Health check (local-dev)",
+                "Frontend E2E: Run case (local-dev internal)"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": [],
+            "group": "test"
+        },
+        {
             "label": "Frontend E2E: Export report to PDF",
             "detail": "生成済みの E2E レポートを PDF に変換します。",
             "type": "shell",

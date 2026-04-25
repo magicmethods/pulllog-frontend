@@ -85,6 +85,30 @@ Each run should record:
 - case id
 - execution timestamp
 
+### Runtime lanes
+This repository keeps two runtime lanes for frontend E2E execution:
+- `local-e2e` as the standard default lane
+- `local-dev` as the exception lane for cases that must target an already running local frontend/backend pair
+
+Runtime lane resolution is performed in this order:
+1. `manifest.execution.runtimeLane`
+2. inference from manifest base URL shape
+3. fallback to `local-e2e`
+
+Inference rules:
+- prefer `baseURLKey` for `local-e2e` manifests
+- prefer an explicit `baseURL` for `local-dev` manifests
+
+Manifest authoring rules:
+- `local-e2e` should normally be expressed with `baseURLKey`, typically `local_e2e`
+- `local-dev` should normally be expressed with an explicit `baseURL`, typically `https://pull.log:4649`
+- `execution.runtimeLane` may be added when the lane must be explicit in the manifest metadata
+
+Execution constraints:
+- mixed runtime lanes cannot be executed together in the same `run-e2e` invocation
+- `local-dev` runs must complete a frontend/backend health check before Playwright starts
+- `local-e2e` runs remain Playwright-managed and should not depend on an already running local dev server pair
+
 ## 7. Account strategy
 Never store raw credentials in case manifests.
 
@@ -211,6 +235,15 @@ Supported execution modes may include:
 When explicitly narrowing the project set via CLI, use the repository runner with a comma-separated selector such as `--project=chromium,ipad-pro-11,iphone-14` (or a justified subset) instead of inventing custom filter logic.
 
 Batch execution should resolve cases from manifest files or a grouped manifest index, not from hardcoded lists in spec code.
+
+### Local-dev preflight
+The `local-dev` lane is intended only for exceptional cases that cannot yet run on the standard `local-e2e` lane.
+
+Before a `local-dev` run starts, the runner must verify:
+- frontend health on `https://pull.log:4649`
+- backend health on `http://127.0.0.1:3030/api/v1/dummy`
+
+If either endpoint is unavailable, the run must fail before Playwright starts so that local environment problems are reported clearly.
 
 ## 13. Review criteria
 A healthy E2E case should satisfy all of the following:

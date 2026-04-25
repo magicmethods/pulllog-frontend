@@ -289,6 +289,12 @@ export default defineNuxtConfig({
                     "**/e2e/reports/**",
                     "**/e2e/evidence/**",
                 ],
+                // In local development, polling is enabled to ensure that file changes are detected even in environments
+                // where the default file watching may not work reliably (e.g., certain Docker setups, network filesystems,
+                // or WSL).
+                // During E2E testing, there is no need to detect changes through file monitoring, so polling is disabled.
+                usePolling: process.env.IS_E2E === "false",
+                interval: 1000,
             },
         },
     },
