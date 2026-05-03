@@ -159,6 +159,37 @@ export function normalizeGalleryAssetListResponse(
     }
 }
 
+export function normalizeGalleryBootstrapResponse(
+    payload: unknown,
+): GalleryBootstrapResponse {
+    const emptyUsage = normalizeGalleryUsage({})
+    const emptyLinks = normalizePaginationLinks(undefined)
+    const emptyMeta = normalizePaginationMeta(undefined)
+
+    if (!isRecord(payload)) {
+        return {
+            data: { assets: [], usage: emptyUsage },
+            links: emptyLinks,
+            meta: emptyMeta,
+        }
+    }
+
+    const rawData = isRecord(payload.data) ? payload.data : {}
+    const rawAssets = Array.isArray(rawData.assets) ? rawData.assets : []
+    const assets = rawAssets
+        .map((item) => normalizeGalleryAsset(item))
+        .filter((a): a is GalleryAsset => a !== null)
+    const usage = isRecord(rawData.usage)
+        ? normalizeGalleryUsage(rawData.usage)
+        : emptyUsage
+
+    return {
+        data: { assets, usage },
+        links: normalizePaginationLinks(payload.links),
+        meta: normalizePaginationMeta(payload.meta),
+    }
+}
+
 export function normalizeGalleryUsage(payload: unknown): GalleryUsage {
     const source = isRecord(payload) ? payload : {}
     const usedBytes = getNumber(source.usedBytes)

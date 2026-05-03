@@ -33,8 +33,8 @@
     "assertions": [
         "The demo user can sign in successfully.",
         "The gallery page is displayed after authentication.",
-        "The gallery assets API returns 200.",
-        "The gallery usage API returns 200."
+        "The gallery bootstrap API (GET /gallery/bootstrap) returns 200.",
+        "The gallery page reaches data-e2e-gallery-state=ready after bootstrap completes."
     ],
     "report": {
         "markdown": true,

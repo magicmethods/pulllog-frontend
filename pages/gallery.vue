@@ -71,13 +71,14 @@ function buildPresetFilters(
 async function initializePage(): Promise<void> {
     e2eGalleryState.value = "loading"
 
-    const results = await Promise.allSettled([
-        galleryStore.fetchList(buildPresetFilters(selectedPreset.value)),
-        galleryStore.fetchUsage(),
-    ])
-
-    const hasRejected = results.some((result) => result.status === "rejected")
-    e2eGalleryState.value = hasRejected ? "error" : "ready"
+    try {
+        await galleryStore.fetchBootstrap(
+            buildPresetFilters(selectedPreset.value),
+        )
+        e2eGalleryState.value = "ready"
+    } catch {
+        e2eGalleryState.value = "error"
+    }
 }
 
 async function applyPreset(preset: GalleryPeriodPreset): Promise<void> {

@@ -86,6 +86,17 @@ declare global {
         filesCount: number
     }
 
+    type GalleryBootstrapData = {
+        assets: GalleryAsset[]
+        usage: GalleryUsage
+    }
+
+    type GalleryBootstrapResponse = {
+        data: GalleryBootstrapData
+        links: GalleryPaginationLinks
+        meta: GalleryPaginationMeta
+    }
+
     type GalleryUploadTicketRequest = {
         fileName?: string | null
         expectedBytes?: number | null

@@ -238,6 +238,44 @@ export const useGalleryStore = defineStore("gallery", () => {
         }
     }
 
+    async function fetchBootstrap(
+        nextFilters: GalleryAssetListParams = {},
+    ): Promise<GalleryBootstrapResponse> {
+        isLoading.value = true
+        isUsageLoading.value = true
+        clearError()
+
+        try {
+            filters.value = {
+                ...filters.value,
+                ...nextFilters,
+            }
+
+            const response = await galleryApi.bootstrap(filters.value)
+
+            applyListResponse(
+                {
+                    data: response.data.assets,
+                    links: response.links,
+                    meta: response.meta,
+                },
+                false,
+            )
+            usage.value = response.data.usage
+
+            return response
+        } catch (cause: unknown) {
+            error.value =
+                cause instanceof Error
+                    ? cause.message
+                    : "Failed to initialize gallery"
+            throw cause
+        } finally {
+            isLoading.value = false
+            isUsageLoading.value = false
+        }
+    }
+
     async function updateAsset(
         assetId: string,
         payload: GalleryAssetUpdateRequest,
@@ -375,6 +413,7 @@ export const useGalleryStore = defineStore("gallery", () => {
         fetchNextPage,
         fetchDetail,
         fetchUsage,
+        fetchBootstrap,
         updateAsset,
         deleteAsset,
         requestUploadTicket,

@@ -96,5 +96,6 @@ export const endpoints = {
         delete: (assetId: string) =>
             `${useConfig().apiProxy}/gallery/assets/${assetId}`, // DELETE
         usage: () => `${useConfig().apiProxy}/gallery/usage`, // GET
+        bootstrap: () => `${useConfig().apiProxy}/gallery/bootstrap`, // GET
     },
 }

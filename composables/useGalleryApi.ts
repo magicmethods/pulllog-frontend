@@ -5,6 +5,7 @@ import {
     directUploadGalleryAsset,
     normalizeGalleryAsset,
     normalizeGalleryAssetListResponse,
+    normalizeGalleryBootstrapResponse,
     normalizeGalleryUploadTicketResponse,
     normalizeGalleryUsage,
 } from "~/utils/gallery"
@@ -120,6 +121,21 @@ export function useGalleryApi() {
         return normalizeGalleryUsage(response)
     }
 
+    async function bootstrap(
+        params: GalleryAssetListParams = {},
+    ): Promise<GalleryBootstrapResponse> {
+        await ensureGalleryToken()
+        const response = await callApi<GalleryBootstrapResponse>({
+            endpoint: endpoints.gallery.bootstrap(),
+            method: "GET",
+            params,
+            onAuthError: "throw",
+            timeout: 20,
+        })
+
+        return normalizeGalleryBootstrapResponse(response)
+    }
+
     async function requestUploadTicket(
         payload: GalleryUploadTicketRequest,
     ): Promise<GalleryUploadTicketResponse> {
@@ -161,6 +177,7 @@ export function useGalleryApi() {
         update,
         delete: remove,
         usage,
+        bootstrap,
         requestUploadTicket,
         directUpload,
     }
