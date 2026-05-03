@@ -103,7 +103,9 @@ function parseArgs(rawArgs) {
     }
 
     if (pendingKey) {
-        throw new Error(`Missing value for --${pendingKey.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)}`)
+        throw new Error(
+            `Missing value for --${pendingKey.replace(/[A-Z]/g, (match) => `-${match.toLowerCase()}`)}`,
+        )
     }
 
     return parsed
@@ -204,7 +206,10 @@ function assertFrontendAuthProxyReady({ frontendURL, timeoutMs }) {
                     return
                 }
 
-                if (response.statusCode !== 422 && response.statusCode !== 400) {
+                if (
+                    response.statusCode !== 422 &&
+                    response.statusCode !== 400
+                ) {
                     reject(
                         new Error(
                             `[e2e-health] local-dev auth preflight expected HTTP 400/422 from ${loginProbeURL} with empty credentials, but got ${response.statusCode ?? "unknown"}.`,

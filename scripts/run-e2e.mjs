@@ -33,10 +33,7 @@ for (const arg of rawArgs) {
 
     if (arg.startsWith("--project=") || arg.startsWith("--projects=")) {
         const [, value = ""] = arg.split(/=(.*)/s, 2)
-        env.PLAYWRIGHT_PROJECTS = appendValue(
-            env.PLAYWRIGHT_PROJECTS,
-            value,
-        )
+        env.PLAYWRIGHT_PROJECTS = appendValue(env.PLAYWRIGHT_PROJECTS, value)
         continue
     }
 
@@ -114,6 +111,15 @@ if (runtimeSelection.baseURL) {
 process.stderr.write(
     `[run-e2e] Resolved runtime lane: ${runtimeSelection.lane}\n`,
 )
+
+if (
+    runtimeSelection.lane === "local-dev" &&
+    env.PLAYWRIGHT_ALLOW_LOCAL_DEV_LANE !== "1"
+) {
+    throw new Error(
+        "local-dev lane is disabled by default. Set PLAYWRIGHT_ALLOW_LOCAL_DEV_LANE=1 only for documented exception cases.",
+    )
+}
 
 if (runtimeSelection.lane === "local-dev") {
     runLocalDevHealthCheck(env, runtimeSelection)
@@ -216,7 +222,10 @@ function resolveRuntimeSelection(runtimeEnv) {
     if (selectedManifests.length === 0) {
         return {
             lane: requestedLane ?? "local-e2e",
-            baseURL: resolveLaneBaseURL(requestedLane ?? "local-e2e", runtimeEnv),
+            baseURL: resolveLaneBaseURL(
+                requestedLane ?? "local-e2e",
+                runtimeEnv,
+            ),
             useExistingServers: (requestedLane ?? "local-e2e") === "local-dev",
         }
     }
@@ -297,7 +306,10 @@ function resolveSelectedManifests(runtimeEnv) {
             return false
         }
 
-        if (requestedEnv && manifest.env?.trim().toLowerCase() !== requestedEnv) {
+        if (
+            requestedEnv &&
+            manifest.env?.trim().toLowerCase() !== requestedEnv
+        ) {
             return false
         }
 
@@ -327,7 +339,10 @@ function resolveManifestBaseURL(manifest, runtimeEnv) {
         return manifest.baseURL
     }
 
-    if (typeof manifest?.baseURLKey !== "string" || manifest.baseURLKey.length === 0) {
+    if (
+        typeof manifest?.baseURLKey !== "string" ||
+        manifest.baseURLKey.length === 0
+    ) {
         return runtimeEnv.PLAYWRIGHT_BASE_URL
     }
 
@@ -353,7 +368,10 @@ function resolveManifestRuntimeLane(manifest) {
         return "local-dev"
     }
 
-    if (typeof manifest?.baseURLKey === "string" && manifest.baseURLKey.length > 0) {
+    if (
+        typeof manifest?.baseURLKey === "string" &&
+        manifest.baseURLKey.length > 0
+    ) {
         return "local-e2e"
     }
 
@@ -365,16 +383,18 @@ function resolveLaneBaseURL(lane, runtimeEnv) {
         return runtimeEnv.PLAYWRIGHT_LOCAL_DEV_FRONTEND_URL
     }
 
-    return runtimeEnv.PLAYWRIGHT_BASE_URL_LOCAL_E2E ?? runtimeEnv.PLAYWRIGHT_BASE_URL
+    return (
+        runtimeEnv.PLAYWRIGHT_BASE_URL_LOCAL_E2E ??
+        runtimeEnv.PLAYWRIGHT_BASE_URL
+    )
 }
 
 function runLocalDevHealthCheck(runtimeEnv, runtimeSelection) {
-    const scriptPath = path.resolve(process.cwd(), "scripts/check-e2e-health.mjs")
-    const healthArgs = [
-        scriptPath,
-        "--lane",
-        runtimeSelection.lane,
-    ]
+    const scriptPath = path.resolve(
+        process.cwd(),
+        "scripts/check-e2e-health.mjs",
+    )
+    const healthArgs = [scriptPath, "--lane", runtimeSelection.lane]
 
     env.PLAYWRIGHT_RUNTIME_LANE = runtimeSelection.lane
     if (runtimeSelection.baseURL) {

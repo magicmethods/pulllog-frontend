@@ -56,6 +56,44 @@
             "problemMatcher": []
         },
         {
+            "label": "Frontend E2E Lane: Start unified stack",
+            "detail": "frontend/backend を local-e2e で同時起動します。既に両方が健全ならスキップし、不整合時は対象ポートを解放して再起動します。",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "$backendPath = (Resolve-Path '${workspaceFolder}/../backend/stable').Path; $frontendPath = (Resolve-Path '${workspaceFolder}').Path; function Test-BackendReady { try { $response = Invoke-WebRequest -UseBasicParsing -Uri 'http://127.0.0.1:3030/api/v1/dummy' -TimeoutSec 2; return $response.StatusCode -eq 200 } catch { return $false } }; $frontendReady = Test-NetConnection -ComputerName '127.0.0.1' -Port 43173 -InformationLevel Quiet -WarningAction SilentlyContinue; $backendReady = Test-BackendReady; if ($frontendReady -and $backendReady) { Write-Host 'E2E unified lane is already running. Skip startup.'; exit 0 }; $portOwners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in 3030, 43173 } | Select-Object -ExpandProperty OwningProcess -Unique; if ($portOwners) { $portOwners | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }; Write-Host ('Freed port owner PID(s): ' + ($portOwners -join ', ')) }; Start-Process powershell -WindowStyle Hidden -WorkingDirectory $backendPath -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-Command','composer run e2e:serve'; Start-Process powershell -WindowStyle Hidden -WorkingDirectory $frontendPath -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-Command','pnpm exec cross-env NUXT_TYPESCRIPT_CHECK=false nuxt dev --dotenv .env.e2e --host 127.0.0.1 --port 43173'; $deadline = (Get-Date).AddSeconds(150); $frontendReady = $false; $backendReady = $false; while ((Get-Date) -lt $deadline) { $frontendReady = Test-NetConnection -ComputerName '127.0.0.1' -Port 43173 -InformationLevel Quiet -WarningAction SilentlyContinue; $backendReady = Test-BackendReady; if ($frontendReady -and $backendReady) { break }; Start-Sleep -Milliseconds 500 }; if (-not ($frontendReady -and $backendReady)) { Write-Error 'E2E unified lane startup failed: frontend/backend did not become ready in time.'; exit 1 }; Write-Host 'E2E unified lane is ready (frontend:43173, backend:3030).'"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend E2E Lane: Stop unified stack",
+            "detail": "local-e2e で利用する frontend/backend の起動プロセスを停止します。",
+            "type": "shell",
+            "command": "powershell",
+            "args": [
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "$stopped = @(); $portOwners = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue | Where-Object { $_.LocalPort -in 3030, 43173 } | Select-Object -ExpandProperty OwningProcess -Unique; if ($portOwners) { $portOwners | ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue; $stopped += $_ } }; $targets = Get-CimInstance Win32_Process | Where-Object { ($_.Name -match '^node(.exe)?$' -and $_.CommandLine -match 'nuxt dev --dotenv \\.env\\.e2e' -and $_.CommandLine -match 'pulllog\\\\frontend') -or ($_.Name -match '^php(.exe)?$' -and $_.CommandLine -match 'artisan serve --env=e2e --host=127.0.0.1 --port=3030' -and $_.CommandLine -match 'pulllog\\\\backend\\\\stable') }; if ($targets) { $targets | ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue; $stopped += $_.ProcessId } }; $stopped = $stopped | Sort-Object -Unique; if ($stopped.Count -gt 0) { Write-Host ('Stopped PID(s): ' + ($stopped -join ', ')) } else { Write-Host 'No unified e2e lane processes were found.' }"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Frontend E2E Lane: Restart unified stack",
+            "detail": "local-e2e の frontend/backend を停止してから再起動します。",
+            "dependsOn": [
+                "Frontend E2E Lane: Stop unified stack",
+                "Frontend E2E Lane: Start unified stack"
+            ],
+            "dependsOrder": "sequence",
+            "problemMatcher": []
+        },
+        {
             "label": "Frontend E2E: Run default matrix",
             "detail": "既定の PC・タブレット・スマホ構成で E2E を実行します。",
             "type": "shell",
@@ -134,7 +172,8 @@
             ],
             "options": {
                 "env": {
-                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}"
+                    "PLAYWRIGHT_PROJECTS": "${input:e2eProjects}",
+                    "PLAYWRIGHT_ALLOW_LOCAL_DEV_LANE": "1"
                 }
             },
             "problemMatcher": []

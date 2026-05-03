@@ -90,6 +90,11 @@ This repository keeps two runtime lanes for frontend E2E execution:
 - `local-e2e` as the standard default lane
 - `local-dev` as the exception lane for cases that must target an already running local frontend/backend pair
 
+Lane policy:
+- `local-e2e` is the default lane for development and test execution.
+- frontend and backend must always run on the same lane.
+- cross-lane pairings are invalid and must be treated as failed setup.
+
 Runtime lane resolution is performed in this order:
 1. `manifest.execution.runtimeLane`
 2. inference from manifest base URL shape
@@ -244,6 +249,27 @@ Before a `local-dev` run starts, the runner must verify:
 - backend health on `http://127.0.0.1:3030/api/v1/dummy`
 
 If either endpoint is unavailable, the run must fail before Playwright starts so that local environment problems are reported clearly.
+
+### local-dev exception criteria
+Use `local-dev` only when at least one of the following is true:
+- the case must validate the real `https://pull.log:4649` host behavior outside the Playwright-managed lane
+- the case depends on externally running local processes or data that cannot be reproduced in `local-e2e`
+- the case explicitly verifies host/cookie/certificate behavior tied to the local dev host
+
+If none of the criteria apply, the case should run on `local-e2e`.
+
+### Unified lane startup tasks
+To reduce lane mismatch incidents, always start/stop local E2E runtime through VS Code tasks:
+- `Frontend E2E Lane: Start unified stack`
+- `Frontend E2E Lane: Stop unified stack`
+- `Frontend E2E Lane: Restart unified stack`
+
+Task behavior:
+- if both frontend (`:43173`) and backend (`:3030`) are already healthy, startup is skipped
+- otherwise the task frees the lane ports and starts both processes on the same lane
+- stop task shuts down both lane processes to reset state cleanly
+
+Do not start only one side manually when running E2E, because this reintroduces cross-lane drift.
 
 ## 13. Review criteria
 A healthy E2E case should satisfy all of the following:
