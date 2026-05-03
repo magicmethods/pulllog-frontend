@@ -84,5 +84,6 @@
 - 上位階層（`pulllog/AGENTS.md`）の共通方針に合わせ、Windows では PowerShell を優先する。
 - Python は存在を前提にしない。未確認状態で Python スクリプトを生成・実行しない。
 - 実行コマンドは以下を優先する: `package.json` の既存スクリプト → リポジトリ内既存スクリプト → PowerShell → Node.js。
+- 検索系コマンドは `rg`（ripgrep）を第一選択とし、ファイル一覧は `rg --files` を優先する。
 - frontend ではパッケージマネージャーを `pnpm` に固定し、`npm` へ切り替えない。
 - 検証は最小単位から行い、不要なフルビルドや無関係な変更を避ける。
