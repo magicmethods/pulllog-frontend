@@ -400,7 +400,8 @@ async function buildHtmlDocument(
     templateMetadata = {},
 ) {
     const template = await loadEvidenceTemplate(templateMetadata)
-    const rawComparisonSection = buildSnapshotComparisonSection(templateMetadata)
+    const rawComparisonSection =
+        buildSnapshotComparisonSection(templateMetadata)
     const comparisonSection = rawComparisonSection
         ? await inlineLocalImageSources(rawComparisonSection, markdownFilePath)
         : ""
@@ -411,7 +412,8 @@ async function buildHtmlDocument(
     return applyHtmlTemplate(template, {
         TITLE: escapeHtml(title),
         BASE_HREF: escapeHtml(baseHref),
-        SUBTITLE: "PDF evidence generated from the manifest-driven E2E Markdown report.",
+        SUBTITLE:
+            "PDF evidence generated from the manifest-driven E2E Markdown report.",
         SOURCE_NAME: escapeHtml(`${title}.md`),
         GENERATED_AT: escapeHtml(new Date().toISOString()),
         SNAPSHOT_COMPARISON_SECTION: comparisonSection,
