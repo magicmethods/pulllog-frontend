@@ -397,6 +397,20 @@ export class AuthPage {
         }
 
         if (/\/auth\/login(?:[?#].*)?$/.test(currentUrl)) {
+            if (loginResponse && loginResponse.status() < 400) {
+                await page
+                    .goto("/apps", {
+                        waitUntil: "domcontentloaded",
+                        timeout: 30000,
+                    })
+                    .catch(() => {})
+                await waitForLoaderToClear(page)
+
+                if (this.isAppsUrl(page.url())) {
+                    return
+                }
+            }
+
             const [loginStatusSummary, loginErrorMessage] = await Promise.all([
                 this.formatLoginResponseSummary(loginResponse),
                 this.readVisibleLoginError(page),
